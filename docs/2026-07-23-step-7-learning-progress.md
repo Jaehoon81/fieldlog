@@ -83,6 +83,25 @@
 | 1-3 | Native build·artifact와 실기기 증거 | 사용자 검증 완료 | module metadata, Kotlin·Swift source, EAS development build와 지원 실기기 결과 |
 | 1-4 | 결과 상태와 남은 제한사항 | 사용자 검증 완료 | `통과`, `확인`, `미검증`, `스킵`, platform·시점별 제한 |
 
+### 2~11단원 서브 스탭 예정안
+
+아래 목록은 2026-07-24 기준 전체 학습량과 흐름을 파악하기 위한 비확정 예정안이다. 완료된 1단원 4개와 남은 2~11단원 42개를 합쳐 총 46개 서브 스탭을 예상한다. 예정안만으로 각 단원의 `대기` 상태를 바꾸거나 학습 완료 증거로 사용하지 않는다.
+
+각 단원을 시작하기 직전에 `docs/learning-guide.md`와 실제 source를 다시 읽고 의존 관계와 분량을 확인한 뒤 사용자와 최종 목록을 확정한다. 이 과정에서 제목·개수·경계가 조정될 수 있으며, 확정된 목록만 해당 단원의 진행 상태로 기록한다.
+
+| 단원 | 예상 개수 | 예정 서브 스탭 | 간략 범위 |
+| --- | ---: | --- | --- |
+| 2. 프로젝트 구조와 책임 | 3개 | `2-1` 저장소 지도와 source/generated 경계<br>`2-2` 계층별 책임과 공용 코드 분리 기준<br>`2-3` 하나의 기록을 따라가는 source 읽기 순서 | `app/`, `src/`, `modules/`, config·test·generated output의 책임과 관측 기록 data flow |
+| 3. Expo Router 화면 흐름 | 4개 | `3-1` Root Stack, Tabs와 파일 기반 route<br>`3-2` 현재 상태에서 새 기록 화면으로<br>`3-3` 기록 목록에서 동적 상세 화면으로<br>`3-4` URL state, `CaptureContext`와 platform별 navigation | route group·동적 segment, 생성·상세 이동, 임시 상태와 iOS back title |
+| 4. 앱 시작, SQLite migration, Zustand hydration | 4개 | `4-1` Root 초기화 tree와 화면 표시 gate<br>`4-2` SQLite migration과 schema version<br>`4-3` Zustand persist와 hydration<br>`4-4` 초기화 완료와 QueryClient 동작 정책 | DB와 설정 복원 순서, migration transaction, persisted state와 route 노출 조건 |
+| 5. 근접 센서와 native lifecycle | 5개 | `5-1` 공통 TypeScript bridge 계약<br>`5-2` Android `SensorManager` lifecycle<br>`5-3` iOS `UIDevice` lifecycle<br>`5-4` `useProximity` 상태와 cleanup<br>`5-5` Android·iOS 차이와 공통 상태 정규화 | JS 계약부터 Kotlin·Swift resource lifecycle, hook 상태와 platform 차이 |
+| 6. 위치, 날씨, `CaptureContext`, 저장 흐름 | 6개 | `6-1` Foreground 위치 권한과 위치 서비스<br>`6-2` 날씨 API, schema와 재시도<br>`6-3` `CaptureContext` snapshot<br>`6-4` React Hook Form과 Zod<br>`6-5` SQLite 저장과 TanStack Query cache<br>`6-6` 저장 단위와 표시 설정 분리 | 사용자 요청부터 위치·날씨 조회, snapshot·form·DB 저장과 섭씨/화씨 표시까지의 end-to-end 흐름 |
+| 7. 각 library의 실제 역할 | 2개 | `7-1` Library 책임 지도<br>`7-2` 자주 혼동하는 상태 경계 | Expo/RN library별 실제 책임과 TypeScript·Zod, Axios·Query, DB·store·form 경계 |
+| 8. Expo 제공 기능과 직접 작성한 native 기능 | 4개 | `8-1` Expo SDK package와 local Expo Module<br>`8-2` App config, config plugin과 권한<br>`8-3` Autolinking, Prebuild와 CNG<br>`8-4` Expo Go, development build, EAS와 Metro | SDK 기능과 custom native code, generated project, build·반복 개발 경계 |
+| 9. 주요 TypeScript·React·Kotlin·Swift 문법 | 6개 | `9-1` TypeScript union과 type derivation<br>`9-2` Nullable 값의 platform 정규화<br>`9-3` React callback, ref와 effect lifecycle<br>`9-4` SQL binding과 비동기 문법<br>`9-5` Kotlin 문법과 Expo Module DSL<br>`9-6` Swift 문법과 lifecycle | 실제 FieldLog source에 등장하는 type, hook, SQL, 비동기와 native 언어 문법 |
+| 10. 자동화와 실기기 검증 구분 | 4개 | `10-1` 질문에 맞는 증거와 자동화 범위<br>`10-2` Native build·autolink·artifact 증거<br>`10-3` 실기기 runtime과 남은 제한<br>`10-4` 재현 명령과 결과 기록법 | Jest mock, native build, artifact, 실기기 증거와 과장 없는 결과 표현 |
+| 11. 복습 실습 | 4개 | `11-1` Type·초기화·native 흐름 추적<br>`11-2` 위치·DB·cache·store 흐름 추적<br>`11-3` 작은 test-first 변경 실습<br>`11-4` 최종 source 질의와 학습 종료 점검 | 주요 source를 다시 연결하고 원복 가능한 작은 실습과 최종 완료 기준 확인 |
+
 ## 질문·결론 기록
 
 정식 학습을 시작했다. 모든 대화 내용을 옮기지 않고 source 확인 중 나온 핵심 판단과 해결된 결론만 기록한다.
