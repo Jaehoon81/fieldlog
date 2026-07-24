@@ -1,6 +1,6 @@
 # FieldLog 샘플 앱 구현 계획
 
-> 상태: 구현·검증·GitHub 1차 push 완료, 대화형 학습 대기
+> 상태: 구현·검증·GitHub 1차 push 완료, 대화형 학습 진행 중
 
 ## 1. 요약
 
@@ -459,7 +459,7 @@ Jest에서는 local native module을 명시적으로 mock하고 TypeScript contr
 학습서에는 구현되지 않은 기능이나 검증하지 않은 결과를 포함하지 않는다. 실제 코드 flow와 다른 프로젝트에 재사용할 핵심 패턴을 중심으로 설명하고, API 전체 목록이나 범용 이론을 길게 나열하지 않는다.
 학습서 문서 자체는 최신 source·검증 결과를 반영한 기준 자료로 유지한다. 실제 학습은 Codex가 각 대단원을 적정 크기의 서브 스탭으로 나누어 한 번에 하나씩 대화창에 제시하고, 학습 목표·충분한 설명·실제 source 경로와 코드·동작 예시·서브 스탭 핵심 요약을 제공하는 방식으로 진행한다. 사용자는 실제 source를 직접 찾아 읽고 질문하며, 오류·누락이 없다는 사용자 확인 후에만 해당 서브 스탭을 완료한다.
 
-8번 `AGENTS.md` 정비, 9번 GitHub repository 연결과 10번 현재 기준 source·문서의 1차 commit/push를 완료했다. 다음 작업은 [대화형 학습 진행표](./2026-07-23-step-7-learning-progress.md)를 기준으로 한 실제 대화형 학습과 source 검증이다. 학습 중 오류·보완점이 발견되면 학습서를 수정하고 검증한 뒤 1차 push와 구분되는 별도의 추가 commit/push로 반영한다.
+8번 `AGENTS.md` 정비, 9번 GitHub repository 연결과 10번 현재 기준 source·문서의 1차 commit/push를 완료했다. 현재는 [대화형 학습 진행표](./2026-07-23-step-7-learning-progress.md)를 기준으로 실제 대화형 학습과 source 검증을 진행하며, 현재 서브 스탭과 완료 결론은 진행표에서 관리한다. 학습 중 오류·보완점이 발견되면 학습서를 수정하고 검증한 뒤 1차 push와 구분되는 별도의 추가 commit/push로 반영한다.
 
 모든 서브 스탭의 source 확인과 질의응답을 완료하고 필요한 학습서 보완까지 끝내는 것으로 학습 범위를 마무리한다. preview/production release나 store 운영 계획은 작성하지 않는다.
 
@@ -499,6 +499,6 @@ Jest에서는 local native module을 명시적으로 mock하고 TypeScript contr
 | 저장소 작업 지침과 진입 문서 | 완료 | `agents-md-improver` 절차로 기존 `AGENTS.md`를 31/100(D)으로 평가한 뒤 사용자 승인에 따라 한글 작업 지침, `architecture-internals.md`와 실제 FieldLog용 한글 `README.md`를 반영하고 문서 검증을 통과함. [8번 상세 기록](./2026-07-23-step-8-handoff.md) |
 | GitHub repository 생성·연결 | 완료 | public [`Jaehoon81/fieldlog`](https://github.com/Jaehoon81/fieldlog)을 빈 repository로 생성하고 HTTPS `origin`에 연결. Description은 `Expo 기반 React-Native 학습용 Sample App.`으로 설정함. [9·10번 통합 기록](./2026-07-24-step-9-10-handoff.md) |
 | 현재 source·문서 1차 commit/push | 완료 | `master`에서 project/config, native module, data/API/state, screen flow, tests, docs의 6개 commit을 생성하고 최초 push함. 통합 handoff와 상태 문서는 별도 closeout commit으로 추가 push함. [9·10번 통합 기록](./2026-07-24-step-9-10-handoff.md) |
-| 대화형 학습·source 검증 | 대기 | 저장소 선행 작업과 1차 push를 완료했으며 [학습 진행표](./2026-07-23-step-7-learning-progress.md)에 따라 한 서브 스탭씩 진행. 학습 중 실제 보완이 생길 때만 별도 추가 commit/push |
+| 대화형 학습·source 검증 | 진행 중 | 1단원 1-1~1-4 사용자 검증 완료. 이후 현재 위치는 [학습 진행표](./2026-07-23-step-7-learning-progress.md)에서 관리하며, 학습 중 실제 보완이 생길 때만 별도 추가 commit/push |
 
-현재 구현, Android/iOS EAS build, 지원 기기 실기기 검증, 최신 source 기반 학습서 확장, 저장소 지침 정비와 9·10번 GitHub 1차 push까지 완료했습니다. Android native `unavailable` 검증은 성공이 아닌 사용자 승인 `스킵`으로 유지하며 남은 필수 검증으로 취급하지 않습니다. 다음 작업은 대화형 학습·source 검증이며, 학습 중 실제 수정이 생길 때만 관련 검증 후 별도의 추가 commit/push를 진행합니다.
+현재 구현, Android/iOS EAS build, 지원 기기 실기기 검증, 최신 source 기반 학습서 확장, 저장소 지침 정비와 9·10번 GitHub 1차 push까지 완료했습니다. Android native `unavailable` 검증은 성공이 아닌 사용자 승인 `스킵`으로 유지하며 남은 필수 검증으로 취급하지 않습니다. 대화형 학습·source 검증은 진행 중이며 1단원 사용자 검증을 완료했습니다. 이후 현재 위치는 학습 진행표에서 관리하고, 학습 중 실제 수정이 생길 때만 관련 검증 후 별도의 추가 commit/push를 진행합니다.

@@ -6,7 +6,7 @@
 - authoritative 계획서: [implementation-plan.md](./implementation-plan.md)
 - 7번 완료 기록: [2026-07-23-step-7-handoff.md](./2026-07-23-step-7-handoff.md)
 - 저장소 선행 작업 완료 기록: [2026-07-24-step-9-10-handoff.md](./2026-07-24-step-9-10-handoff.md)
-- 현재 상태: **학습 방식 검증과 8~10번 저장소 선행 작업·1차 push 완료, 실제 대화형 학습 시작 대기**
+- 현재 상태: **대화형 학습 진행 중, 1단원 1-1~1-4 사용자 검증 완료·2단원 시작 대기**
 
 이 문서는 대화 내용을 복제하지 않고 대화형 학습의 현재 위치, 사용자 source 확인 결과, 질문의 결론과 학습서 수정 필요 사항을 새 세션에서도 복원할 수 있게 기록한다.
 
@@ -15,11 +15,11 @@
 1. `[완료]` 8번 `AGENTS.md Improver` 조사·수정안 검토와 승인된 반영을 마쳤다.
 2. `[완료]` 9번 GitHub repository 조건 확정·생성·연결을 마쳤다.
 3. `[완료]` 10번 현재 기준 source·문서의 의미·기능·작업별 commit과 1차 push를 마쳤다.
-4. `[다음]` 이 진행표를 기준으로 대화형 학습과 실제 source 확인을 시작한다.
+4. `[진행 중]` 이 진행표를 기준으로 대화형 학습과 실제 source 확인을 진행한다. 현재 1단원 1-1~1-4를 완료했고 2단원 시작을 기다린다.
 5. 학습 중 오류·누락이 발견되면 학습서를 수정하고 필요한 문서 검증을 다시 수행한다.
 6. 학습으로 생긴 수정은 기존 1차 push와 구분해 추가 commit/push한다.
 
-실제 학습을 시작하기 전까지 각 학습 단원의 상태는 `대기`로 유지한다. 형식 검토를 위해 앞부분을 대화형으로 재구성한 결과는 학습 완료 증거로 사용하지 않는다.
+정식 대화형 학습은 2026-07-24 시작했다. 형식 검토를 위해 앞부분을 대화형으로 재구성했던 기존 결과는 학습 완료 증거로 사용하지 않고, 실제 source 확인과 질의응답 뒤 사용자가 완료를 명시한 서브 스탭만 완료로 기록한다.
 
 ## 대화형 학습 계약
 
@@ -60,7 +60,7 @@
 
 | 순서 | 학습 단원 | 상태 | 현재 기록 |
 | --- | --- | --- | --- |
-| 1 | 먼저 알아둘 검증 경계 | 대기 | 형식 표본만 작성, 정식 학습 미시작 |
+| 1 | 먼저 알아둘 검증 경계 | 사용자 검증 완료 | 1-1~1-4 사용자 검증 완료 |
 | 2 | 프로젝트 구조와 책임 | 대기 | 서브 스탭 분할 형식 승인, 정식 학습 미시작 |
 | 3 | Expo Router 화면 흐름 | 대기 |  |
 | 4 | 앱 시작, SQLite migration, Zustand hydration | 대기 |  |
@@ -74,21 +74,33 @@
 
 각 대단원의 서브 스탭 목록은 실제 학습 직전에 제시하고 사용자가 분량을 확인한 뒤 이 표 또는 해당 단원 아래에 추가한다. 2장 형식 표본의 서브 스탭 구분은 다음 학습 때 재확인하며 자동으로 완료 처리하지 않는다.
 
+### 1단원 서브 스탭 진행 상태
+
+| 순서 | 서브 스탭 | 상태 | 확인 범위 |
+| --- | --- | --- | --- |
+| 1-1 | 증거 층과 주장 범위 | 사용자 검증 완료 | source·config, 자동화, native build·artifact, 실기기와 Git 증거가 확인하는 범위를 구분 |
+| 1-2 | Jest mock과 실제 native code의 경계 | 사용자 검증 완료 | `jest.setup.ts`, TypeScript native 계약, hook·화면 test |
+| 1-3 | Native build·artifact와 실기기 증거 | 사용자 검증 완료 | module metadata, Kotlin·Swift source, EAS development build와 지원 실기기 결과 |
+| 1-4 | 결과 상태와 남은 제한사항 | 사용자 검증 완료 | `통과`, `확인`, `미검증`, `스킵`, platform·시점별 제한 |
+
 ## 질문·결론 기록
 
-아직 정식 학습을 시작하지 않았다. 학습 중에는 모든 대화 내용을 옮기지 않고 다음 항목만 기록한다.
+정식 학습을 시작했다. 모든 대화 내용을 옮기지 않고 source 확인 중 나온 핵심 판단과 해결된 결론만 기록한다.
 
 | 단원·서브 스탭 | 확인한 source | 질문 또는 발견 | 결론 | 상태 |
 | --- | --- | --- | --- | --- |
-|  |  |  |  |  |
+| 1-1 증거 층과 주장 범위 | `package.json`, `app.json`, `modules/proximity-sensor/src/ProximitySensorModule.ts`, `docs/learning-guide.md` 1장, `docs/implementation-plan.md` 9.4절 | command 선언만으로 실행 성공을 증명할 수 없고, `requireNativeModule("ProximitySensor")`는 JS 계약이지 Kotlin·Swift compile 근거가 아니며, 지원 Android 성공을 native `unavailable` 성공으로 확대할 수 없음을 확인 | 실행 주체가 사용자일 필요는 없지만 해당 checkout·환경의 실제 실행 기록이 필요하다. Native compile은 build log·artifact, 센서 없는 Android 경로는 해당 조건의 실물 기기 또는 emulator 증거가 필요하며 현재는 `스킵`이다. 학습서 오류·누락은 발견되지 않음 | 사용자 검증 완료 |
+| 1-2 Jest mock과 실제 native code의 경계 | `package.json`, `jest.setup.ts`, `modules/proximity-sensor/index.ts`, `modules/proximity-sensor/src/ProximitySensorModule.ts`, `modules/proximity-sensor/src/ProximitySensor.types.ts`, `src/hooks/use-proximity.ts`, `src/hooks/use-proximity.test.tsx`, `app-tests/current-status-screen.test.tsx` | hook test는 실제 `useProximity`에 mocked native module을 주입하고, 화면 test는 `useProximity` 자체를 mock한다. `near/far` event와 listener 등록 실패는 test가 callback과 반환값을 직접 주입함을 확인 | `addListenerMock.mockImplementation`이 callback을 보관하고 test가 `emit`으로 event를 호출한다. `remove()` assertion은 hook의 mock subscription 호출만 증명하며 native resource 해제를 증명하지 않는다. 두 `mockResolvedValueOnce`는 실제 Android 실패가 아닌 hook 분기 simulation이다. 학습서 오류·누락은 발견되지 않음 | 사용자 검증 완료 |
+| 1-3 Native build·artifact와 실기기 증거 | `modules/proximity-sensor/expo-module.config.json`, `modules/proximity-sensor/src/ProximitySensorModule.ts`, `modules/proximity-sensor/android/build.gradle`, `modules/proximity-sensor/ProximitySensor.podspec`, Kotlin·Swift module source, `docs/2026-07-22-step-4-handoff.md`, `docs/2026-07-23-step-5-handoff.md` | JS runtime 이름은 Kotlin·Swift의 `Name("ProximitySensor")`와 일치하고 autolinking class 이름은 별도 역할임을 확인했다. Artifact marker, 실기기 증거와 native·JS 변경의 rebuild 경계를 구분함 | DEX·IPA marker는 compile된 module이 최종 binary에 포함됐음을 추가로 증명하지만 설치·runtime·센서 동작은 증명하지 않는다. 실제 `near/far`와 수행한 lifecycle 시나리오는 지원 실기기 증거다. Swift와 module metadata 변경은 development rebuild, TSX 문구 변경은 기존 client와 Metro로 확인한다. 학습서 오류·누락은 발견되지 않음 | 사용자 검증 완료 |
+| 1-4 결과 상태와 남은 제한사항 | `docs/learning-guide.md` 1장, `docs/implementation-plan.md` 9.4절·현재 진행 상태, Android `ProximitySensorModule.kt`, `src/hooks/use-proximity.ts`, observation route의 `headerBackTitle`, 설치된 navigation type | 날짜별 `미검증` 이력과 최신 판정, `스킵` 범위 결정, source 분기와 native runtime 증거, platform·artifact 시점별 제한을 구분했다. 비날짜 문서에 대화형 학습 `대기` 문구가 남은 상태 누락도 확인 | 과거 행은 당시 증거 상태를 보존하고 현재 판정은 최신 행을 따른다. `스킵`은 runtime 성공이 아니며, iPhone UI 영속화는 sandbox DB 직접 조회가 아니고 `headerBackTitle` 수정 후 Android 실기기는 재실행하지 않았으며 날씨 코드는 고정값이 아니다. 승인에 따라 비날짜 상태 문구를 현재 진행 상태와 진행표 기준으로 갱신 | 사용자 검증 완료 |
 
 ## 학습서 수정 대기 목록
 
-현재 수정 대기 항목은 없다.
+현재 수정 대기 항목은 없다. 1-4에서 발견한 상태 문구 누락은 아래와 같이 반영했다.
 
 | 단원·서브 스탭 | 수정 대상 | 근거 | 검증 방법 | 반영 상태 |
 | --- | --- | --- | --- | --- |
-|  |  |  |  |  |
+| 1-4 | `docs/learning-guide.md`, `docs/implementation-plan.md`, 이 진행표 | 실제 학습이 진행 중인데 비날짜 상태 문구 일부가 `대기`로 남아 있었음 | 경로·link·Markdown 구조·오래된 상태 문구·trailing whitespace 확인 | 반영 완료 |
 
 학습 중 수정이 생기면 source·package·build·app config 변경과 문서 전용 변경을 구분한다. 문서 보완은 좁은 link·snippet·Markdown 검증을 수행하고, 동작 변경이 필요할 때는 별도 Impact Review와 해당 범위의 자동화·build·실기기 검증을 먼저 정한다.
 
