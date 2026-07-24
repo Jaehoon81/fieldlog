@@ -5,16 +5,17 @@
 - 학습 기준: [learning-guide.md](./learning-guide.md)
 - authoritative 계획서: [implementation-plan.md](./implementation-plan.md)
 - 7번 완료 기록: [2026-07-23-step-7-handoff.md](./2026-07-23-step-7-handoff.md)
-- 현재 상태: **학습 방식 검증 완료, 실제 대화형 학습은 남은 저장소 작업과 1차 commit/push 이후까지 대기**
+- 저장소 선행 작업 완료 기록: [2026-07-24-step-9-10-handoff.md](./2026-07-24-step-9-10-handoff.md)
+- 현재 상태: **학습 방식 검증과 8~10번 저장소 선행 작업·1차 push 완료, 실제 대화형 학습 시작 대기**
 
 이 문서는 대화 내용을 복제하지 않고 대화형 학습의 현재 위치, 사용자 source 확인 결과, 질문의 결론과 학습서 수정 필요 사항을 새 세션에서도 복원할 수 있게 기록한다.
 
 ## 실행 순서
 
-1. 8번 `AGENTS.md Improver` 조사·수정안 검토와 승인된 반영을 마친다.
-2. 9번 GitHub repository 조건 확정·생성·연결을 마친다.
-3. 10번 현재 기준 source·문서의 의미·기능·작업별 commit과 1차 push를 마친다.
-4. 이 진행표를 기준으로 대화형 학습과 실제 source 확인을 시작한다.
+1. `[완료]` 8번 `AGENTS.md Improver` 조사·수정안 검토와 승인된 반영을 마쳤다.
+2. `[완료]` 9번 GitHub repository 조건 확정·생성·연결을 마쳤다.
+3. `[완료]` 10번 현재 기준 source·문서의 의미·기능·작업별 commit과 1차 push를 마쳤다.
+4. `[다음]` 이 진행표를 기준으로 대화형 학습과 실제 source 확인을 시작한다.
 5. 학습 중 오류·누락이 발견되면 학습서를 수정하고 필요한 문서 검증을 다시 수행한다.
 6. 학습으로 생긴 수정은 기존 1차 push와 구분해 추가 commit/push한다.
 

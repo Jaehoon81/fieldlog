@@ -25,7 +25,7 @@
 
 대화창은 전달과 질의응답 수단이고 이 문서는 durable 기준이다. 대화 내용을 그대로 복제하지 않으며, 학습 중 확인된 사실·설명·source 경계의 변경만 문서에 반영한다. 너무 큰 단락은 학습 과정에서 검증된 구분에 따라 소제목을 점진적으로 추가할 수 있다.
 
-실제 대화형 학습과 source 검증은 `AGENTS.md` 정비, GitHub repository 연결과 현재 기준 source·문서의 1차 commit/push를 포함한 남은 작업을 먼저 마친 뒤 최종 학습 단계로 진행한다. 학습 중 문서 수정이 생기면 그 수정만 다시 검증하고 별도의 추가 commit/push 대상으로 삼는다. 진행 상태와 수정 필요 사항은 [2026-07-23-step-7-learning-progress.md](./2026-07-23-step-7-learning-progress.md)에 기록한다.
+`AGENTS.md` 정비, GitHub repository 연결과 현재 기준 source·문서의 1차 commit/push를 완료했다. 다음 작업은 [2026-07-23-step-7-learning-progress.md](./2026-07-23-step-7-learning-progress.md)를 기준으로 한 실제 대화형 학습과 source 검증이다. 학습 중 문서 수정이 생기면 그 수정만 다시 검증하고 1차 push와 구분되는 별도의 추가 commit/push 대상으로 삼는다.
 
 ## 1. 먼저 알아둘 검증 경계
 

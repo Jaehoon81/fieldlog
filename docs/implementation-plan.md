@@ -1,6 +1,6 @@
 # FieldLog 샘플 앱 구현 계획
 
-> 상태: 학습 중심의 최종 구현 범위 확정, 기능 구현 미착수
+> 상태: 구현·검증·GitHub 1차 push 완료, 대화형 학습 대기
 
 ## 1. 요약
 
@@ -459,7 +459,7 @@ Jest에서는 local native module을 명시적으로 mock하고 TypeScript contr
 학습서에는 구현되지 않은 기능이나 검증하지 않은 결과를 포함하지 않는다. 실제 코드 flow와 다른 프로젝트에 재사용할 핵심 패턴을 중심으로 설명하고, API 전체 목록이나 범용 이론을 길게 나열하지 않는다.
 학습서 문서 자체는 최신 source·검증 결과를 반영한 기준 자료로 유지한다. 실제 학습은 Codex가 각 대단원을 적정 크기의 서브 스탭으로 나누어 한 번에 하나씩 대화창에 제시하고, 학습 목표·충분한 설명·실제 source 경로와 코드·동작 예시·서브 스탭 핵심 요약을 제공하는 방식으로 진행한다. 사용자는 실제 source를 직접 찾아 읽고 질문하며, 오류·누락이 없다는 사용자 확인 후에만 해당 서브 스탭을 완료한다.
 
-대화형 학습과 source 검증은 8번 `AGENTS.md` 정비, 9번 GitHub repository 연결, 10번 현재 기준 source·문서의 1차 commit/push를 먼저 마친 뒤 최종 학습 단계로 진행한다. 학습 중 오류·보완점이 발견되면 학습서를 수정하고 검증한 뒤 별도의 추가 commit/push로 반영한다. 상세 진행 상태는 [대화형 학습 진행표](./2026-07-23-step-7-learning-progress.md)를 기준으로 한다.
+8번 `AGENTS.md` 정비, 9번 GitHub repository 연결과 10번 현재 기준 source·문서의 1차 commit/push를 완료했다. 다음 작업은 [대화형 학습 진행표](./2026-07-23-step-7-learning-progress.md)를 기준으로 한 실제 대화형 학습과 source 검증이다. 학습 중 오류·보완점이 발견되면 학습서를 수정하고 검증한 뒤 1차 push와 구분되는 별도의 추가 commit/push로 반영한다.
 
 모든 서브 스탭의 source 확인과 질의응답을 완료하고 필요한 학습서 보완까지 끝내는 것으로 학습 범위를 마무리한다. preview/production release나 store 운영 계획은 작성하지 않는다.
 
@@ -477,7 +477,7 @@ Jest에서는 local native module을 명시적으로 mock하고 TypeScript contr
 - Expo Go는 초기 project 확인 용도로만 보고 native module 구현 이후에는 custom development client를 사용한다.
 - preview/production build, App Store와 Play Store 제출, OTA update는 구현하지 않는다.
 - Expo 계정, 유료 Apple Developer 계정, Android 기기, iPhone을 사용할 수 있다고 전제한다.
-- 앱 구현·build·실기기 검증 단계에는 Git repository 생성·commit·branch·push·pull request를 포함하지 않았다. 이후 사용자가 별도로 승인한 9·10번 저장소 정리와 대화형 학습에서 발생한 보완의 추가 commit/push만 별도 단계로 진행한다.
+- 앱 구현·build·실기기 검증 단계에는 Git repository 생성·commit·branch·push·pull request를 포함하지 않았다. 사용자가 별도로 승인한 9·10번에서 public GitHub repository 연결과 현재 기준 source·문서의 1차 commit/push를 완료했으며, 이후에는 대화형 학습에서 실제 보완이 발생할 때만 추가 commit/push한다.
 - Git repository와 index 상태는 앱 기능의 성공 근거로 사용하지 않으며, 저장소 정리와 학습 보완의 완료 여부만 해당 후속 단계에서 별도로 기록한다.
 - 검증할 수 없는 기기 또는 외부 환경 항목은 범위를 확대해 우회하지 않고 제한사항과 `미검증` 상태로 기록한다. 사용자가 중요도와 대체 수단을 검토한 뒤 명시적으로 제외한 검증은 성공과 구분해 `스킵`으로 기록한다.
 - 구현·검증·`docs/learning-guide.md` 작성, 별도 승인된 저장소 정리, 마지막 대화형 학습과 필요한 보완을 마치면 제품 유지보수나 release 작업 없이 프로젝트를 종료한다.
@@ -497,6 +497,8 @@ Jest에서는 local native module을 명시적으로 mock하고 TypeScript contr
 | iPhone 실기기 검증 | 통과 | iPhone 11에서 설치·기동, 센서·lifecycle, 위치·날씨, SQLite 생성·삭제·재실행, 섭씨/화씨 hydration과 iOS header 수정 확인. iOS version·device diagnostic log·sandbox DB 직접 검사는 미수집 제한으로 유지 |
 | `docs/learning-guide.md` | 확장 완료 | 2026-07-23 최신 source·config·test와 Android/iOS EAS build·지원 실기기 결과, Android native `unavailable` 스킵 경계를 반영하고 source 링크·실제 code pattern·복습 실습을 보강함. [7번 상세 기록](./2026-07-23-step-7-handoff.md) |
 | 저장소 작업 지침과 진입 문서 | 완료 | `agents-md-improver` 절차로 기존 `AGENTS.md`를 31/100(D)으로 평가한 뒤 사용자 승인에 따라 한글 작업 지침, `architecture-internals.md`와 실제 FieldLog용 한글 `README.md`를 반영하고 문서 검증을 통과함. [8번 상세 기록](./2026-07-23-step-8-handoff.md) |
-| 대화형 학습·source 검증 | 대기 | 남은 9~10번과 현재 기준 1차 push를 마친 뒤 [학습 진행표](./2026-07-23-step-7-learning-progress.md)에 따라 한 서브 스탭씩 진행. 학습 중 보완은 별도 추가 commit/push 대상 |
+| GitHub repository 생성·연결 | 완료 | public [`Jaehoon81/fieldlog`](https://github.com/Jaehoon81/fieldlog)을 빈 repository로 생성하고 HTTPS `origin`에 연결. Description은 `Expo 기반 React-Native 학습용 Sample App.`으로 설정함. [9·10번 통합 기록](./2026-07-24-step-9-10-handoff.md) |
+| 현재 source·문서 1차 commit/push | 완료 | `master`에서 project/config, native module, data/API/state, screen flow, tests, docs의 6개 commit을 생성하고 최초 push함. 통합 handoff와 상태 문서는 별도 closeout commit으로 추가 push함. [9·10번 통합 기록](./2026-07-24-step-9-10-handoff.md) |
+| 대화형 학습·source 검증 | 대기 | 저장소 선행 작업과 1차 push를 완료했으며 [학습 진행표](./2026-07-23-step-7-learning-progress.md)에 따라 한 서브 스탭씩 진행. 학습 중 실제 보완이 생길 때만 별도 추가 commit/push |
 
-현재 구현, Android/iOS EAS build, 지원 기기 실기기 검증, 최신 source 기반 학습서 확장과 8번 저장소 작업 지침 정비를 완료했습니다. Android native `unavailable` 검증은 성공이 아닌 사용자 승인 `스킵`으로 종료했으며 남은 필수 검증으로 취급하지 않습니다. 다음 작업은 9번 GitHub repository 조건 확정·생성·연결이며, 9~10번 저장소 작업과 1차 push 이후 대화형 학습·source 검증을 최종 단계로 진행합니다. 학습 중 수정이 생길 때만 추가 commit/push합니다.
+현재 구현, Android/iOS EAS build, 지원 기기 실기기 검증, 최신 source 기반 학습서 확장, 저장소 지침 정비와 9·10번 GitHub 1차 push까지 완료했습니다. Android native `unavailable` 검증은 성공이 아닌 사용자 승인 `스킵`으로 유지하며 남은 필수 검증으로 취급하지 않습니다. 다음 작업은 대화형 학습·source 검증이며, 학습 중 실제 수정이 생길 때만 관련 검증 후 별도의 추가 commit/push를 진행합니다.
