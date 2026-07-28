@@ -1,3 +1,5 @@
+// [파일 역할] 홈에서 고정한 CaptureContext에 제목·메모·카테고리를 입력해 SQLite 기록으로 저장하는 화면입니다.
+// [FLOW-04 / 3~7단계] Zustand 임시값 → React Hook Form → Zod → mutation → records route 순서로 흐릅니다.
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Stack, useFocusEffect, useRouter } from "expo-router";
 import { useCallback } from "react";
@@ -28,6 +30,8 @@ import type {
   ObservationCategory,
 } from "@/src/types/observation";
 
+// [문법] `{ value; label }[]`는 같은 모양의 객체가 여러 개 들어가는 배열 타입입니다.
+// value는 DB에 저장할 코드, label은 사용자에게 보여 줄 한국어입니다.
 const CATEGORIES: {
   value: ObservationCategory;
   label: string;
@@ -37,56 +41,71 @@ const CATEGORIES: {
   { value: "other", label: "기타" },
 ];
 
+// 부모가 유효한 captureContext를 확인한 뒤 실제 form에 넘기는 props 계약입니다.
 type ObservationFormProps = {
   captureContext: CaptureContext;
 };
 
+// [문법] props 매개변수에서 captureContext를 바로 구조 분해합니다.
 function ObservationForm({ captureContext }: ObservationFormProps) {
   const router = useRouter();
+  // [라이브러리] 각 selector는 Zustand store 전체가 아닌 필요한 값/함수만 구독합니다.
   const clearCaptureContext = useAppStore(
     (state) => state.clearCaptureContext,
   );
   const temperatureUnit = useAppStore((state) => state.temperatureUnit);
+  // SQLite INSERT와 성공 후 Query cache 무효화 상태를 제공하는 TanStack Query mutation입니다.
   const createMutation = useCreateObservationMutation();
+  // [FLOW-04 / 4단계] useForm이 입력값, validation 오류와 제출 절차를 소유합니다.
   const {
     control,
     handleSubmit,
     formState: { errors },
   } = useForm<ObservationFormInput, unknown, ObservationFormValues>({
+    // [문법] 세 제네릭은 입력 전 타입, form context(미사용), Zod 변환 후 제출 타입 순서입니다.
+    // [라이브러리] zodResolver가 submit 시 observationFormSchema를 실행하고 오류를 errors에 연결합니다.
     resolver: zodResolver(observationFormSchema),
+    // controlled input은 처음부터 문자열 값이 있어야 하므로 모든 필드의 초기값을 명시합니다.
     defaultValues: {
       title: "",
       note: "",
       category: "experiment",
     },
   });
+  // useWatch는 note 한 필드만 구독하여 현재 글자 수를 즉시 렌더합니다.
   const note = useWatch({ control, name: "note" });
 
+  // [라이브러리] useFocusEffect가 반환받는 cleanup은 이 화면이 blur/unmount될 때 실행됩니다.
   useFocusEffect(
     useCallback(
       () => () => {
+        // [FLOW-04 / 7단계] 뒤로 가기 등 어떤 이탈 경로에서도 일회용 CaptureContext가 남지 않게 합니다.
         clearCaptureContext();
       },
       [clearCaptureContext],
     ),
   );
 
+  // 명시적 취소는 임시 snapshot을 지운 뒤 이전 route로 돌아갑니다.
   const cancel = useCallback(() => {
     clearCaptureContext();
     router.back();
   }, [clearCaptureContext, router]);
 
+  // [FLOW-04 / 5~7단계] Zod를 통과한 값만 captureContext와 합쳐 INSERT mutation에 전달합니다.
   const submit = useCallback(
     async (values: ObservationFormValues) => {
       try {
+        // [문법] 스프레드로 title/note/category를 복사하고 captureContext 필드를 더한 새 입력 객체입니다.
         await createMutation.mutateAsync({
           ...values,
           captureContext,
         });
+        // 저장이 확정된 뒤에만 임시값을 지우고, replace로 작성 화면을 navigation history에서 제거합니다.
         clearCaptureContext();
         router.replace("/(tabs)/records");
       } catch {
-        // Mutation state renders the actionable error below the form.
+        // [이유] mutation이 error 상태를 보존하므로 여기서 별도 state를 만들지 않고 아래 UI가 안내합니다.
       }
     },
     [captureContext, clearCaptureContext, createMutation, router],
@@ -95,11 +114,13 @@ function ObservationForm({ captureContext }: ObservationFormProps) {
   return (
     <SafeAreaView edges={["bottom"]} style={styles.safeArea}>
       <KeyboardAvoidingView
+        // [라이브러리] iOS에서는 키보드 높이만큼 padding을 더하고 Android는 기본 resize 동작을 사용합니다.
         behavior={Platform.OS === "ios" ? "padding" : undefined}
         style={styles.flex}
       >
         <ScrollView
           contentContainerStyle={styles.content}
+          // 키보드가 열린 상태에서도 버튼/입력처럼 처리되는 터치를 먼저 전달합니다.
           keyboardShouldPersistTaps="handled"
         >
           <View style={styles.card}>
@@ -109,17 +130,21 @@ function ObservationForm({ captureContext }: ObservationFormProps) {
 
             <View style={styles.field}>
               <Text style={styles.label}>제목</Text>
+              {/* [라이브러리] Controller가 React Hook Form 값과 React Native TextInput을 연결합니다. */}
               <Controller
                 control={control}
                 name="title"
+                // field 객체에서 TextInput에 필요한 blur/change/value만 구조 분해합니다.
                 render={({ field: { onBlur, onChange, value } }) => (
                   <TextInput
                     accessibilityLabel="기록 제목"
                     autoCapitalize="sentences"
                     maxLength={60}
                     onBlur={onBlur}
+                    // React Native의 새 문자열을 Hook Form의 해당 필드 setter에 전달합니다.
                     onChangeText={onChange}
                     placeholder="관찰 내용을 짧게 입력하세요"
+                    // errors.title이 있을 때만 빨간 테두리 스타일이 배열 끝에 추가됩니다.
                     style={[
                       styles.input,
                       errors.title && styles.inputWithError,
@@ -128,6 +153,7 @@ function ObservationForm({ captureContext }: ObservationFormProps) {
                   />
                 )}
               />
+              {/* Zod가 만든 필드 오류가 있을 때만 접근성 alert 문구를 표시합니다. */}
               {errors.title ? (
                 <Text accessibilityRole="alert" style={styles.errorText}>
                   {errors.title.message}
@@ -137,6 +163,7 @@ function ObservationForm({ captureContext }: ObservationFormProps) {
 
             <View style={styles.field}>
               <Text style={styles.label}>메모</Text>
+              {/* note도 같은 연결 구조이며 multiline과 최대 500자 UI만 다릅니다. */}
               <Controller
                 control={control}
                 name="note"
@@ -158,6 +185,7 @@ function ObservationForm({ captureContext }: ObservationFormProps) {
                   />
                 )}
               />
+              {/* useWatch로 받은 현재 문자열 길이를 렌더하므로 입력할 때마다 숫자가 갱신됩니다. */}
               <Text style={styles.counter}>{note.length}/500</Text>
               {errors.note ? (
                 <Text accessibilityRole="alert" style={styles.errorText}>
@@ -168,6 +196,7 @@ function ObservationForm({ captureContext }: ObservationFormProps) {
 
             <View style={styles.field}>
               <Text style={styles.label}>카테고리</Text>
+              {/* TextInput이 아닌 세 개의 Pressable도 Controller의 onChange/value로 radio group이 됩니다. */}
               <Controller
                 control={control}
                 name="category"
@@ -177,6 +206,7 @@ function ObservationForm({ captureContext }: ObservationFormProps) {
                     accessibilityRole="radiogroup"
                     style={styles.segmentedGroup}
                   >
+                    {/* [문법] map은 각 category를 하나의 Pressable JSX로 변환합니다. */}
                     {CATEGORIES.map((category) => {
                       const isSelected = value === category.value;
 
@@ -184,7 +214,9 @@ function ObservationForm({ captureContext }: ObservationFormProps) {
                         <Pressable
                           accessibilityRole="radio"
                           accessibilityState={{ selected: isSelected }}
+                          // key는 React가 배열 항목의 동일성을 추적할 수 있는 고유하고 안정적인 값입니다.
                           key={category.value}
+                          // 선택한 category.value를 Controller에 전달하면 form의 category가 갱신됩니다.
                           onPress={() => onChange(category.value)}
                           style={({ pressed }) => [
                             styles.segment,
@@ -218,12 +250,14 @@ function ObservationForm({ captureContext }: ObservationFormProps) {
             <Text accessibilityRole="header" style={styles.sectionTitle}>
               저장할 스냅샷
             </Text>
+            {/* 홈에서 고정한 값은 폼 입력 중 바뀌지 않으며 저장될 내용을 그대로 미리 보여 줍니다. */}
             <SnapshotSummary
               snapshot={captureContext}
               temperatureUnit={temperatureUnit}
             />
           </View>
 
+          {/* mutation 실패는 입력값과 snapshot을 유지한 채 재시도 가능한 오류로 표시합니다. */}
           {createMutation.isError ? (
             <Text accessibilityRole="alert" style={styles.submitError}>
               기록을 저장하지 못했습니다. 다시 시도해 주세요.
@@ -233,6 +267,7 @@ function ObservationForm({ captureContext }: ObservationFormProps) {
           <View style={styles.actionRow}>
             <Pressable
               accessibilityRole="button"
+              // INSERT가 진행 중일 때 취소와 저장을 모두 잠가 중복 동작을 막습니다.
               disabled={createMutation.isPending}
               onPress={cancel}
               style={({ pressed }) => [
@@ -247,6 +282,8 @@ function ObservationForm({ captureContext }: ObservationFormProps) {
               accessibilityRole="button"
               disabled={createMutation.isPending}
               onPress={() => {
+                // handleSubmit(submit)은 validation을 수행할 새 함수를 돌려주므로 마지막 `()`로 실행합니다.
+                // 반환 Promise를 Pressable이 사용하지 않으므로 void로 명시합니다.
                 void handleSubmit(submit)();
               }}
               style={({ pressed }) => [
@@ -255,6 +292,7 @@ function ObservationForm({ captureContext }: ObservationFormProps) {
                 pressed && styles.pressed,
               ]}
             >
+              {/* 저장 중에는 같은 자리의 문구를 spinner로 바꿉니다. */}
               {createMutation.isPending ? (
                 <ActivityIndicator color="#FFFFFF" size="small" />
               ) : (
@@ -268,6 +306,7 @@ function ObservationForm({ captureContext }: ObservationFormProps) {
   );
 }
 
+// [FLOW-04 / 방어 경로] deep link나 새로고침으로 임시 CaptureContext 없이 들어온 경우의 대체 화면입니다.
 function MissingCaptureContext() {
   const router = useRouter();
 
@@ -297,13 +336,16 @@ function MissingCaptureContext() {
 }
 
 export default function NewObservationScreen() {
+  // Zustand의 임시 captureContext 존재 여부가 실제 form 렌더 여부를 결정합니다.
   const captureContext = useAppStore((state) => state.captureContext);
 
   return (
     <>
+      {/* 파일 기반 route의 header title과 iOS back button 문구를 이 화면에서 설정합니다. */}
       <Stack.Screen
         options={{ headerBackTitle: "현재 상태", title: "새 기록" }}
       />
+      {/* [문법] truthy이면 타입이 CaptureContext로 좁혀져 form에 안전하게 전달할 수 있습니다. */}
       {captureContext ? (
         <ObservationForm captureContext={captureContext} />
       ) : (
@@ -313,6 +355,8 @@ export default function NewObservationScreen() {
   );
 }
 
+// [라이브러리] StyleSheet.create가 form/card/input/button별 React Native 스타일을 타입 검사합니다.
+// 아래 값은 표시 전용이므로 폼 검증·저장 데이터 흐름과 분리해서 읽습니다.
 const styles = StyleSheet.create({
   flex: {
     flex: 1,

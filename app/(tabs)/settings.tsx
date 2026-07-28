@@ -1,9 +1,12 @@
+// [파일 역할] 온도 표시 단위를 바꾸고 날씨 데이터 출처 링크를 제공하는 설정 탭입니다.
+// [FLOW-06 / 1~3단계] Zustand 값 선택 → setter 호출 → persist storage 저장으로 이어집니다.
 import { Linking, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { useAppStore } from "@/src/store/app-store";
 import type { TemperatureUnit } from "@/src/types/weather";
 
+// [문법] 각 option은 내부 value, 표시 label, 단위 기호 description을 갖는 객체 배열입니다.
 const TEMPERATURE_UNITS: {
   value: TemperatureUnit;
   label: string;
@@ -14,6 +17,7 @@ const TEMPERATURE_UNITS: {
 ];
 
 export default function SettingsScreen() {
+  // [라이브러리] selector로 현재 설정과 action을 각각 구독합니다.
   const temperatureUnit = useAppStore((state) => state.temperatureUnit);
   const setTemperatureUnit = useAppStore(
     (state) => state.setTemperatureUnit,
@@ -31,15 +35,19 @@ export default function SettingsScreen() {
             accessibilityRole="radiogroup"
             style={styles.segmentedGroup}
           >
+            {/* [FLOW-06 / 2단계] option 배열을 radio Pressable 목록으로 변환합니다. */}
             {TEMPERATURE_UNITS.map((unit) => {
+              // 현재 store 값과 같은 option만 선택 상태입니다.
               const isSelected = temperatureUnit === unit.value;
 
               return (
                 <Pressable
                   accessibilityLabel={`${unit.label} ${unit.description}`}
                   accessibilityRole="radio"
+                  // 보조기기에도 시각적 선택 상태와 같은 boolean을 전달합니다.
                   accessibilityState={{ selected: isSelected }}
                   key={unit.value}
+                  // action이 store를 갱신하고 persist middleware가 선택값을 storage에 기록합니다.
                   onPress={() => setTemperatureUnit(unit.value)}
                   style={({ pressed }) => [
                     styles.segment,
@@ -82,6 +90,8 @@ export default function SettingsScreen() {
           <Pressable
             accessibilityRole="link"
             onPress={() => {
+              // [라이브러리] Linking.openURL은 운영체제에 등록된 브라우저로 HTTPS 주소를 엽니다.
+              // Pressable은 Promise 결과를 사용하지 않으므로 void로 표시합니다.
               void Linking.openURL("https://open-meteo.com/");
             }}
             style={({ pressed }) => [
@@ -101,6 +111,8 @@ export default function SettingsScreen() {
   );
 }
 
+// [라이브러리] StyleSheet.create가 설정 card·radio option·link 스타일을 타입 검사합니다.
+// 아래 속성은 표시 전용이며 영속화되는 데이터는 temperatureUnit 하나뿐입니다.
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,

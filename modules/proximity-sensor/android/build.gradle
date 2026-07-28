@@ -1,14 +1,20 @@
+// [파일 역할] 이 폴더를 Android library이자 Expo local module로 컴파일하는 Gradle 설정입니다.
 plugins {
+  // Android application이 아니라 재사용 가능한 library module plugin입니다.
   id 'com.android.library'
+  // Expo Modules Kotlin 의존성과 autolinking용 build 설정을 제공합니다.
   id 'expo-module-gradle-plugin'
 }
 
+// Maven 좌표와 module 자체 버전 metadata입니다. 앱 version과는 별개입니다.
 group = 'expo.modules.proximitysensor'
 version = '1.0.0'
 
 android {
+  // 생성되는 Android R/BuildConfig와 Kotlin package를 구분하는 namespace입니다.
   namespace "expo.modules.proximitysensor"
   defaultConfig {
+    // library의 기본 version metadata이며 실제 배포 앱 version은 root app 설정이 결정합니다.
     versionCode 1
     versionName '1.0.0'
   }

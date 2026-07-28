@@ -1,3 +1,5 @@
+// [파일 역할] SQLite에 저장된 Observation 목록을 최신순으로 보여 주고 동적 상세 route로 연결합니다.
+// [FLOW-05 / 1~3단계] Query 조회 → 행 렌더 → 사용자가 누른 id를 URL parameter로 전달합니다.
 import { useRouter } from "expo-router";
 import {
   ActivityIndicator,
@@ -12,6 +14,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useObservationsQuery } from "@/src/db/observations";
 import type { Observation } from "@/src/types/observation";
 
+// 저장 코드와 표시 문구를 분리합니다. `as const`는 key/value 리터럴을 정확하게 보존합니다.
 const CATEGORY_LABELS = {
   experiment: "실험",
   environment: "환경",
@@ -24,26 +27,31 @@ const PROXIMITY_LABELS = {
   unavailable: "지원하지 않음",
 } as const;
 
+// [문법] 콜백 prop `() => void`는 자식이 navigation 세부사항을 몰라도 누름을 부모에게 알리게 합니다.
 type ObservationRowProps = {
   observation: Observation;
   onPress: () => void;
 };
 
+// 한 기록의 표시만 담당하는 작은 presentational component입니다.
 function ObservationRow({ observation, onPress }: ObservationRowProps) {
   return (
     <Pressable
+      // 제목과 캡처 시각을 accessibility label에 포함해 행의 의미를 음성으로 전달합니다.
       accessibilityHint="저장된 스냅샷의 상세 내용을 엽니다"
       accessibilityLabel={`${observation.title}, ${new Date(
         observation.capturedAt,
       ).toLocaleString("ko-KR")}`}
       accessibilityRole="button"
       onPress={onPress}
+      // Pressable의 pressed 상태 동안 opacity 스타일을 추가합니다.
       style={({ pressed }) => [
         styles.row,
         pressed && styles.pressed,
       ]}
     >
       <View style={styles.rowHeader}>
+        {/* 긴 제목은 한 줄까지만 표시하여 목록 행 높이를 안정적으로 유지합니다. */}
         <Text numberOfLines={1} style={styles.title}>
           {observation.title}
         </Text>
@@ -63,8 +71,10 @@ function ObservationRow({ observation, onPress }: ObservationRowProps) {
 
 export default function RecordsScreen() {
   const router = useRouter();
+  // [FLOW-05 / 1단계] Hook이 SQLite SELECT와 TanStack Query의 pending/error/data 상태를 제공합니다.
   const observationsQuery = useObservationsQuery();
 
+  // [문법] early return으로 각 비동기 상태의 JSX를 분리하면 성공 화면의 중첩을 줄일 수 있습니다.
   if (observationsQuery.isPending) {
     return (
       <SafeAreaView edges={["bottom"]} style={styles.safeArea}>
@@ -90,6 +100,7 @@ export default function RecordsScreen() {
           <Pressable
             accessibilityRole="button"
             onPress={() => {
+              // refetch Promise는 버튼 handler가 소비하지 않으므로 void로 의도적으로 버립니다.
               void observationsQuery.refetch();
             }}
             style={({ pressed }) => [
@@ -106,14 +117,19 @@ export default function RecordsScreen() {
 
   return (
     <SafeAreaView edges={["bottom"]} style={styles.safeArea}>
+      {/* [라이브러리] FlatList는 보이는 행 중심으로 렌더하여 긴 배열에서 ScrollView보다 효율적입니다. */}
       <FlatList
         contentContainerStyle={[
           styles.listContent,
           observationsQuery.data.length === 0 && styles.emptyListContent,
         ]}
+        // query 성공 이후이므로 data는 Observation[]로 좁혀져 있습니다.
         data={observationsQuery.data}
+        // 행 사이 여백을 별도 컴포넌트로 넣어 각 행 스타일과 분리합니다.
         ItemSeparatorComponent={() => <View style={styles.separator} />}
+        // React key는 number가 아닌 string을 요구하므로 DB id를 변환합니다.
         keyExtractor={(observation) => String(observation.id)}
+        // 배열 길이가 0일 때만 첫 기록 안내를 렌더합니다.
         ListEmptyComponent={
           <View style={styles.empty}>
             <Text accessibilityRole="header" style={styles.emptyTitle}>
@@ -124,11 +140,13 @@ export default function RecordsScreen() {
             </Text>
           </View>
         }
+        // [FLOW-05 / 3단계] FlatList가 넘긴 item을 행으로 만들고 누르면 id가 있는 동적 route로 이동합니다.
         renderItem={({ item }) => (
           <ObservationRow
             observation={item}
             onPress={() =>
               router.push({
+                // pathname의 `[id]` 자리와 params.id가 Expo Router에서 결합됩니다.
                 pathname: "/observations/[id]",
                 params: { id: String(item.id) },
               })
@@ -140,6 +158,8 @@ export default function RecordsScreen() {
   );
 }
 
+// [라이브러리] StyleSheet.create가 목록·빈 상태·오류·행 스타일을 타입 검사합니다.
+// 아래 속성은 표시 전용이며 Query 또는 navigation 데이터 흐름을 바꾸지 않습니다.
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
