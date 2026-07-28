@@ -55,7 +55,7 @@
 | Android 실제 기기 | 미검증 | 연결된 ADB 기기 및 AVD 없음 |
 | iPhone 실제 기기 | 미검증 | iOS 빌드 및 등록된 기기 없음 |
 
-생성된 Android 개발 APK는 [app-debug.apk](../android/app/build/outputs/apk/debug/app-debug.apk)입니다.
+생성된 Android 개발 APK의 당시 로컬 경로는 `android/app/build/outputs/apk/debug/app-debug.apk`입니다. 이 파일은 ignored generated output이므로 fresh clone이나 GitHub에는 포함되지 않으며 필요하면 다시 생성해야 합니다.
 
 - 크기: `169,182,874 bytes`
 - SHA-256: `0C46D64F5BCD3412C2E02385B54DD9CA70D94CCB81CA4BF183B6CECBE73ED73B`

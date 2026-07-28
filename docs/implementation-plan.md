@@ -213,11 +213,14 @@ app/
 src/
   api/
     weather.ts
+  components/
+    snapshot-summary.tsx
   db/
     migrate.ts
     observations.ts
   hooks/
     use-proximity.ts
+  query-client.ts
   schemas/
     observation.ts
     weather.ts
@@ -235,7 +238,7 @@ modules/
 ```
 
 - Expo Router의 `app` 계층은 route와 화면 조합만 담당한다.
-- `src`는 weather client, DB, schema, store, 공통 hook과 domain type처럼 route 밖의 공통 TypeScript 코드를 보관한다.
+- `src`는 weather client, 공용 표시 component, DB, 공통 hook, app-wide query 정책, schema, store와 domain type처럼 route 밖의 공통 TypeScript 코드를 보관한다.
 - 직접 작성한 Kotlin과 Swift 코드는 `modules/proximity-sensor`에 둔다.
 - Android/iOS 차이는 native module이 공통 event payload로 정규화하고, 별도의 `*.android.ts`, `*.ios.ts` adapter는 만들지 않는다.
 - 공통 UI component는 실제로 두 화면 이상에서 재사용될 때만 분리한다.
@@ -435,6 +438,7 @@ Jest에서는 local native module을 명시적으로 mock하고 TypeScript contr
 | 2026-07-23 | source regression | iOS development client / Metro | observation header back title | 통과 | `새 기록`·`기록 상세`에서 노출된 내부 route group 이름 `(tabs)`를 각각 `현재 상태`·`기록`으로 수정하고 iPhone에서 확인함. `headerBackTitle`은 iOS 전용 옵션이라 Android route·header 동작에는 영향을 주지 않는 계약을 설치된 navigation 타입으로 확인했으나 Android 실기기를 다시 실행하지는 않음. [5번 상세 기록](./2026-07-23-step-5-handoff.md) |
 | 2026-07-23 | 자동화 | Windows / Node.js / Jest | iPhone 검증 후 최종 source 회귀 검사 | 통과 | `npm test -- --runInBand` 9 suites, 33 tests, snapshot 0개, `npm run lint`, `npm run typecheck`, Expo Doctor 18/18과 dependency 호환 검사를 통과함. native runtime 성공 근거는 iPhone 실기기 결과와 구분함. [5번 상세 기록](./2026-07-23-step-5-handoff.md) |
 | 2026-07-23 | 범위 결정 | 미지원 Android 실물 기기 / emulator | native `unavailable` 상태 | 스킵 | 근접 센서가 없는 Android 실물 기기가 없고 emulator 검증을 선호하지 않으며 중요도가 낮다는 사용자 판단에 따라 의도적으로 제외함. 성공으로 기록하지 않고, 기기 조달이나 emulator 구성으로 범위를 확대하지 않으며 완료 차단 요인으로도 취급하지 않음. [5번 상세 기록](./2026-07-23-step-5-handoff.md) |
+| 2026-07-28 | source regression | 현재 TypeScript source / 기존 자동화 | 상세 not-found 상태의 iOS 뒤로가기 제목 | 확인 | 상세 route의 invalid·pending·error·success·not-found 분기를 다시 대조해 not-found 분기에 누락된 `headerBackTitle: "기록"`을 적용함. 당시 `npm run lint`, `npm run typecheck`, `npm test -- --runInBand` 9 suites·33 tests를 통과했으나 상세 화면 전용 자동화 test와 iPhone runtime 재검증은 없어 source·type·기존 자동화 회귀 근거로 한정함. [학습 진행표](./2026-07-23-step-7-learning-progress.md) |
 
 2026-07-20과 2026-07-22의 미검증 행은 당시 상태를 보존한 이력이며, 같은 항목의 현재 판단은 더 최근 날짜의 행을 따른다. 실제로 확인하지 않은 항목은 성공으로 추정하지 않고 `미검증`으로 기록하며, 사용자가 명시적으로 제외한 항목은 성공과 구분해 `스킵`으로 기록한다. 한 platform의 성공을 다른 platform의 성공 근거로 사용하지 않는다.
 
@@ -494,11 +498,11 @@ Jest에서는 local native module을 명시적으로 mock하고 TypeScript contr
 | iOS EAS build | 통과 | `development` / `internal` build `5585528e-f84a-4da1-9796-bcdf774afe16` 완료, Swift local module compile·autolink와 IPA 독립 검사 |
 | Android 실기기 검증 | 통과 | `LM-V500N`에서 센서·lifecycle·위치·날씨·SQLite·섭씨/화씨 재실행 hydration과 후속 UI 수정 확인 |
 | Android native `unavailable` 검증 | 스킵 | 미지원 실물 기기 부재, emulator 비선호와 낮은 중요도에 따른 2026-07-23 사용자 결정. 성공으로 간주하지 않으며 완료를 차단하지 않음 |
-| iPhone 실기기 검증 | 통과 | iPhone 11에서 설치·기동, 센서·lifecycle, 위치·날씨, SQLite 생성·삭제·재실행, 섭씨/화씨 hydration과 iOS header 수정 확인. iOS version·device diagnostic log·sandbox DB 직접 검사는 미수집 제한으로 유지 |
-| `docs/learning-guide.md` | 확장 완료 | 2026-07-23 최신 source·config·test와 Android/iOS EAS build·지원 실기기 결과, Android native `unavailable` 스킵 경계를 반영하고 source 링크·실제 code pattern·복습 실습을 보강함. [7번 상세 기록](./2026-07-23-step-7-handoff.md) |
+| iPhone 실기기 검증 | 통과 | iPhone 11에서 설치·기동, 센서·lifecycle, 위치·날씨, SQLite 생성·삭제·재실행, 섭씨/화씨 hydration과 새 기록·조회된 상세 화면의 iOS header 수정을 확인함. 2026-07-28 상세 not-found 분기 보완은 iPhone에서 다시 검증하지 않았으며, iOS version·device diagnostic log·sandbox DB 직접 검사는 미수집 제한으로 유지 |
+| `docs/learning-guide.md` | 확장 완료 | 2026-07-23 기능·실기기 검증 기준선과 이후 대화형 학습에서 확인·보완한 현재 source·config·test를 반영하고 source 링크·실제 code pattern·복습 실습을 보강함. 이후 현재 위치와 보완 기록은 [학습 진행표](./2026-07-23-step-7-learning-progress.md)에서 관리함. [7번 상세 기록](./2026-07-23-step-7-handoff.md) |
 | 저장소 작업 지침과 진입 문서 | 완료 | `agents-md-improver` 절차로 기존 `AGENTS.md`를 31/100(D)으로 평가한 뒤 사용자 승인에 따라 한글 작업 지침, `architecture-internals.md`와 실제 FieldLog용 한글 `README.md`를 반영하고 문서 검증을 통과함. [8번 상세 기록](./2026-07-23-step-8-handoff.md) |
 | GitHub repository 생성·연결 | 완료 | public [`Jaehoon81/fieldlog`](https://github.com/Jaehoon81/fieldlog)을 빈 repository로 생성하고 HTTPS `origin`에 연결. Description은 `Expo 기반 React-Native 학습용 Sample App.`으로 설정함. [9·10번 통합 기록](./2026-07-24-step-9-10-handoff.md) |
 | 현재 source·문서 1차 commit/push | 완료 | `master`에서 project/config, native module, data/API/state, screen flow, tests, docs의 6개 commit을 생성하고 최초 push함. 통합 handoff와 상태 문서는 별도 closeout commit으로 추가 push함. [9·10번 통합 기록](./2026-07-24-step-9-10-handoff.md) |
-| 대화형 학습·source 검증 | 진행 중 | 1단원 1-1~1-4 사용자 검증 완료. 이후 현재 위치는 [학습 진행표](./2026-07-23-step-7-learning-progress.md)에서 관리하며, 학습 중 실제 보완이 생길 때만 별도 추가 commit/push |
+| 대화형 학습·source 검증 | 진행 중 | 단원·서브 스탭별 현재 위치와 완료 결론은 [학습 진행표](./2026-07-23-step-7-learning-progress.md)에서 관리. 모든 학습을 마친 뒤 이 계획서의 최종 완료 상태를 갱신하며, 학습 중 실제 보완이 생길 때만 별도 추가 commit/push |
 
-현재 구현, Android/iOS EAS build, 지원 기기 실기기 검증, 최신 source 기반 학습서 확장, 저장소 지침 정비와 9·10번 GitHub 1차 push까지 완료했습니다. Android native `unavailable` 검증은 성공이 아닌 사용자 승인 `스킵`으로 유지하며 남은 필수 검증으로 취급하지 않습니다. 대화형 학습·source 검증은 진행 중이며 1단원 사용자 검증을 완료했습니다. 이후 현재 위치는 학습 진행표에서 관리하고, 학습 중 실제 수정이 생길 때만 관련 검증 후 별도의 추가 commit/push를 진행합니다.
+현재 구현, Android/iOS EAS build, 지원 기기 실기기 검증, 최신 source 기반 학습서 확장, 저장소 지침 정비와 9·10번 GitHub 1차 push까지 완료했습니다. Android native `unavailable` 검증은 성공이 아닌 사용자 승인 `스킵`으로 유지하며 남은 필수 검증으로 취급하지 않습니다. 대화형 학습·source 검증은 진행 중이며 현재 위치와 완료 결론은 학습 진행표에서 관리합니다. 모든 학습과 필요한 보완을 마친 뒤 이 계획서의 최종 완료 상태를 갱신하고, 학습 중 실제 수정이 생길 때만 관련 검증 후 별도의 추가 commit/push를 진행합니다.

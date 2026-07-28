@@ -1,6 +1,6 @@
 # FieldLog 구현 학습서
 
-이 문서는 2026-07-23 검증 완료 시점의 FieldLog source를 다시 읽기 위한 안내서다. 구현 기준은 [implementation-plan.md](./implementation-plan.md)이며, 범용 Expo 이론보다 이 프로젝트에서 실제로 이어지는 흐름과 다른 앱에도 재사용할 수 있는 경계를 설명한다.
+이 문서는 2026-07-23 기능·실기기 검증 기준선과 이후 대화형 학습에서 확인·보완한 현재 FieldLog source를 다시 읽기 위한 안내서다. 구현 기준은 [implementation-plan.md](./implementation-plan.md)이며, 범용 Expo 이론보다 이 프로젝트에서 실제로 이어지는 흐름과 다른 앱에도 재사용할 수 있는 경계를 설명한다.
 
 처음 읽는 사람은 다음 원칙을 기억하면 된다.
 
@@ -48,7 +48,8 @@
 
 - iPhone 11의 iOS version은 수집하지 않았다.
 - iPhone device diagnostic log와 app sandbox SQLite 파일을 Windows에서 직접 검사하지 않았다.
-- iOS `headerBackTitle` 수정 후 Android 실기기를 다시 실행하지 않았다. 설치된 navigation type의 iOS 전용 계약과 자동화로 영향 범위만 확인했다.
+- 2026-07-23 새 기록 화면과 조회된 상세 화면의 iOS `headerBackTitle` 수정은 iPhone에서 확인했지만 Android 실기기를 다시 실행하지 않았다. 설치된 navigation type의 iOS 전용 계약과 자동화로 Android 영향 범위만 확인했다.
+- 2026-07-28 상세 not-found 분기의 `headerBackTitle` 누락을 보완한 뒤 source·type·기존 자동화 회귀 검사는 통과했지만, 상세 화면 전용 자동화 test와 iPhone runtime 재검증은 수행하지 않았다.
 - 실제 날씨 코드는 위치와 시각에 따라 달라진다. Android에서 본 `2`와 iPhone에서 본 `53`은 서로 같아야 하는 고정 기대값이 아니다.
 
 Jest에서 local native module을 mock한 결과는 TypeScript 계약과 UI 상태 전이의 근거다. Kotlin·Swift 실행 근거는 각각 build와 지원 실기기 결과에서 가져온다. 자세한 검증 원문은 [implementation-plan.md](./implementation-plan.md)의 9장, [4번 build handoff](./2026-07-22-step-4-handoff.md), [5번 runtime handoff](./2026-07-23-step-5-handoff.md)를 기준으로 한다.
@@ -77,6 +78,7 @@ src/
   db/migrate.ts
   db/observations.ts
   hooks/use-proximity.ts
+  query-client.ts
   schemas/observation.ts
   schemas/weather.ts
   store/app-store.ts
@@ -101,6 +103,7 @@ tsconfig.json
 | domain type | 앱 안에서 오가는 data shape와 허용 상태 | [`src/types/observation.ts`](../src/types/observation.ts), [`src/types/weather.ts`](../src/types/weather.ts) |
 | runtime schema | form 입력과 외부 API 응답을 실제 실행 중 검증 | [`src/schemas/observation.ts`](../src/schemas/observation.ts), [`src/schemas/weather.ts`](../src/schemas/weather.ts) |
 | 영속 data | DB migration, SQL CRUD, query hook | [`src/db/migrate.ts`](../src/db/migrate.ts), [`src/db/observations.ts`](../src/db/observations.ts) |
+| query cache 정책 | TanStack Query cache와 기본 retry·refetch 정책 | [`src/query-client.ts`](../src/query-client.ts) |
 | 화면 간 client state | 임시 캡처, 온도 설정, hydration 완료 상태 | [`src/store/app-store.ts`](../src/store/app-store.ts) |
 | native adapter | native event를 React UI 상태로 정규화 | [`src/hooks/use-proximity.ts`](../src/hooks/use-proximity.ts) |
 | 직접 작성한 native 기능 | Android `SensorManager`, iOS `UIDevice`를 하나의 JS 계약으로 노출 | [`modules/proximity-sensor/`](../modules/proximity-sensor/) |
@@ -191,7 +194,7 @@ Expo Router의 내부 group 이름이 기본 back title로 노출되어 iPhone�
 />
 ```
 
-`headerBackTitle`은 이 구성에서 iOS native-stack의 back button 문구를 정하는 option이다. iPhone에서 `현재 상태`와 `기록`으로 수정 결과를 확인했다. Android 실기기를 다시 실행한 결과까지로 확대하지는 않는다.
+`headerBackTitle`은 이 구성에서 iOS native-stack의 back button 문구를 정하는 option이다. 2026-07-23에는 iPhone에서 새 기록 화면의 `현재 상태`와 조회된 상세 화면의 `기록`을 확인했다. 2026-07-28 source 대조에서는 상세 route의 invalid·pending·error·success 분기와 달리 not-found 분기만 이 option을 빠뜨린 것을 발견해 현재는 다섯 분기 모두 `기록`을 직접 선언한다. 이 후속 보완은 상세 화면 전용 자동화 test나 iPhone runtime으로 다시 확인하지 않았으며, source·type·기존 자동화 회귀 근거로 한정한다.
 
 ## 4. 앱 시작, SQLite migration, Zustand hydration
 

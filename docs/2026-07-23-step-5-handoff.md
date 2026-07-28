@@ -192,6 +192,8 @@ Windows에서 iPhone app sandbox의 SQLite 파일을 직접 꺼내 row 수나 `u
 
 Expo Router의 Stack이 사용하는 native-stack에서 `headerBackTitle`은 iOS용 옵션입니다. route 이동, 화면 제목, Android 뒤로가기 아이콘에는 변경을 주지 않습니다. Android 실기기 재검증은 이번 범위에서 수행하지 않았고, 설치된 `react-native-screens` 타입의 iOS 전용 계약과 자동화 검사로 영향 경계를 확인했습니다.
 
+> 2026-07-28 후속 정정: 위의 “모든 detail render 상태”는 당시 source를 과도하게 요약한 표현입니다. 이후 전체 분기를 다시 대조해 not-found 분기만 `headerBackTitle`을 빠뜨린 사실을 발견했고, 현재 source에는 같은 `"기록"` 값을 적용했습니다. `npm run lint`, `npm run typecheck`, `npm test -- --runInBand` 9 suites·33 tests는 통과했지만 상세 화면 전용 자동화 test와 iPhone runtime 재검증은 수행하지 않았습니다. 자세한 후속 기록은 [학습 진행표](./2026-07-23-step-7-learning-progress.md)에 보존합니다.
+
 ### 수정 검증
 
 | 검증 항목 | 결과 |

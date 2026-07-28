@@ -10,8 +10,9 @@
 | `src/api/` | 외부 날씨 API 호출과 query 연결 |
 | `src/db/` | SQLite migration, 기록 query·mutation과 cache 무효화 |
 | `src/hooks/` | 근접 센서 monitoring과 같은 재사용 가능한 runtime 동작 |
+| `src/query-client.ts` | app-wide TanStack Query cache와 기본 retry·refetch 정책 |
 | `src/store/` | Zustand application state와 영속 설정 |
-| `src/schemas/` | Zod 입력 검증 계약 |
+| `src/schemas/` | form 입력과 외부 API 응답의 Zod runtime 검증 계약 |
 | `src/types/` | 공용 domain type과 native event type |
 | `src/components/` | 여러 screen에서 사용하는 표시 component |
 | `modules/proximity-sensor/` | TypeScript bridge와 직접 관리하는 Android·iOS native source |
