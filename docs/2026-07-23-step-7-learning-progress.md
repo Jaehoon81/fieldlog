@@ -125,7 +125,7 @@
 
 ## 학습서 수정 대기 목록
 
-현재 수정 대기 항목은 없다. 1-4에서 발견한 상태 문구 누락, 2단원 시작 전 전체 source 대조에서 발견한 학습 주석 오류, 3단원 시작 전 상세 화면 header option 누락과 docs 전체 정합성 보완을 아래와 같이 반영했다. 단원 시작 전 보완은 해당 단원의 학습 시작이나 완료로 계산하지 않는다.
+현재 수정 대기 항목은 없다. 1-4에서 발견한 상태 문구 누락, 2단원 시작 전 전체 source 대조에서 발견한 학습 주석 오류, 3단원 시작 전 상세 화면 header option 누락과 docs·repository 진입 문서 정합성 보완을 아래와 같이 반영했다. 단원 시작 전 보완은 해당 단원의 학습 시작이나 완료로 계산하지 않는다.
 
 | 단원·서브 스탭 | 수정 대상 | 근거 | 검증 방법 | 반영 상태 |
 | --- | --- | --- | --- | --- |
@@ -133,6 +133,7 @@
 | 2단원 시작 전 source 대조 | `modules/proximity-sensor/` bridge·native source의 학습 주석, `src/hooks/use-proximity.ts`, `src/api/weather.ts`, `src/components/snapshot-summary.tsx`, `src/db/observations.ts`, 이 진행표 | `docs/source-commentary-guide.md`의 `FLOW-02`·`FLOW-03`·`FLOW-04`·`FLOW-05`·`FLOW-06` 단계 정의와 일부 source 표식이 어긋났고, 생성된 ID를 상세 route에 사용한다는 주석이 실제 기록 탭 이동과 달랐음 | 실제 caller·consumer와 중앙 `FLOW` 정의 재대조, source executable line 비변경 확인, `git diff --check`, Markdown 구조·trailing whitespace 확인 | 반영 완료 |
 | 3단원 시작 전 source 대조 | `app/observations/[id].tsx`, 설치된 Expo Router·React Navigation option 처리, 이 진행표 | 상세 화면의 invalid·pending·error·success 분기는 iOS `headerBackTitle: "기록"`을 명시하지만 not-found 분기만 title만 설정했다. 기존 option의 얕은 병합으로 일반적인 전환에서는 누락이 가려질 수 있으나 해당 분기가 원하는 문구를 독립적으로 선언하지 않았고, 상세 화면 전용 자동화 test도 없음 | 모든 상세 상태 분기의 option 재대조, not-found 분기에 동일한 `headerBackTitle` 적용, `npm run lint`, `npm run typecheck`, `npm test -- --runInBand` 9 suites·33 tests, `git diff --check`, Markdown 구조·link·trailing whitespace 확인. iPhone runtime은 다시 실행하지 않아 source·type·기존 자동화 회귀 검증으로 한정 | 반영 완료 |
 | 3단원 시작 전 docs 전체 정합성 대조 | `docs/implementation-plan.md`, `docs/learning-guide.md`, `docs/architecture-internals.md`, `docs/2026-07-23-step-5-handoff.md`, `docs/2026-07-20-implementation-handoff.md`, 이 진행표 | 계획서가 완료 단원을 중복 기록해 다음 단원에서 stale될 구조였고, 2026-07-28 header 보완이 일부 문서에 반영되지 않았다. 구조 지도에는 `src/query-client.ts`와 일부 공용 component가 빠졌고 schema 책임은 외부 API 응답 검증을 포함하지 않았으며, 과거 APK link는 Git에 없는 ignored output을 가리켰음 | 현재 source·config와 전체 docs 재대조, local link·경로·Markdown table·code fence·상태 문구·trailing whitespace 확인, `git diff --check`. 문서 전용 변경이므로 test·build는 실행하지 않음 | 반영 완료 |
+| 3단원 시작 전 repository 진입 문서 대조 | `AGENTS.md`, `README.md`, `docs/architecture-internals.md`, 이 진행표 | source 주석 안내서와 app-wide query 정책이 `AGENTS.md`·`README.md`에 연결되지 않았고, 1~10번 완료 뒤에도 외부 작업 승인 기준이 `현재 번호 단계`로 한정돼 있었다. 내부 구조 문서는 module Android source와 그 아래 ignored Gradle `build/` output의 예외를 명시하지 않았음 | 최신 source·config·docs와 책임·경계 재대조, local link·경로·Markdown table·code fence·상태 문구·trailing whitespace 확인, `git diff --check`. 문서 전용 변경이므로 test·build는 실행하지 않음 | 반영 완료 |
 
 학습 중 수정이 생기면 source·package·build·app config 변경과 문서 전용 변경을 구분한다. 문서 보완은 좁은 link·snippet·Markdown 검증을 수행하고, 동작 변경이 필요할 때는 별도 Impact Review와 해당 범위의 자동화·build·실기기 검증을 먼저 정한다.
 

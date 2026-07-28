@@ -2,6 +2,8 @@
 
 이 문서는 FieldLog의 실제 source를 따라가는 운영용 architecture 지도다. 범위, 현재 완료 상태와 검증 기록은 [구현 계획](./implementation-plan.md)을 기준으로 판단하고, 학습 목적의 단계별 설명은 [학습서](./learning-guide.md)를 사용한다.
 
+소스 안의 학습 주석 표식과 파일 간 `FLOW` 읽기 순서는 [소스 주석 읽기 안내서](./source-commentary-guide.md)를 따른다.
+
 ## Source 책임
 
 | 경로 | 책임 |
@@ -63,7 +65,7 @@
 ## Generated native project 경계
 
 - root `/android`, root `/ios`와 `.expo/`는 generated 또는 inspection output이며 Git에서 제외된다.
-- `modules/proximity-sensor/android/`와 `modules/proximity-sensor/ios/`는 직접 관리하는 source이므로 generated output으로 취급하지 않는다.
+- `modules/proximity-sensor/android/`와 `modules/proximity-sensor/ios/`는 직접 관리하는 source다. 단, `modules/proximity-sensor/android/build/`는 재생성 가능한 Gradle output으로 제외한다.
 - Expo 설정은 `app.json`, native 동작은 local module source를 기준으로 변경한다.
 - native, dependency, plugin 또는 app config를 변경하면 새 development build가 필요하다.
 - JS/TS만 변경했다면 호환되는 development client가 이미 설치된 경우 Metro로 확인할 수 있다.

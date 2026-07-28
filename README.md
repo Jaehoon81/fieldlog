@@ -66,7 +66,7 @@ Jest는 local `ProximitySensor` module을 mock한다. 따라서 test 통과는 J
 | 경로 | 내용 |
 | --- | --- |
 | [`app/`](./app) | Expo Router layout과 screen |
-| [`src/`](./src) | API, database, store, hook, schema, type과 공용 component |
+| [`src/`](./src) | API, database, query cache 정책, store, hook, schema, type과 공용 component |
 | [`modules/proximity-sensor/`](./modules/proximity-sensor) | TypeScript bridge와 Android·iOS native source |
 | [`app-tests/`](./app-tests) | screen test |
 | [`docs/`](./docs) | 구현 계획, handoff, 내부 구조와 학습서 |
@@ -78,4 +78,6 @@ root `/android`, root `/ios`, `.expo/`와 `modules/proximity-sensor/android/buil
 - [구현 계획](./docs/implementation-plan.md): authoritative 범위, 완료 기준, 제외 범위와 검증 기록
 - [내부 구조와 동작](./docs/architecture-internals.md): 시작, routing, data, persistence와 native lifecycle
 - [학습서](./docs/learning-guide.md): 실제 source를 바탕으로 한 단계별 학습 자료
+- [대화형 학습 진행표](./docs/2026-07-23-step-7-learning-progress.md): 단원별 현재 위치, source 확인 결론과 보완 기록
+- [소스 주석 읽기 안내서](./docs/source-commentary-guide.md): source 주석 표식과 파일 간 `FLOW` 읽기 순서
 - [`docs/`의 날짜별 handoff](./docs): 번호별 작업 과정, 결과, 제한과 다음 작업
