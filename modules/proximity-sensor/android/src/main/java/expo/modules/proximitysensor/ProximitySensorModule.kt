@@ -39,7 +39,7 @@ class ProximitySensorModule : Module(), SensorEventListener {
     // JS가 addListener로 구독할 수 있는 이벤트 목록에 이름을 등록합니다.
     Events(PROXIMITY_EVENT_NAME)
 
-    // [FLOW-02 / 2단계] JS의 isAvailableAsync(): Promise<boolean> 구현입니다.
+    // [FLOW-02 / 1·3단계] JS의 isAvailableAsync(): Promise<boolean> 구현입니다.
     AsyncFunction<Boolean>("isAvailableAsync") {
       val hasSensor = resolveProximitySensor() != null
       // listener가 없으면 하드웨어 존재만, listener가 있으면 실제 등록 실패 여부까지 반영합니다.

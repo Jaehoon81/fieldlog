@@ -1,5 +1,5 @@
 // [파일 역할] CaptureContext와 DB에서 읽은 Observation을 같은 형식으로 보여 주는 공용 UI입니다.
-// [FLOW-04 / 4단계, FLOW-05 / 5단계] 작성 미리보기와 저장된 기록 상세가 이 컴포넌트를 재사용합니다.
+// [FLOW-04 / 4단계, FLOW-05 / 4단계] 작성 미리보기와 저장된 기록 상세가 이 컴포넌트를 재사용합니다.
 import { StyleSheet, Text, View } from "react-native";
 
 import type {
@@ -36,7 +36,7 @@ export function SnapshotSummary({
   snapshot,
   temperatureUnit,
 }: SnapshotSummaryProps) {
-  // [FLOW-06 / 3단계] 사용자가 고른 온도 설정에 맞춰 숫자 옆 단위 문자를 정합니다.
+  // [FLOW-06 / 5단계] 사용자가 고른 온도 설정에 맞춰 숫자 옆 단위 문자를 정합니다.
   const unitLabel = temperatureUnit === "celsius" ? "C" : "F";
 
   return (
@@ -99,7 +99,7 @@ export function SnapshotSummary({
           <>
             <Text style={styles.value}>
               기온:{" "}
-              {/* [FLOW-06 / 4단계] 저장값은 섭씨로 유지하고 렌더 순간에만 선택 단위로 변환합니다. */}
+              {/* [FLOW-06 / 5단계] 저장값은 섭씨로 유지하고 렌더 순간에만 선택 단위로 변환합니다. */}
               {convertTemperature(
                 snapshot.weather.temperatureC,
                 temperatureUnit,

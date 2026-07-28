@@ -115,11 +115,12 @@
 
 ## 학습서 수정 대기 목록
 
-현재 수정 대기 항목은 없다. 1-4에서 발견한 상태 문구 누락은 아래와 같이 반영했다.
+현재 수정 대기 항목은 없다. 1-4에서 발견한 상태 문구 누락과 2단원 시작 전 전체 source 대조에서 발견한 학습 주석 오류를 아래와 같이 반영했다. 이 보완은 2단원 학습 시작이나 완료로 계산하지 않는다.
 
 | 단원·서브 스탭 | 수정 대상 | 근거 | 검증 방법 | 반영 상태 |
 | --- | --- | --- | --- | --- |
 | 1-4 | `docs/learning-guide.md`, `docs/implementation-plan.md`, 이 진행표 | 실제 학습이 진행 중인데 비날짜 상태 문구 일부가 `대기`로 남아 있었음 | 경로·link·Markdown 구조·오래된 상태 문구·trailing whitespace 확인 | 반영 완료 |
+| 2단원 시작 전 source 대조 | `modules/proximity-sensor/` bridge·native source의 학습 주석, `src/hooks/use-proximity.ts`, `src/api/weather.ts`, `src/components/snapshot-summary.tsx`, `src/db/observations.ts`, 이 진행표 | `docs/source-commentary-guide.md`의 `FLOW-02`·`FLOW-03`·`FLOW-04`·`FLOW-05`·`FLOW-06` 단계 정의와 일부 source 표식이 어긋났고, 생성된 ID를 상세 route에 사용한다는 주석이 실제 기록 탭 이동과 달랐음 | 실제 caller·consumer와 중앙 `FLOW` 정의 재대조, source executable line 비변경 확인, `git diff --check`, Markdown 구조·trailing whitespace 확인 | 반영 완료 |
 
 학습 중 수정이 생기면 source·package·build·app config 변경과 문서 전용 변경을 구분한다. 문서 보완은 좁은 link·snippet·Markdown 검증을 수행하고, 동작 변경이 필요할 때는 별도 Impact Review와 해당 범위의 자동화·build·실기기 검증을 먼저 정한다.
 

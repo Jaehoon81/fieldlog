@@ -1,5 +1,5 @@
 // [파일 역할] React 화면과 네이티브 근접 센서 사이의 구독 수명주기와 UI 상태를 관리합니다.
-// [FLOW-02 / 2~6단계] 지원 확인 → 이벤트 구독 → 상태 반영 → 구독 해제를 이 Hook이 책임집니다.
+// [FLOW-02] 지원 확인 → 이벤트 구독 → 상태 반영 → 구독 해제의 JS Hook 경계를 책임집니다.
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import ProximitySensor from "@/modules/proximity-sensor";
@@ -43,7 +43,7 @@ export function applyProximityEvent(
   return {
     status: event.status,
     event,
-    // [FLOW-02 / 5단계] near이면 현재 이벤트 시각, 아니면 직전 near 시각을 유지합니다.
+    // [FLOW-02 / 6단계] near이면 현재 이벤트 시각, 아니면 직전 near 시각을 유지합니다.
     lastNearAt:
       event.status === "near" ? event.observedAt : state.lastNearAt,
   };
@@ -69,7 +69,7 @@ export function useProximity(): UseProximityResult {
     setIsMonitoring(false);
   }, []);
 
-  // [FLOW-02 / 2단계] 이벤트를 듣기 전에 기기에 지원되는 센서인지 네이티브 모듈에 묻습니다.
+  // [FLOW-02 / 1단계] 화면 focus 시 기기에 지원되는 센서인지 네이티브 모듈에 묻습니다.
   const checkAvailability = useCallback(async () => {
     // 이미 구독 중이면 재확인이 현재 센서 상태를 덮어쓰지 않도록 즉시 끝냅니다.
     if (subscriptionRef.current) {
@@ -112,7 +112,7 @@ export function useProximity(): UseProximityResult {
     }
   }, []);
 
-  // [FLOW-02 / 6단계] 사용자가 중지하거나 화면이 포커스를 잃을 때 구독을 정리합니다.
+  // [FLOW-02 / 7단계] 사용자가 중지하거나 화면이 포커스를 잃을 때 구독을 정리합니다.
   const stopMonitoring = useCallback(() => {
     // 진행 중인 availability Promise가 뒤늦게 돌아와도 무효가 되도록 번호를 바꿉니다.
     operationRef.current += 1;
@@ -155,7 +155,7 @@ export function useProximity(): UseProximityResult {
         return;
       }
 
-      // [FLOW-02 / 4단계] 네이티브 `onProximityChange`가 JS의 event 매개변수로 전달됩니다.
+      // [FLOW-02 / 5~6단계] 네이티브 event를 받아 함수형 state update로 화면 상태에 반영합니다.
       subscriptionRef.current = ProximitySensor.addListener(
         "onProximityChange",
         (event) => {
@@ -206,7 +206,7 @@ export function useProximity(): UseProximityResult {
     mountedRef.current = true;
 
     return () => {
-      // [FLOW-02 / 6단계] 생존 해제 → 비동기 응답 무효화 → listener 제거 → 참조 제거 순서입니다.
+      // [FLOW-02 / 7단계] 생존 해제 → 비동기 응답 무효화 → listener 제거 → 참조 제거 순서입니다.
       mountedRef.current = false;
       operationRef.current += 1;
       subscriptionRef.current?.remove();

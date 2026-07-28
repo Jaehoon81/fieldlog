@@ -172,7 +172,7 @@ export async function getObservation(
   return row === null ? null : mapObservationRow(row);
 }
 
-// [FLOW-04 / 5단계] 작성 폼과 홈에서 캡처한 문맥을 하나의 DB 행으로 저장합니다.
+// [FLOW-04 / 6단계] 작성 폼과 홈에서 캡처한 문맥을 하나의 DB 행으로 저장합니다.
 export async function createObservation(
   db: SQLiteDatabase,
   input: CreateObservationInput,
@@ -261,11 +261,12 @@ export async function createObservation(
     parameters,
   );
 
-  // [FLOW-04 / 6단계] SQLite가 만든 id를 반환하면 작성 화면이 그 상세 route로 이동합니다.
+  // [FLOW-04 / 6단계] SQLite가 만든 id를 mutation 성공값으로 반환합니다.
+  // 새 기록 화면은 이 id를 route에 사용하지 않고 저장 성공 후 기록 탭으로 이동합니다.
   return result.lastInsertRowId;
 }
 
-// [FLOW-05 / 6단계] 삭제 확인을 받은 id 한 건을 parameter binding으로 삭제합니다.
+// [FLOW-05 / 5단계] 삭제 확인을 받은 id 한 건을 parameter binding으로 삭제합니다.
 export async function deleteObservation(
   db: SQLiteDatabase,
   id: number,
@@ -322,7 +323,7 @@ export function useCreateObservationMutation(): UseMutationResult<
   });
 }
 
-// [FLOW-05 / 6~7단계] 삭제와 관련 캐시 정리를 묶은 Mutation Hook입니다.
+// [FLOW-05 / 5단계] 삭제와 관련 캐시 정리를 묶은 Mutation Hook입니다.
 export function useDeleteObservationMutation(): UseMutationResult<
   void,
   Error,

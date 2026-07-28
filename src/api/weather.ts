@@ -1,5 +1,5 @@
 // [파일 역할] Open-Meteo HTTP 요청과 TanStack Query 캐시를 한곳에서 연결합니다.
-// [FLOW-03 / 4단계] 홈 화면이 좌표를 넘기면 날씨를 요청하고 검증된 WeatherSnapshot을 돌려줍니다.
+// [FLOW-03 / 4~6단계] 좌표를 Query·Axios·Zod로 연결해 검증된 WeatherSnapshot을 돌려줍니다.
 import { useQuery, type UseQueryResult } from "@tanstack/react-query";
 import axios, { isAxiosError, isCancel } from "axios";
 
@@ -26,7 +26,7 @@ type FetchWeatherOptions = WeatherCoordinates & {
 
 // [라이브러리] TanStack Query는 queryKey가 같은 요청을 같은 캐시 항목으로 취급합니다.
 export const weatherKeys = {
-  // [FLOW-03 / 5단계] 좌표를 키에 넣어 서로 다른 위치의 날씨가 한 캐시에 섞이지 않게 합니다.
+  // [FLOW-03 / 4단계] 좌표를 키에 넣어 서로 다른 위치의 날씨가 한 캐시에 섞이지 않게 합니다.
   current: (coordinates: WeatherCoordinates | null) =>
     [
       "weather",
@@ -38,7 +38,7 @@ export const weatherKeys = {
     ] as const,
 };
 
-// [FLOW-03 / 4단계] 실제 네트워크 I/O만 맡겨 Hook과 독립적으로 테스트할 수 있게 한 함수입니다.
+// [FLOW-03 / 5단계] 실제 네트워크 I/O만 맡겨 Hook과 독립적으로 테스트할 수 있게 한 함수입니다.
 export async function fetchWeather({
   latitude,
   longitude,
@@ -60,7 +60,7 @@ export async function fetchWeather({
     timeout: 10_000,
   });
 
-  // [FLOW-03 / 5단계] 외부 JSON은 Zod 스키마를 통과한 뒤에만 앱의 WeatherSnapshot이 됩니다.
+  // [FLOW-03 / 6단계] 외부 JSON은 Zod 스키마를 통과한 뒤에만 앱의 WeatherSnapshot이 됩니다.
   return parseWeatherResponse(response.data);
 }
 
@@ -88,7 +88,7 @@ export function shouldRetryWeatherRequest(
   return Boolean(error.request);
 }
 
-// [FLOW-03 / 3단계] 화면은 Axios 세부사항 대신 이 Hook에 좌표만 전달합니다.
+// [FLOW-03 / 4~5단계] 화면은 Axios 세부사항 대신 이 Hook에 좌표만 전달합니다.
 export function useWeatherQuery(
   coordinates: WeatherCoordinates | null,
 ): UseQueryResult<WeatherSnapshot, Error> {

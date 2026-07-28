@@ -1,5 +1,5 @@
 // [파일 역할] TypeScript가 이해하는 API 선언과 런타임의 Android/iOS Expo Module을 이름으로 연결합니다.
-// [FLOW-02 / 3단계] useProximity Hook의 호출이 이 bridge를 지나 같은 이름의 Kotlin/Swift module로 갑니다.
+// [FLOW-02 / 1·3단계] useProximity Hook의 지원 확인과 모니터링 시작 호출이 이 bridge를 지나갑니다.
 import { NativeModule, requireNativeModule } from "expo";
 
 import type { ProximitySensorModuleEvents } from "./ProximitySensor.types";

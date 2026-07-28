@@ -21,7 +21,7 @@ public final class ProximitySensorModule: Module {
 
     Events(proximityEventName)
 
-    // [FLOW-02 / 2단계] JS Promise<boolean>에 연결되는 함수이며 UIKit 접근 때문에 main queue에서 실행합니다.
+    // [FLOW-02 / 1·3단계] JS Promise<boolean>에 연결되는 함수이며 UIKit 접근 때문에 main queue에서 실행합니다.
     AsyncFunction("isAvailableAsync") { () -> Bool in
       let device = UIDevice.current
       // iOS에는 별도 availability API가 없어 monitoring을 켠 뒤 실제로 켜졌는지 읽어 지원 여부를 확인합니다.
