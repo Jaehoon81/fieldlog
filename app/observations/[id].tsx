@@ -142,7 +142,9 @@ export default function ObservationDetailScreen() {
   if (observationQuery.data === null) {
     return (
       <>
-        <Stack.Screen options={{ title: "기록 상세" }} />
+        <Stack.Screen
+          options={{ headerBackTitle: "기록", title: "기록 상세" }}
+        />
         <MessageState
           message="해당 기록을 찾을 수 없습니다."
           onGoBack={() => router.replace("/(tabs)/records")}
