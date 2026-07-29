@@ -14,7 +14,7 @@ export const DATABASE_NAME = "fieldlog.db";
 const DATABASE_VERSION = 1;
 
 /**
- * [FLOW-01 / 2단계]
+ * [FLOW-01 / 3단계]
  * `async` 함수는 즉시 Promise를 반환하고 각 `await`에서 database 작업 완료를
  * 기다린다. 반환할 data는 없으므로 `Promise<void>`다.
  */

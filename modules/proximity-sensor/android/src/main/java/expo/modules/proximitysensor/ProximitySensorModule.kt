@@ -39,7 +39,8 @@ class ProximitySensorModule : Module(), SensorEventListener {
     // JS가 addListener로 구독할 수 있는 이벤트 목록에 이름을 등록합니다.
     Events(PROXIMITY_EVENT_NAME)
 
-    // [FLOW-02 / 1·3단계] JS의 isAvailableAsync(): Promise<boolean> 구현입니다.
+    // [FLOW-02 / 관련 코드] JS의 isAvailableAsync(): Promise<boolean> 구현입니다.
+    // Hook의 초기 확인과 listener 등록 직전 재확인이 이 함수를 공통으로 호출합니다.
     AsyncFunction<Boolean>("isAvailableAsync") {
       val hasSensor = resolveProximitySensor() != null
       // listener가 없으면 하드웨어 존재만, listener가 있으면 실제 등록 실패 여부까지 반영합니다.
@@ -48,7 +49,7 @@ class ProximitySensorModule : Module(), SensorEventListener {
     // Sensor API 상태를 다루므로 이 비동기 함수를 main queue에서 실행합니다.
     }.runOnQueue(Queues.MAIN)
 
-    // [FLOW-02 / 4단계] JS의 첫 `addListener`가 생기면 Expo가 호출합니다.
+    // [FLOW-02 / 관련 코드] JS의 첫 `addListener`가 생기면 Expo가 호출합니다.
     OnStartObserving(PROXIMITY_EVENT_NAME) {
       runOnMain {
         hasEventListener = true
@@ -91,7 +92,8 @@ class ProximitySensorModule : Module(), SensorEventListener {
     }
   }
 
-  // [FLOW-02 / 5단계] Android framework가 근접 센서 값이 바뀔 때 호출하는 callback입니다.
+  // [FLOW-02 / 8단계] Android framework가 근접 센서 값이 바뀔 때 호출하는 callback입니다.
+  // 받은 sensor 값을 공통 ProximityEvent로 JavaScript에 보냅니다.
   override fun onSensorChanged(event: SensorEvent) {
     // 이미 해제됐거나 다른 센서 이벤트이면 JS로 보내지 않습니다.
     if (!isSensorRegistered || event.sensor.type != Sensor.TYPE_PROXIMITY) {
@@ -141,7 +143,7 @@ class ProximitySensorModule : Module(), SensorEventListener {
       ?.also { proximitySensor = it }
   }
 
-  // [FLOW-02 / 4단계] 세 조건이 모두 맞을 때 한 번만 Android listener를 등록합니다.
+  // [FLOW-02 / 6단계] 세 조건이 모두 맞을 때 한 번만 Android listener를 등록합니다.
   private fun startMonitoringIfNeeded() {
     // listener 없음, background, 이미 등록됨 중 하나면 아무 작업도 하지 않는 guard clause입니다.
     if (!hasEventListener || !isAppForeground || isSensorRegistered) {
@@ -166,7 +168,7 @@ class ProximitySensorModule : Module(), SensorEventListener {
     registrationFailed = !isSensorRegistered
   }
 
-  // [FLOW-02 / 7단계] 실제 등록된 경우에만 해제하고 flag를 즉시 false로 맞춥니다.
+  // [FLOW-02 / 14단계] 실제 등록된 경우에만 해제하고 flag를 즉시 false로 맞춥니다.
   private fun stopMonitoring() {
     if (isSensorRegistered) {
       sensorManager?.unregisterListener(this)

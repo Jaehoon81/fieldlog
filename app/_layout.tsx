@@ -7,6 +7,10 @@
  * [FLOW-01]
  * ErrorBoundary → Suspense → SQLiteProvider → HydratedRoutes
  * → QueryClientProvider → Stack 순서로 바깥 provider가 안쪽 기능을 준비한다.
+ *
+ * RootLayout의 ErrorBoundary·Suspense 안에서 main database migration과
+ * Zustand 설정 복원이 각각 진행되고, HydratedRoutes에서 두 준비 경로가
+ * 합류한 뒤 QueryClientProvider → Stack → 하단 tab 순서로 화면을 연다.
  */
 
 import { QueryClientProvider } from "@tanstack/react-query";
@@ -76,7 +80,7 @@ class InitializationErrorBoundary extends Component<
 }
 
 /**
- * [FLOW-01 / 3~4단계]
+ * [FLOW-01 / 6단계]
  * SQLite가 준비된 뒤 호출되며, persisted Zustand 설정의 비동기 hydration까지
  * 끝나야 실제 route와 QueryClient를 노출한다.
  */
@@ -102,7 +106,8 @@ function HydratedRoutes() {
   }
 
   return (
-    // 모든 descendant query/mutation hook이 같은 queryClient cache를 사용한다.
+    // [FLOW-01 / 7단계] 모든 descendant query/mutation hook이 같은 queryClient cache를 사용한다.
+    // 공용 Query cache와 root Stack은 hydration gate 뒤에 표시한다.
     <QueryClientProvider client={queryClient}>
       <StatusBar style="dark" />
       <Stack>
@@ -113,12 +118,13 @@ function HydratedRoutes() {
   );
 }
 
+// [FLOW-01 / 1단계] RootLayout이 초기화 error boundary와 Suspense 경계를 준비한다.
 // Expo Router가 `app/_layout.tsx`의 default export를 root layout으로 인식한다.
 export default function RootLayout() {
   return (
     <InitializationErrorBoundary>
       {/*
-       * [FLOW-01 / 1단계]
+       * [FLOW-01 / 관련 코드]
        * useSuspense를 쓰는 SQLiteProvider가 준비 Promise를 suspend하는 동안
        * 이 fallback을 표시한다.
        */}

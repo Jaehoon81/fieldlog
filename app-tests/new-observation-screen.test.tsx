@@ -121,7 +121,7 @@ describe("NewObservationScreen", () => {
         captureContext,
       });
     });
-    // 저장 성공 뒤 임시 context 정리와 records route replace까지 FLOW-04 마지막 단계를 확인합니다.
+    // [FLOW-04 / 관련 코드] 저장 성공 뒤 임시 context 정리와 records route replace까지 마지막 단계를 확인합니다.
     expect(useAppStore.getState().captureContext).toBeNull();
     expect(mockReplace).toHaveBeenCalledWith("/(tabs)/records");
   });

@@ -3,7 +3,7 @@
  * `(tabs)` route group 아래 세 screen을 React Navigation 기반 하단 tab으로
  * 구성한다. 괄호로 감싼 group 이름은 URL segment가 아니며 화면 분류용이다.
  *
- * [FLOW-01 / 5단계]
+ * [FLOW-01 / 8단계]
  * Root Stack이 `(tabs)`를 열면 이 layout이 index, records, settings file을
  * 각각 현재 상태, 기록, 설정 tab으로 등록한다.
  */

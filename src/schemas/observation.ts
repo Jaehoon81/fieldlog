@@ -12,7 +12,7 @@ export const observationFormSchema = z.object({
   title: z
     // 입력이 string인지 먼저 검사한다.
     .string()
-    // [FLOW-04] 저장 전에 앞뒤 공백을 제거하므로 output은 input과 달라질 수 있다.
+    // [FLOW-04 / 관련 코드] 저장 전에 앞뒤 공백을 제거하므로 output은 input과 달라질 수 있다.
     .trim()
     // 공백 제거 후 빈 제목을 거부한다.
     .min(1, { message: "제목을 입력해 주세요." })

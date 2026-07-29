@@ -1,5 +1,6 @@
 // [파일 역할] React 화면과 네이티브 근접 센서 사이의 구독 수명주기와 UI 상태를 관리합니다.
 // [FLOW-02] 지원 확인 → 이벤트 구독 → 상태 반영 → 구독 해제의 JS Hook 경계를 책임집니다.
+// 화면 지원 확인 뒤 Android/iOS monitoring·event를 거쳐 공통 state와 계층별 cleanup으로 이어집니다.
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import ProximitySensor from "@/modules/proximity-sensor";
@@ -43,7 +44,7 @@ export function applyProximityEvent(
   return {
     status: event.status,
     event,
-    // [FLOW-02 / 6단계] near이면 현재 이벤트 시각, 아니면 직전 near 시각을 유지합니다.
+    // [FLOW-02 / 11단계] near이면 현재 이벤트 시각, 아니면 직전 near 시각을 유지합니다.
     lastNearAt:
       event.status === "near" ? event.observedAt : state.lastNearAt,
   };
@@ -69,7 +70,7 @@ export function useProximity(): UseProximityResult {
     setIsMonitoring(false);
   }, []);
 
-  // [FLOW-02 / 1단계] 화면 focus 시 기기에 지원되는 센서인지 네이티브 모듈에 묻습니다.
+  // [FLOW-02 / 관련 코드] 화면 focus 시 기기에 지원되는 센서인지 네이티브 모듈에 묻습니다.
   const checkAvailability = useCallback(async () => {
     // 이미 구독 중이면 재확인이 현재 센서 상태를 덮어쓰지 않도록 즉시 끝냅니다.
     if (subscriptionRef.current) {
@@ -87,6 +88,7 @@ export function useProximity(): UseProximityResult {
     }));
 
     try {
+      // [FLOW-02 / 2단계] bridge에서 지원 여부를 받아 idle 또는 unavailable로 수렴시킵니다.
       const isAvailable = await ProximitySensor.isAvailableAsync();
 
       // 화면이 사라졌거나 더 최신 작업이 시작됐다면 이 응답은 폐기합니다.
@@ -112,7 +114,7 @@ export function useProximity(): UseProximityResult {
     }
   }, []);
 
-  // [FLOW-02 / 7단계] 사용자가 중지하거나 화면이 포커스를 잃을 때 구독을 정리합니다.
+  // [FLOW-02 / 12단계] 사용자가 중지하거나 화면이 포커스를 잃을 때 구독을 정리합니다.
   const stopMonitoring = useCallback(() => {
     // 진행 중인 availability Promise가 뒤늦게 돌아와도 무효가 되도록 번호를 바꿉니다.
     operationRef.current += 1;
@@ -125,7 +127,8 @@ export function useProximity(): UseProximityResult {
     }));
   }, [removeSubscription]);
 
-  // [FLOW-02 / 3단계] 지원 여부를 확인한 뒤 네이티브 이벤트 listener를 등록합니다.
+  // [FLOW-02 / 관련 코드] 지원 여부를 확인한 뒤 네이티브 이벤트 listener를 등록합니다.
+  // 중복 구독과 오래된 비동기 응답을 막으며 monitoring 시작을 조정합니다.
   const startMonitoring = useCallback(async () => {
     // 중복 listener는 이벤트 중복 처리와 native 자원 누수를 만들 수 있으므로 막습니다.
     if (subscriptionRef.current) {
@@ -140,6 +143,7 @@ export function useProximity(): UseProximityResult {
     }));
 
     try {
+      // [FLOW-02 / 4단계] 실제 listener를 만들기 직전에 native 지원 여부를 다시 확인합니다.
       const isAvailable = await ProximitySensor.isAvailableAsync();
 
       if (!mountedRef.current || operation !== operationRef.current) {
@@ -155,10 +159,12 @@ export function useProximity(): UseProximityResult {
         return;
       }
 
-      // [FLOW-02 / 5~6단계] 네이티브 event를 받아 함수형 state update로 화면 상태에 반영합니다.
+      // [FLOW-02 / 5단계] 첫 JS listener를 등록해 활성 platform의 native observation을 시작합니다.
+      // [FLOW-02 / 관련 코드] 네이티브 event를 받아 함수형 state update로 화면 상태에 반영합니다.
       subscriptionRef.current = ProximitySensor.addListener(
         "onProximityChange",
         (event) => {
+          // [FLOW-02 / 10단계] Android 또는 iOS가 보낸 공통 ProximityEvent를 받습니다.
           if (mountedRef.current) {
             // 가장 최신 상태와 순수 변환 함수를 이용해 이벤트를 UI 상태에 반영합니다.
             setState((current) => applyProximityEvent(current, event));
@@ -206,7 +212,7 @@ export function useProximity(): UseProximityResult {
     mountedRef.current = true;
 
     return () => {
-      // [FLOW-02 / 7단계] 생존 해제 → 비동기 응답 무효화 → listener 제거 → 참조 제거 순서입니다.
+      // [FLOW-02 / 13단계] 생존 해제 → 비동기 응답 무효화 → listener 제거 → 참조 제거 순서입니다.
       mountedRef.current = false;
       operationRef.current += 1;
       subscriptionRef.current?.remove();

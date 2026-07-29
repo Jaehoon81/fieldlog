@@ -13,7 +13,7 @@ import type { WeatherSnapshot } from "@/src/types/weather";
 export type { TemperatureUnit } from "@/src/types/weather";
 
 /**
- * [FLOW-02] 화면에서만 사용하는 근접 센서 상태다.
+ * [FLOW-02 / 관련 코드] 화면에서만 사용하는 근접 센서 상태다.
  * `idle`과 `pending`은 아직 저장할 sensor snapshot이 확정되지 않은 UI 상태라
  * `ProximitySnapshot`과 SQLite에는 포함되지 않는다.
  */
@@ -25,7 +25,7 @@ export type ProximityUiStatus =
   | "unavailable";
 
 /**
- * [FLOW-02 / 5단계]
+ * [FLOW-02 / 관련 코드]
  * Kotlin/Swift가 `onProximityChange`로 JavaScript에 보내는 event payload다.
  * Event가 발생했다는 것은 `near` 또는 `far`가 확정됐다는 뜻이므로
  * `unavailable`은 이 union에 들어가지 않는다.
@@ -40,7 +40,7 @@ export type ProximityEvent = {
 };
 
 /**
- * [FLOW-04 / 1단계]
+ * [FLOW-04 / 관련 코드]
  * 기록 만들기 순간에 고정하는 sensor 값이다. Event와 달리 미지원 기기도
  * 기록할 수 있어 `unavailable`과 nullable 관측 시각을 포함한다.
  */
@@ -67,7 +67,7 @@ export type ObservationCategory = "experiment" | "environment" | "other";
 export type ObservationPlatform = "android" | "ios";
 
 /**
- * [FLOW-04 / 1~3단계]
+ * [FLOW-04 / 관련 코드]
  * 현재 상태 화면이 수집한 값을 한 시점의 봉투처럼 묶어 새 기록 화면으로
  * 전달한다. Zustand memory에만 머물고 `persist` 대상에는 포함되지 않는다.
  */
@@ -83,7 +83,7 @@ export type CaptureContext = {
 };
 
 /**
- * [FLOW-05]
+ * [FLOW-05 / 관련 코드]
  * SQLite row를 `mapObservationRow`가 변환한 뒤 화면이 소비하는 domain model이다.
  * `CaptureContext`에 사용자 입력과 database가 발급한 `id`가 더해진 형태다.
  */
@@ -100,7 +100,7 @@ export type Observation = {
 };
 
 /**
- * [FLOW-04 / 5단계]
+ * [FLOW-04 / 관련 코드]
  * 새 기록 form이 repository에 전달하는 command shape다.
  * UI 입력 세 필드와 이전 화면에서 고정한 snapshot을 명시적으로 합친다.
  */

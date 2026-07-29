@@ -21,7 +21,7 @@ import type { TemperatureUnit } from "@/src/types/weather";
 export type AppStore = {
   temperatureUnit: TemperatureUnit;
   captureContext: CaptureContext | null;
-  // FLOW-01에서 persisted 설정 복원이 끝났는지 화면에 알리는 runtime flag다.
+  // [FLOW-01 / 관련 코드] persisted 설정 복원이 끝났는지 화면에 알리는 runtime flag다.
   hasHydrated: boolean;
   setTemperatureUnit: (unit: TemperatureUnit) => void;
   setCaptureContext: (context: CaptureContext) => void;
@@ -37,7 +37,8 @@ export type AppStore = {
  */
 export type PersistedAppState = Pick<AppStore, "temperatureUnit">;
 
-// [FLOW-06 / 3단계] persist middleware가 저장 직전에 호출하는 순수 함수다.
+// [FLOW-06 / 4단계] persist middleware가 저장 직전에 호출하는 순수 함수다.
+// 전체 state에서는 temperatureUnit만 영속 대상으로 고른다.
 export function partializeAppState(state: AppStore): PersistedAppState {
   return {
     temperatureUnit: state.temperatureUnit,
@@ -51,6 +52,7 @@ export function partializeAppState(state: AppStore): PersistedAppState {
  * 전달한다.
  */
 export const useAppStore = create<AppStore>()(
+  // [FLOW-01 / 4단계] store 생성 시 persist가 SQLite 설정 복원을 자동으로 시작한다.
   persist(
     // `set`은 Zustand가 주입하는 갱신 함수다.
     (set) => ({
@@ -59,6 +61,7 @@ export const useAppStore = create<AppStore>()(
       captureContext: null,
       hasHydrated: false,
       // [문법] `{ temperatureUnit }`은 같은 이름의 key와 변수를 줄인 object shorthand다.
+      // [FLOW-06 / 3단계] 설정 화면이 전달한 단위를 현재 Zustand state에 반영한다.
       setTemperatureUnit: (temperatureUnit) => set({ temperatureUnit }),
       setCaptureContext: (captureContext) => set({ captureContext }),
       clearCaptureContext: () => set({ captureContext: null }),
@@ -68,14 +71,15 @@ export const useAppStore = create<AppStore>()(
       // SQLite kv-store에서 이 persisted object를 식별하는 key다.
       name: "fieldlog-settings",
       /**
-       * [FLOW-06 / 3단계]
+       * [FLOW-06 / 5단계]
        * Zustand object를 JSON 문자열로 직렬화하고 SQLiteStorage에 읽고 쓰는
        * adapter를 만든다. Generic은 저장되는 shape를 PersistedAppState로 제한한다.
        */
       storage: createJSONStorage<PersistedAppState>(() => SQLiteStorage),
       partialize: partializeAppState,
+      // [FLOW-01 / 5단계] storage 읽기가 끝나면 route gate가 구독하는 flag를 올린다.
+      // [FLOW-06 / 6단계] 앱 재시작 시 저장 단위 복원이 완료됐음을 같은 callback이 알린다.
       /**
-       * [FLOW-01 / 3단계]
        * `() => (state) => {}`는 함수를 반환하는 고차 함수다. 바깥 함수는
        * rehydration 시작 때, 반환된 안쪽 함수는 storage 읽기가 끝난 뒤 호출된다.
        */

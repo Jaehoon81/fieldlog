@@ -27,5 +27,5 @@ export function createQueryClient(): QueryClient {
   });
 }
 
-// [FLOW-01 / 4단계] module당 한 번 만들어 같은 runtime cache를 계속 공유한다.
+// [FLOW-01 / 관련 코드] module당 한 번 만들어 같은 runtime cache를 계속 공유한다.
 export const queryClient = createQueryClient();

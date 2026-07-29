@@ -1,5 +1,5 @@
 // [파일 역할] `/observations/[id]` URL의 id로 기록 한 건을 조회하고, 상세 표시와 삭제를 제공합니다.
-// [FLOW-05 / 4~6단계] parameter 검증 → SQLite 조회 → 삭제 확인/mutation → 기록 탭 복귀 순서입니다.
+// [FLOW-05 / 관련 코드] parameter 검증 → SQLite 조회 → 삭제 확인/mutation → 기록 탭 복귀 순서입니다.
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import {
   ActivityIndicator,
@@ -41,14 +41,16 @@ export default function ObservationDetailScreen() {
   const router = useRouter();
   // [라이브러리] 제네릭은 이 route에서 기대하는 local search parameter 모양을 TypeScript에 알려 줍니다.
   const params = useLocalSearchParams<{ id?: string | string[] }>();
-  // [FLOW-05 / 4단계] URL 문자열을 DB 조회에 쓸 수 있는 id로 좁힙니다.
+  // [FLOW-05 / 5단계] URL 문자열을 DB 조회에 쓸 수 있는 id로 좁힙니다.
+  // 이 route에서는 양의 정수만 유효한 id로 허용합니다.
   const id = parseObservationId(params.id);
   // id가 null이면 -1을 넘기고 Hook의 enabled 조건이 SQL 실행을 막습니다.
+  // [FLOW-05 / 6단계] 상세 화면이 검증된 id로 detail Query Hook을 호출합니다.
   const observationQuery = useObservationQuery(id ?? -1);
   const deleteMutation = useDeleteObservationMutation();
   const temperatureUnit = useAppStore((state) => state.temperatureUnit);
 
-  // [FLOW-05 / 5단계] destructive 작업은 Alert에서 한 번 더 명시적으로 확인합니다.
+  // [FLOW-05 / 관련 코드] destructive 작업은 Alert에서 한 번 더 명시적으로 확인합니다.
   const confirmDeletion = () => {
     // 잘못된 route에서는 삭제 mutation을 시작하지 않는 방어 절입니다.
     if (id === null) {
@@ -62,8 +64,10 @@ export default function ObservationDetailScreen() {
         style: "destructive",
         onPress: () => {
           // Promise chain: 삭제 성공 시 목록으로 replace, 실패 시 mutation의 isError UI가 처리합니다.
+          // [FLOW-05 / 9단계] 사용자가 확인한 id를 delete mutation에 전달합니다.
           void deleteMutation
             .mutateAsync(id)
+            // [FLOW-05 / 13단계] cache 정리가 끝나면 상세 route를 기록 tab으로 교체합니다.
             .then(() => router.replace("/(tabs)/records"))
             // undefined를 반환해 unhandled rejection을 막고 화면의 오류 상태는 유지합니다.
             .catch(() => undefined);

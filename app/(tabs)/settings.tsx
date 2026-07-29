@@ -1,5 +1,6 @@
 // [파일 역할] 온도 표시 단위를 바꾸고 날씨 데이터 출처 링크를 제공하는 설정 탭입니다.
-// [FLOW-06 / 1~3단계] Zustand 값 선택 → setter 호출 → persist storage 저장으로 이어집니다.
+// [FLOW-06] 설정 구독 → 선택 action → Zustand 갱신 → partialize·SQLite 저장/복원 → 표시 시 온도 변환 순서입니다.
+// [FLOW-06 / 관련 코드] Zustand 값 선택 → setter 호출 → persist storage 저장으로 이어집니다.
 import { Linking, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -17,7 +18,9 @@ const TEMPERATURE_UNITS: {
 ];
 
 export default function SettingsScreen() {
+  // [FLOW-06 / 1단계] selector로 현재 온도 단위와 변경 action만 각각 구독합니다.
   // [라이브러리] selector로 현재 설정과 action을 각각 구독합니다.
+  // selector를 나누면 필요한 값이나 action이 바뀔 때만 구독 결과가 갱신됩니다.
   const temperatureUnit = useAppStore((state) => state.temperatureUnit);
   const setTemperatureUnit = useAppStore(
     (state) => state.setTemperatureUnit,
@@ -35,7 +38,7 @@ export default function SettingsScreen() {
             accessibilityRole="radiogroup"
             style={styles.segmentedGroup}
           >
-            {/* [FLOW-06 / 2단계] option 배열을 radio Pressable 목록으로 변환합니다. */}
+            {/* [FLOW-06 / 관련 코드] option 배열을 radio Pressable 목록으로 변환합니다. */}
             {TEMPERATURE_UNITS.map((unit) => {
               // 현재 store 값과 같은 option만 선택 상태입니다.
               const isSelected = temperatureUnit === unit.value;
@@ -47,6 +50,7 @@ export default function SettingsScreen() {
                   // 보조기기에도 시각적 선택 상태와 같은 boolean을 전달합니다.
                   accessibilityState={{ selected: isSelected }}
                   key={unit.value}
+                  // [FLOW-06 / 2단계] 사용자가 고른 단위를 setTemperatureUnit action에 전달합니다.
                   // action이 store를 갱신하고 persist middleware가 선택값을 storage에 기록합니다.
                   onPress={() => setTemperatureUnit(unit.value)}
                   style={({ pressed }) => [

@@ -1,5 +1,5 @@
 // [파일 역할] 홈에서 고정한 CaptureContext에 제목·메모·카테고리를 입력해 SQLite 기록으로 저장하는 화면입니다.
-// [FLOW-04 / 3~7단계] Zustand 임시값 → React Hook Form → Zod → mutation → records route 순서로 흐릅니다.
+// [FLOW-04 / 관련 코드] Zustand 임시값 → React Hook Form → Zod → mutation → records route 순서로 흐릅니다.
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Stack, useFocusEffect, useRouter } from "expo-router";
 import { useCallback } from "react";
@@ -56,7 +56,7 @@ function ObservationForm({ captureContext }: ObservationFormProps) {
   const temperatureUnit = useAppStore((state) => state.temperatureUnit);
   // SQLite INSERT와 성공 후 Query cache 무효화 상태를 제공하는 TanStack Query mutation입니다.
   const createMutation = useCreateObservationMutation();
-  // [FLOW-04 / 4단계] useForm이 입력값, validation 오류와 제출 절차를 소유합니다.
+  // [FLOW-04 / 관련 코드] useForm이 입력값, validation 오류와 제출 절차를 소유합니다.
   const {
     control,
     handleSubmit,
@@ -79,7 +79,7 @@ function ObservationForm({ captureContext }: ObservationFormProps) {
   useFocusEffect(
     useCallback(
       () => () => {
-        // [FLOW-04 / 7단계] 뒤로 가기 등 어떤 이탈 경로에서도 일회용 CaptureContext가 남지 않게 합니다.
+        // [FLOW-04 / 관련 코드] 뒤로 가기 등 어떤 이탈 경로에서도 일회용 CaptureContext가 남지 않게 합니다.
         clearCaptureContext();
       },
       [clearCaptureContext],
@@ -92,17 +92,20 @@ function ObservationForm({ captureContext }: ObservationFormProps) {
     router.back();
   }, [clearCaptureContext, router]);
 
-  // [FLOW-04 / 5~7단계] Zod를 통과한 값만 captureContext와 합쳐 INSERT mutation에 전달합니다.
+  // [FLOW-04 / 관련 코드] Zod를 통과한 값만 captureContext와 합쳐 INSERT mutation에 전달합니다.
   const submit = useCallback(
     async (values: ObservationFormValues) => {
       try {
         // [문법] 스프레드로 title/note/category를 복사하고 captureContext 필드를 더한 새 입력 객체입니다.
+        // [FLOW-04 / 7단계] 검증된 form 값과 고정한 CaptureContext를 mutation 입력으로 합칩니다.
         await createMutation.mutateAsync({
           ...values,
           captureContext,
         });
         // 저장이 확정된 뒤에만 임시값을 지우고, replace로 작성 화면을 navigation history에서 제거합니다.
+        // [FLOW-04 / 11단계] 저장 성공 뒤 일회용 CaptureContext를 제거합니다.
         clearCaptureContext();
+        // [FLOW-04 / 12단계] 작성 route를 history에서 제거하고 기록 tab으로 이동합니다.
         router.replace("/(tabs)/records");
       } catch {
         // [이유] mutation이 error 상태를 보존하므로 여기서 별도 state를 만들지 않고 아래 UI가 안내합니다.
@@ -282,6 +285,7 @@ function ObservationForm({ captureContext }: ObservationFormProps) {
               accessibilityRole="button"
               disabled={createMutation.isPending}
               onPress={() => {
+                // [FLOW-04 / 6단계] handleSubmit이 Zod resolver를 거쳐 유효할 때만 submit을 호출합니다.
                 // handleSubmit(submit)은 validation을 수행할 새 함수를 돌려주므로 마지막 `()`로 실행합니다.
                 // 반환 Promise를 Pressable이 사용하지 않으므로 void로 명시합니다.
                 void handleSubmit(submit)();
@@ -306,7 +310,7 @@ function ObservationForm({ captureContext }: ObservationFormProps) {
   );
 }
 
-// [FLOW-04 / 방어 경로] deep link나 새로고침으로 임시 CaptureContext 없이 들어온 경우의 대체 화면입니다.
+// [FLOW-04 / 관련 코드] deep link나 새로고침으로 임시 CaptureContext 없이 들어온 경우의 대체 화면입니다.
 function MissingCaptureContext() {
   const router = useRouter();
 
@@ -336,6 +340,7 @@ function MissingCaptureContext() {
 }
 
 export default function NewObservationScreen() {
+  // [FLOW-04 / 5단계] 임시 captureContext를 읽어 실제 form 또는 방어 화면을 선택합니다.
   // Zustand의 임시 captureContext 존재 여부가 실제 form 렌더 여부를 결정합니다.
   const captureContext = useAppStore((state) => state.captureContext);
 

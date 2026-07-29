@@ -1,5 +1,8 @@
 // [파일 역할] 첫 번째 탭 화면입니다. 근접 센서·현재 위치·날씨를 모아 하나의 임시 CaptureContext를 만듭니다.
-// [FLOW-02, FLOW-03, FLOW-04 / 1~3단계] 세 기능 흐름이 만나는 화면이므로 아래 FLOW 표식을 순서대로 따라가면 됩니다.
+// [FLOW-02 / 관련 코드] 근접 센서 monitoring의 사용자 진입점입니다.
+// [FLOW-03 / 관련 코드] 위치·날씨 조회의 사용자 진입점입니다.
+// [FLOW-04 / 관련 코드] 기록 생성의 사용자 진입점입니다.
+// 세 기능 흐름이 만나는 화면이므로 아래 FLOW 표식을 순서대로 따라가면 됩니다.
 import { useFocusEffect, useRouter } from "expo-router";
 import * as Location from "expo-location";
 import { useCallback, useMemo, useState } from "react";
@@ -76,7 +79,7 @@ export default function CurrentStatusScreen() {
   const [locationError, setLocationError] =
     useState<LocationErrorKind | null>(null);
   const [isLocating, setIsLocating] = useState(false);
-  // [FLOW-03 / 4단계] 위치 전체 객체 중 날씨 query key와 요청에 필요한 좌표만 파생합니다.
+  // [FLOW-03 / 관련 코드] 위치 전체 객체 중 날씨 query key와 요청에 필요한 좌표만 파생합니다.
   // useMemo는 location 참조가 같으면 같은 결과 객체를 재사용해 불필요한 query key 변화를 피합니다.
   const coordinates = useMemo(
     () =>
@@ -88,21 +91,30 @@ export default function CurrentStatusScreen() {
           },
     [location],
   );
+  // [FLOW-03 / 7단계] 좌표가 생기면 enabled query가 날씨 조회를 시작합니다.
   // coordinates가 null이면 Query는 비활성이고, 좌표가 생기는 순간 Open-Meteo 조회가 시작됩니다.
   const weatherQuery = useWeatherQuery(coordinates);
 
-  // [FLOW-02 / 1, 7단계] 이 탭에 focus될 때 센서 지원 여부를 확인하고 focus를 잃을 때 monitoring을 중지합니다.
   useFocusEffect(
     useCallback(() => {
+      // [FLOW-02 / 1단계] 이 탭이 focus되면 hook에 센서 지원 여부 확인을 요청합니다.
+      // 이 탭에 focus될 때 센서 지원 여부를 확인하고 focus를 잃을 때 monitoring을 중지합니다.
       // 이벤트 handler는 Promise를 기다릴 곳이 없으므로 `void`로 의도적으로 반환값을 버립니다.
       void checkAvailability();
 
+      // [FLOW-02 / 관련 코드] focus를 잃으면 공용 stopMonitoring cleanup으로 진입합니다.
       // useFocusEffect callback이 반환한 함수는 blur 또는 unmount 시 cleanup으로 호출됩니다.
       return stopMonitoring;
     }, [checkAvailability, stopMonitoring]),
   );
 
-  // [FLOW-03 / 1~3단계] 버튼 한 번으로 service → permission → 현재 좌표를 순차 확인합니다.
+  /**
+   * [FLOW-03]
+   * 조회 버튼 → 이전 상태 초기화 → 위치 service·permission → 현재 좌표
+   * → TanStack Query → Axios → Zod → 위치·날씨 상태 표시 순서로 흐릅니다.
+   */
+  // [FLOW-03 / 관련 코드] 버튼 한 번으로 service → permission → 현재 좌표를 순차 확인합니다.
+  // [FLOW-03 / 2단계] 새 요청 기준으로 이전 위치·오류를 지우고 loading을 시작합니다.
   const requestLocationAndWeather = useCallback(async () => {
     // 새 요청이 시작되면 이전 성공값과 오류를 지워 화면 상태를 이번 요청 기준으로 맞춥니다.
     setLocation(null);
@@ -110,6 +122,7 @@ export default function CurrentStatusScreen() {
     setIsLocating(true);
 
     try {
+      // [FLOW-03 / 3단계] 기기 전체 위치 service가 켜져 있는지 먼저 확인합니다.
       // [라이브러리] expo-location으로 기기 전체 위치 서비스가 켜져 있는지 먼저 확인합니다.
       const servicesEnabled = await Location.hasServicesEnabledAsync();
 
@@ -118,6 +131,7 @@ export default function CurrentStatusScreen() {
         return;
       }
 
+      // [FLOW-03 / 4단계] 현재 foreground permission을 읽고 필요할 때만 요청합니다.
       // [문법] 이후 재요청 결과를 다시 대입하므로 const가 아니라 let을 사용합니다.
       let permission = await Location.getForegroundPermissionsAsync();
 
@@ -140,12 +154,13 @@ export default function CurrentStatusScreen() {
         return;
       }
 
-      // [FLOW-03 / 3단계] 권한이 있을 때만 현재 좌표를 한 번 요청합니다.
+      // [FLOW-03 / 5단계] 권한이 있을 때만 현재 좌표를 한 번 요청합니다.
       const position = await Location.getCurrentPositionAsync({
         // Balanced는 최고 정밀도보다 배터리·응답 시간 부담을 낮춘 위치 정확도 옵션입니다.
         accuracy: Location.Accuracy.Balanced,
       });
 
+      // [FLOW-03 / 6단계] Expo Location 결과를 내부 LocationSnapshot으로 반영합니다.
       // 외부 라이브러리 결과에서 앱이 보존할 필드만 LocationSnapshot으로 복사합니다.
       setLocation({
         latitude: position.coords.latitude,
@@ -162,7 +177,7 @@ export default function CurrentStatusScreen() {
     }
   }, []);
 
-  // [FLOW-02 / 2단계] 플랫폼 차이를 사용자에게 알린 뒤 실제 Hook 함수를 호출합니다.
+  // [FLOW-02 / 3단계] 플랫폼 차이를 사용자에게 알린 뒤 실제 Hook 함수를 호출합니다.
   const startMonitoring = useCallback(() => {
     // Android는 별도 경고 없이 즉시 시작합니다.
     if (Platform.OS !== "ios") {
@@ -190,7 +205,7 @@ export default function CurrentStatusScreen() {
   const weatherIsPending =
     coordinates !== null &&
     (weatherQuery.isPending || weatherQuery.isFetching);
-  // [FLOW-04 / 1단계] 센서 결과가 확정되고 위치·날씨 작업이 끝난 순간에만 snapshot을 고정할 수 있습니다.
+  // [FLOW-04 / 관련 코드] 센서 결과가 확정되고 위치·날씨 작업이 끝난 순간에만 snapshot을 고정할 수 있습니다.
   const canCreateObservation =
     (proximityStatus === "near" ||
       proximityStatus === "far" ||
@@ -206,7 +221,13 @@ export default function CurrentStatusScreen() {
         ? "센서 상태를 확인하고 있습니다."
         : "위치·날씨 요청이 끝나면 기록할 수 있습니다.";
 
-  // [FLOW-04 / 1~3단계] 현재 표시값을 불변 snapshot으로 복사하고 작성 route로 이동합니다.
+  /**
+   * [FLOW-04]
+   * 기록 만들기 → snapshot 고정 → Zustand 임시 저장 → 작성 route
+   * → form·Zod → SQLite mutation → cache 갱신 → 기록 tab 순서로 흐릅니다.
+   */
+  // [FLOW-04 / 관련 코드] 현재 표시값을 불변 snapshot으로 복사하고 작성 route로 이동합니다.
+  // [FLOW-04 / 2단계] 현재 표시값을 한 시점의 불변 snapshot으로 복사합니다.
   const createObservation = useCallback(() => {
     // disabled UI와 별개로 함수 안에서도 조건을 확인하는 방어 절입니다.
     if (!canCreateObservation) {
@@ -229,7 +250,7 @@ export default function CurrentStatusScreen() {
       proximitySnapshot = { ...proximityEvent };
     }
 
-    // [FLOW-04 / 2단계] 센서·위치·날씨·플랫폼·캡처 시각을 Zustand의 임시 context에 한 번에 저장합니다.
+    // [FLOW-04 / 3단계] 센서·위치·날씨·플랫폼·캡처 시각을 Zustand의 임시 context에 한 번에 저장합니다.
     setCaptureContext({
       proximity: proximitySnapshot,
       location,
@@ -239,7 +260,8 @@ export default function CurrentStatusScreen() {
       platform: Platform.OS === "ios" ? "ios" : "android",
       capturedAt: Date.now(),
     });
-    // [FLOW-04 / 3단계] 새 기록 화면이 방금 store에 넣은 captureContext를 읽습니다.
+    // [FLOW-04 / 4단계] 방금 저장한 captureContext를 소비할 작성 route를 엽니다.
+    // [FLOW-04 / 관련 코드] 새 기록 화면이 방금 store에 넣은 captureContext를 읽습니다.
     router.push("/observations/new");
   }, [
     canCreateObservation,
@@ -343,7 +365,7 @@ export default function CurrentStatusScreen() {
           <Text accessibilityRole="header" style={styles.sectionTitle}>
             위치와 날씨
           </Text>
-          {/* [FLOW-03 / 7단계] 위치는 loading → 원인별 error → success → 미요청 순으로 한 분기만 표시합니다. */}
+          {/* [FLOW-03 / 11단계] 위치는 loading → 원인별 error → success → 미요청 순으로 한 분기만 표시합니다. */}
           {isLocating ? (
             <View accessibilityRole="progressbar" style={styles.inlineStatus}>
               <ActivityIndicator size="small" />
@@ -370,6 +392,7 @@ export default function CurrentStatusScreen() {
             <Text style={styles.helpText}>아직 위치를 조회하지 않았습니다.</Text>
           )}
 
+          {/* [FLOW-03 / 12단계] 날씨 loading, 오류·재시도와 success를 위치 상태와 별도로 표시합니다. */}
           {/* 날씨 실패는 위치 성공과 별개입니다. 오류여도 위치 정보와 재시도 버튼을 유지합니다. */}
           {weatherIsPending ? (
             <View accessibilityRole="progressbar" style={styles.inlineStatus}>
@@ -400,7 +423,7 @@ export default function CurrentStatusScreen() {
             <>
               <Text style={styles.detailText}>
                 기온:{" "}
-                {/* [FLOW-06 / 5단계] API·DB의 섭씨 원본은 두고 표시할 때만 설정 단위로 변환합니다. */}
+                {/* [FLOW-06 / 관련 코드] API·DB의 섭씨 원본은 두고 표시할 때만 설정 단위로 변환합니다. */}
                 {convertTemperature(
                   weatherQuery.data.temperatureC,
                   temperatureUnit,
@@ -426,6 +449,7 @@ export default function CurrentStatusScreen() {
             accessibilityRole="button"
             disabled={isLocating || weatherIsPending}
             onPress={() => {
+              // [FLOW-03 / 1단계] 사용자가 누르면 위치와 날씨의 새 조회 흐름을 시작합니다.
               void requestLocationAndWeather();
             }}
             style={({ pressed }) => [
@@ -443,6 +467,7 @@ export default function CurrentStatusScreen() {
           accessibilityHint="현재 값을 고정하고 기록 입력 화면으로 이동합니다"
           accessibilityRole="button"
           disabled={!canCreateObservation}
+          // [FLOW-04 / 1단계] 사용자가 누르면 현재 값을 기록으로 고정하는 handler를 호출합니다.
           onPress={createObservation}
           style={({ pressed }) => [
             styles.captureButton,
