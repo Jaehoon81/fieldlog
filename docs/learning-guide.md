@@ -222,6 +222,23 @@ Expo Router의 내부 group 이름이 기본 back title로 노출되어 iPhone�
 </InitializationErrorBoundary>
 ```
 
+`app/_layout.tsx`를 불러오면 `RootLayout`을 호출하기 전에 import한
+`app-store.ts`와 `query-client.ts`도 먼저 불러온다. JavaScript module이 처음
+“평가된다”는 말은 파일의 top-level 코드를 실행해 export 값을 준비한다는
+뜻이다.
+
+- `app-store.ts`의 `export const useAppStore = create(...)(persist(...))`가
+  store를 만들고 설정 복원을 시작한다.
+- `query-client.ts`의 `export const queryClient = createQueryClient()`가
+  `QueryClient`를 한 번 만든다.
+- `HydratedRoutes`의 selector는 복원을 시작하지 않고 이미 진행 중인 복원의
+  완료값을 읽고 구독한다.
+- `QueryClientProvider`는 render될 때 client를 새로 만들지 않고 import 때
+  준비된 `queryClient`를 prop으로 받는다.
+
+즉, import는 필요한 파일의 값을 먼저 생성·준비하고, React 화면은 그 값을
+읽거나 구독해 UI를 만드는 경계로 이해하면 된다.
+
 `SQLiteProvider`의 `onInit`이 끝나기 전에 자식이 DB를 사용하지 못하게 하고, `useSuspense`로 준비 중 UI를 한 곳에 둔다. 그 안에서 다시 Zustand hydration을 기다리는 이유는 DB schema 준비와 key-value 설정 복원이 서로 다른 비동기 작업이기 때문이다.
 
 `src/db/migrate.ts`는 먼저 WAL을 설정하고 `PRAGMA user_version`을 읽는다. version 0이면 exclusive transaction 안에서 `observations` table, 최신순 index, `user_version = 1`을 함께 만든다. 현재 앱보다 높은 DB version은 조용히 열지 않고 오류로 중단한다.
@@ -361,6 +378,21 @@ iOS EAS build에서 Swift arm64 compile과 pod autolink를 확인했다. iPhone 
   → idle
 ```
 
+첫 listener와 마지막 listener 사이에는 Expo Module의 observing lifecycle이
+연결된다.
+
+```text
+첫 addListener
+  ├─ Android OnStartObserving(PROXIMITY_EVENT_NAME)
+  └─ iOS     OnStartObserving(proximityEventName)
+       → startMonitoringIfNeeded()
+
+마지막 subscription.remove()
+  ├─ Android OnStopObserving(PROXIMITY_EVENT_NAME)
+  └─ iOS     OnStopObserving(proximityEventName)
+       → stopMonitoring()
+```
+
 listener 등록 뒤 `isAvailableAsync()`를 한 번 더 호출해 Android native 등록 실패도 `unavailable`로 바꾼다. `operationRef`는 이전 async 응답이 중지 이후 상태를 덮어쓰지 못하게 한다.
 
 ```ts
@@ -386,6 +418,12 @@ useFocusEffect(
 ```
 
 따라서 앱이 background로 가는 경우에는 native lifecycle이 sensor를 멈추고, route가 focus를 잃는 경우에는 React cleanup이 listener 자체를 제거한다. 두 층은 중복이 아니라 서로 다른 종료 경로를 담당한다.
+
+모니터링 중지 버튼은 `stopMonitoring`을 호출할 뿐 화면을 unmount하지 않는다.
+화면 blur의 focus cleanup도 같은 `stopMonitoring`을 사용하고, 실제 unmount
+때는 hook effect cleanup이 남은 비동기 응답과 subscription을 한 번 더
+안전하게 정리한다. 앞선 경로에서 subscription ref를 이미 `null`로 바꾸므로
+두 cleanup이 연달아 실행되어도 native listener를 중복 제거하지 않는다.
 
 ### 5.5 platform 차이 요약
 
@@ -424,6 +462,11 @@ useFocusEffect(
 2. `Location.getForegroundPermissionsAsync()`
 3. 필요할 때만 `Location.requestForegroundPermissionsAsync()`
 4. `Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced })`
+
+2번은 현재 권한 상태를 읽는 단계이고, 3번은 system prompt를 여는 별도
+단계다. 3번에서는 사용자가 허용 또는 거부를 선택할 때까지
+`await`가 결과를 기다린다. 이미 허용됐거나 `canAskAgain`이 `false`이면 이
+prompt 단계는 실행하지 않는다.
 
 위치 서비스 꺼짐, 다시 요청 가능한 거부, 다시 요청할 수 없는 거부, 위치 획득 실패를 서로 다른 메시지로 표시한다. 연속 위치 구독과 background 위치는 없다.
 
@@ -475,6 +518,12 @@ return useQuery({
 });
 ```
 
+좌표가 state에 반영되면 위치 UI는 바로 다시 render되고, 동시에
+`enabled: true`가 된 날씨 query가 시작된다. 위치 표시와 날씨 조회는 같은
+좌표를 소비하지만 서로 기다리는 순차 UI가 아니다. Query는 `queryFn`의
+Promise 결과를 cache와 `pending`·`error`·`data` 상태에 반영하고 화면을 다시
+render한다.
+
 retry 정책은 오류 종류를 읽고 결정한다.
 
 - 취소: 재시도하지 않음
@@ -501,7 +550,16 @@ type CaptureContext = {
 
 위치나 날씨가 없어도 `null` 그대로 저장한다. 가짜 대체 데이터는 만들지 않는다.
 
+기록 만들기 버튼을 누르면 먼저 근접 센서 결과를 불변
+`ProximitySnapshot`으로 정규화하고, 그 값과 위치·날씨·platform·캡처 시각을
+하나의 `CaptureContext`로 store에 넣은 뒤 작성 route를 연다. 따라서 근접
+센서 복사와 전체 context 저장은 서로 다른 단계다.
+
 생성 route의 focus cleanup이 저장, 취소, hardware/gesture back, 다른 화면 이동에서 `CaptureContext`를 제거한다. context 없이 `/observations/new`에 직접 접근하면 현재 상태 탭으로 돌아가는 안내를 표시한다.
+
+저장 성공은 context 제거 뒤 기록 tab으로 `replace`하고, 취소는 context 제거
+뒤 이전 route로 `back`한다. focus cleanup은 이 두 명시적 경로 외의 이탈까지
+정리하는 안전망이다.
 
 ### 6.4 form과 Zod
 
@@ -526,6 +584,11 @@ const {
 
 schema는 제목을 trim한 뒤 1~60자로 제한하고, 메모는 500자 이하, category는 세 값 중 하나로 제한한다. TypeScript generic은 개발 중 type을 맞추고, Zod `parse`는 실제 입력값을 검사하고 trim된 output을 만든다. 둘 중 하나가 다른 하나를 대체하지 않는다.
 
+사용자는 먼저 제목·메모·category를 form state에 입력하고 저장 버튼을
+누른다. 그때 `handleSubmit`이 validation을 실행한다. 실패하면 field 오류를
+표시하고 `submit`을 호출하지 않으며, 성공한 값만 `CaptureContext`와 합쳐
+mutation으로 전달한다.
+
 ### 6.5 SQLite 저장과 TanStack Query cache
 
 submit이 성공하면 다음 단계가 이어진다.
@@ -533,11 +596,13 @@ submit이 성공하면 다음 단계가 이어진다.
 ```text
 handleSubmit
   → createMutation.mutateAsync
+  → pending UI
   → observationFormSchema.parse
   → db.runAsync(INSERT, parameters)
-  → observations query invalidate
-  → CaptureContext 제거
-  → 기록 tab으로 replace
+  ├─ 실패 → 입력과 snapshot을 유지한 error UI
+  └─ 성공 → observations query invalidate
+             → CaptureContext 제거
+             → 기록 tab으로 replace
 ```
 
 [`src/db/observations.ts`](../src/db/observations.ts)는 사용자 문자열을 SQL text에 이어 붙이지 않고 named parameter를 binding한다. 핵심 구조만 줄이면 다음과 같다.
@@ -560,6 +625,23 @@ const result = await db.runAsync(
 목록 query는 `ORDER BY captured_at DESC, id DESC`로 최신순을 보장한다. 같은 캡처 시각이면 auto-increment ID가 큰 기록을 먼저 두므로 순서가 안정적이다. DB의 ISO 문자열은 읽을 때 epoch milliseconds로 되돌리고, 위치나 날씨에 필요한 column 묶음이 불완전하면 해당 snapshot 전체를 `null`로 정규화한다.
 
 TanStack Query는 DB가 아니다. 생성 성공 후 `["observations"]` 아래 query를 invalidate해 목록·상세가 다시 읽을 시점을 알리고, 삭제 성공 후에는 목록을 invalidate하면서 삭제한 상세 cache를 제거한다.
+
+목록에서 상세와 삭제까지의 사용자 흐름은 다음과 같다.
+
+```text
+기록 tab render
+  → list query → pending/error/empty/data UI
+  → 사용자가 row를 누름
+  → id가 있는 상세 route
+  → id 검증 → detail query → 상태별 상세 UI
+  → 사용자가 삭제 버튼을 누름
+  → Alert
+     ├─ 취소 → 종료
+     └─ 확인 → delete mutation pending
+                ├─ 실패 → 상세 유지, 다시 시도 가능
+                └─ 성공 → list invalidate + detail cache 제거
+                           → 기록 tab으로 replace
+```
 
 ```ts
 onSuccess: async (_, id) => {
@@ -584,6 +666,23 @@ return unit === "celsius"
 ```
 
 이렇게 하면 단위를 여러 번 바꿔도 원본 값을 반복 변환하며 생기는 오차가 없다. Android와 iPhone 모두 섭씨→화씨→재실행, 다시 섭씨→재실행에서 설정과 기존 상세 표시가 함께 복원됨을 확인했다.
+
+현재 실행과 앱 재시작은 다음처럼 나눠 읽는다.
+
+```text
+현재 실행
+  설정 tab → selector → 사용자가 단위 선택 → store action
+    ├─ 설정 radio UI 다시 render
+    └─ partialize → SQLite key-value 저장
+
+앱 재시작
+  SQLite key-value 읽기 → persisted state 병합 → hydration 완료
+
+표시 consumer
+  ├─ 현재 상태 화면
+  └─ SnapshotSummary(작성 미리보기·상세)
+       → convertTemperature → 변환 숫자와 단위 문자 표시
+```
 
 ## 7. 각 library의 실제 역할
 

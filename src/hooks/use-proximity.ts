@@ -44,7 +44,7 @@ export function applyProximityEvent(
   return {
     status: event.status,
     event,
-    // [FLOW-02 / 11단계] near이면 현재 이벤트 시각, 아니면 직전 near 시각을 유지합니다.
+    // [FLOW-02 / 관련 코드] near이면 현재 이벤트 시각, 아니면 직전 near 시각을 유지합니다.
     lastNearAt:
       event.status === "near" ? event.observedAt : state.lastNearAt,
   };
@@ -114,7 +114,7 @@ export function useProximity(): UseProximityResult {
     }
   }, []);
 
-  // [FLOW-02 / 12단계] 사용자가 중지하거나 화면이 포커스를 잃을 때 구독을 정리합니다.
+  // [FLOW-02 / 14-A단계] 사용자가 중지하거나 화면이 포커스를 잃을 때 구독을 정리합니다.
   const stopMonitoring = useCallback(() => {
     // 진행 중인 availability Promise가 뒤늦게 돌아와도 무효가 되도록 번호를 바꿉니다.
     operationRef.current += 1;
@@ -143,7 +143,7 @@ export function useProximity(): UseProximityResult {
     }));
 
     try {
-      // [FLOW-02 / 4단계] 실제 listener를 만들기 직전에 native 지원 여부를 다시 확인합니다.
+      // [FLOW-02 / 5단계] 실제 listener를 만들기 직전에 native 지원 여부를 다시 확인합니다.
       const isAvailable = await ProximitySensor.isAvailableAsync();
 
       if (!mountedRef.current || operation !== operationRef.current) {
@@ -159,7 +159,7 @@ export function useProximity(): UseProximityResult {
         return;
       }
 
-      // [FLOW-02 / 5단계] 첫 JS listener를 등록해 활성 platform의 native observation을 시작합니다.
+      // [FLOW-02 / 6단계] 첫 JS listener를 등록해 활성 platform의 native observation을 시작합니다.
       // [FLOW-02 / 관련 코드] 네이티브 event를 받아 함수형 state update로 화면 상태에 반영합니다.
       subscriptionRef.current = ProximitySensor.addListener(
         "onProximityChange",
@@ -167,6 +167,7 @@ export function useProximity(): UseProximityResult {
           // [FLOW-02 / 10단계] Android 또는 iOS가 보낸 공통 ProximityEvent를 받습니다.
           if (mountedRef.current) {
             // 가장 최신 상태와 순수 변환 함수를 이용해 이벤트를 UI 상태에 반영합니다.
+            // [FLOW-02 / 11단계] 함수형 state update로 받은 event를 Hook의 UI state에 반영합니다.
             setState((current) => applyProximityEvent(current, event));
           }
         },
@@ -212,7 +213,7 @@ export function useProximity(): UseProximityResult {
     mountedRef.current = true;
 
     return () => {
-      // [FLOW-02 / 13단계] 생존 해제 → 비동기 응답 무효화 → listener 제거 → 참조 제거 순서입니다.
+      // [FLOW-02 / 14-B단계] 생존 해제 → 비동기 응답 무효화 → listener 제거 → 참조 제거 순서입니다.
       mountedRef.current = false;
       operationRef.current += 1;
       subscriptionRef.current?.remove();

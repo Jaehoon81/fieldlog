@@ -1,5 +1,6 @@
 // [파일 역할] SQLite에 저장된 Observation 목록을 최신순으로 보여 주고 동적 상세 route로 연결합니다.
 // [FLOW-05] 목록 Query → SQLite row 변환 → 동적 상세 route → 단건 Query → 삭제·cache 정리 → 기록 tab 복귀 순서입니다.
+// 목록·상세 상태와 삭제 취소·확정·실패·성공 경로는 각 단계에서 따로 확인합니다.
 // [FLOW-05 / 관련 코드] Query 조회 → 행 렌더 → 사용자가 누른 id를 URL parameter로 전달합니다.
 import { useRouter } from "expo-router";
 import {
@@ -44,6 +45,7 @@ function ObservationRow({ observation, onPress }: ObservationRowProps) {
         observation.capturedAt,
       ).toLocaleString("ko-KR")}`}
       accessibilityRole="button"
+      // [FLOW-05 / 6단계] 사용자가 목록 행을 누르면 부모가 전달한 상세 이동 callback을 호출합니다.
       onPress={onPress}
       // Pressable의 pressed 상태 동안 opacity 스타일을 추가합니다.
       style={({ pressed }) => [
@@ -70,12 +72,14 @@ function ObservationRow({ observation, onPress }: ObservationRowProps) {
   );
 }
 
+// [FLOW-05 / 1단계] 사용자가 기록 tab을 열어 route가 렌더되면 목록 화면 흐름이 시작됩니다.
 export default function RecordsScreen() {
   const router = useRouter();
-  // [FLOW-05 / 1단계] 기록 화면이 목록 Query Hook에 최신 Observation 목록을 요청합니다.
+  // [FLOW-05 / 2단계] 기록 화면이 목록 Query Hook에 최신 Observation 목록을 요청합니다.
   // [FLOW-05 / 관련 코드] Hook이 SQLite SELECT와 TanStack Query의 pending/error/data 상태를 제공합니다.
   const observationsQuery = useObservationsQuery();
 
+  // [FLOW-05 / 5단계] Query 결과에 따라 pending·error·empty·data 목록 중 현재 UI를 표시합니다.
   // [문법] early return으로 각 비동기 상태의 JSX를 분리하면 성공 화면의 중첩을 줄일 수 있습니다.
   if (observationsQuery.isPending) {
     return (
@@ -142,11 +146,12 @@ export default function RecordsScreen() {
             </Text>
           </View>
         }
-        // [FLOW-05 / 4단계] FlatList가 넘긴 item을 행으로 만들고 누르면 id가 있는 동적 route로 이동합니다.
+        // [FLOW-05 / 관련 코드] FlatList가 넘긴 item을 행으로 만들고 누르면 id가 있는 동적 route로 이동합니다.
         renderItem={({ item }) => (
           <ObservationRow
             observation={item}
             onPress={() =>
+              // [FLOW-05 / 7단계] 선택한 기록 id를 URL parameter에 넣어 동적 상세 route를 엽니다.
               router.push({
                 // pathname의 `[id]` 자리와 params.id가 Expo Router에서 결합됩니다.
                 pathname: "/observations/[id]",

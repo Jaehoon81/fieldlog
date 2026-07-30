@@ -102,10 +102,12 @@ export function SnapshotSummary({
             <Text style={styles.value}>
               기온:{" "}
               {/* [FLOW-06 / 관련 코드] 저장값은 섭씨로 유지하고 렌더 순간에만 선택 단위로 변환합니다. */}
+              {/* [FLOW-06 / 8-B단계] 공용 SnapshotSummary가 저장된 섭씨값의 표시 단위 변환을 요청합니다. */}
               {convertTemperature(
                 snapshot.weather.temperatureC,
                 temperatureUnit,
               ).toFixed(1)}
+              {/* [FLOW-06 / 10-B단계] 변환한 숫자와 단위 문자를 작성 미리보기·상세 화면에 표시합니다. */}
               °{unitLabel}
             </Text>
             <Text style={styles.value}>

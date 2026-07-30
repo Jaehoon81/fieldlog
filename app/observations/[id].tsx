@@ -41,11 +41,11 @@ export default function ObservationDetailScreen() {
   const router = useRouter();
   // [라이브러리] 제네릭은 이 route에서 기대하는 local search parameter 모양을 TypeScript에 알려 줍니다.
   const params = useLocalSearchParams<{ id?: string | string[] }>();
-  // [FLOW-05 / 5단계] URL 문자열을 DB 조회에 쓸 수 있는 id로 좁힙니다.
+  // [FLOW-05 / 8단계] URL 문자열을 DB 조회에 쓸 수 있는 id로 좁힙니다.
   // 이 route에서는 양의 정수만 유효한 id로 허용합니다.
   const id = parseObservationId(params.id);
   // id가 null이면 -1을 넘기고 Hook의 enabled 조건이 SQL 실행을 막습니다.
-  // [FLOW-05 / 6단계] 상세 화면이 검증된 id로 detail Query Hook을 호출합니다.
+  // [FLOW-05 / 9단계] 상세 화면이 검증된 id로 detail Query Hook을 호출합니다.
   const observationQuery = useObservationQuery(id ?? -1);
   const deleteMutation = useDeleteObservationMutation();
   const temperatureUnit = useAppStore((state) => state.temperatureUnit);
@@ -57,17 +57,19 @@ export default function ObservationDetailScreen() {
       return;
     }
 
+    // [FLOW-05 / 14단계] 삭제 여부를 선택할 native Alert를 엽니다.
     Alert.alert("기록 삭제", "이 기록을 삭제하시겠습니까?", [
+      // [FLOW-05 / 15-A단계] 사용자가 취소하면 mutation 없이 Alert만 닫힙니다.
       { text: "취소", style: "cancel" },
       {
         text: "삭제",
         style: "destructive",
         onPress: () => {
           // Promise chain: 삭제 성공 시 목록으로 replace, 실패 시 mutation의 isError UI가 처리합니다.
-          // [FLOW-05 / 9단계] 사용자가 확인한 id를 delete mutation에 전달합니다.
+          // [FLOW-05 / 15-B단계] 사용자가 확인한 id를 delete mutation에 전달합니다.
           void deleteMutation
             .mutateAsync(id)
-            // [FLOW-05 / 13단계] cache 정리가 끝나면 상세 route를 기록 tab으로 교체합니다.
+            // [FLOW-05 / 20단계] cache 정리가 끝나면 상세 route를 기록 tab으로 교체합니다.
             .then(() => router.replace("/(tabs)/records"))
             // undefined를 반환해 unhandled rejection을 막고 화면의 오류 상태는 유지합니다.
             .catch(() => undefined);
@@ -76,6 +78,7 @@ export default function ObservationDetailScreen() {
     ]);
   };
 
+  // [FLOW-05 / 12단계] 상세 Query 결과에 따라 invalid·pending·error·not-found·success UI를 표시합니다.
   // [문법] 아래 early return들은 invalid → loading → error → not found를 성공 UI보다 먼저 분리합니다.
   if (id === null) {
     return (
@@ -191,6 +194,7 @@ export default function ObservationDetailScreen() {
             />
           </View>
 
+          {/* [FLOW-05 / 19-A단계] DELETE가 실패하면 상세 정보와 재시도 가능한 삭제 버튼을 유지합니다. */}
           {/* mutation 실패 시 상세 정보는 유지하고 같은 삭제 버튼으로 재시도할 수 있습니다. */}
           {deleteMutation.isError ? (
             <Text accessibilityRole="alert" style={styles.errorText}>
@@ -202,6 +206,7 @@ export default function ObservationDetailScreen() {
             accessibilityRole="button"
             // pending 중 중복 DELETE를 막습니다.
             disabled={deleteMutation.isPending}
+            // [FLOW-05 / 13단계] 사용자가 기록 삭제 버튼을 누르면 확인 절차를 시작합니다.
             onPress={confirmDeletion}
             style={({ pressed }) => [
               styles.deleteButton,
@@ -209,6 +214,7 @@ export default function ObservationDetailScreen() {
               pressed && styles.pressed,
             ]}
           >
+            {/* [FLOW-05 / 16단계] mutation pending 중에는 삭제 문구를 spinner로 바꾸고 중복 실행을 막습니다. */}
             {deleteMutation.isPending ? (
               <ActivityIndicator color="#B91C1C" size="small" />
             ) : (

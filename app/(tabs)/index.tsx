@@ -91,7 +91,7 @@ export default function CurrentStatusScreen() {
           },
     [location],
   );
-  // [FLOW-03 / 7단계] 좌표가 생기면 enabled query가 날씨 조회를 시작합니다.
+  // [FLOW-03 / 8-A단계] 좌표가 생기면 enabled query가 날씨 조회를 시작합니다.
   // coordinates가 null이면 Query는 비활성이고, 좌표가 생기는 순간 Open-Meteo 조회가 시작됩니다.
   const weatherQuery = useWeatherQuery(coordinates);
 
@@ -112,6 +112,7 @@ export default function CurrentStatusScreen() {
    * [FLOW-03]
    * 조회 버튼 → 이전 상태 초기화 → 위치 service·permission → 현재 좌표
    * → TanStack Query → Axios → Zod → 위치·날씨 상태 표시 순서로 흐릅니다.
+   * Query 결과는 cache와 화면 상태에 반영되며, 오류에서는 날씨 조회만 다시 시도합니다.
    */
   // [FLOW-03 / 관련 코드] 버튼 한 번으로 service → permission → 현재 좌표를 순차 확인합니다.
   // [FLOW-03 / 2단계] 새 요청 기준으로 이전 위치·오류를 지우고 loading을 시작합니다.
@@ -143,6 +144,7 @@ export default function CurrentStatusScreen() {
         }
 
         // 아직 요청 가능한 경우에만 foreground 권한 prompt를 띄웁니다.
+        // [FLOW-03 / 5단계] 권한 요청을 열고 사용자가 선택한 결과가 돌아올 때까지 기다립니다.
         permission = await Location.requestForegroundPermissionsAsync();
       }
 
@@ -154,13 +156,13 @@ export default function CurrentStatusScreen() {
         return;
       }
 
-      // [FLOW-03 / 5단계] 권한이 있을 때만 현재 좌표를 한 번 요청합니다.
+      // [FLOW-03 / 6단계] 권한이 있을 때만 현재 좌표를 한 번 요청합니다.
       const position = await Location.getCurrentPositionAsync({
         // Balanced는 최고 정밀도보다 배터리·응답 시간 부담을 낮춘 위치 정확도 옵션입니다.
         accuracy: Location.Accuracy.Balanced,
       });
 
-      // [FLOW-03 / 6단계] Expo Location 결과를 내부 LocationSnapshot으로 반영합니다.
+      // [FLOW-03 / 7단계] Expo Location 결과를 내부 LocationSnapshot으로 반영합니다.
       // 외부 라이브러리 결과에서 앱이 보존할 필드만 LocationSnapshot으로 복사합니다.
       setLocation({
         latitude: position.coords.latitude,
@@ -177,7 +179,7 @@ export default function CurrentStatusScreen() {
     }
   }, []);
 
-  // [FLOW-02 / 3단계] 플랫폼 차이를 사용자에게 알린 뒤 실제 Hook 함수를 호출합니다.
+  // [FLOW-02 / 4단계] 플랫폼 차이를 사용자에게 알린 뒤 실제 Hook 함수를 호출합니다.
   const startMonitoring = useCallback(() => {
     // Android는 별도 경고 없이 즉시 시작합니다.
     if (Platform.OS !== "ios") {
@@ -225,9 +227,11 @@ export default function CurrentStatusScreen() {
    * [FLOW-04]
    * 기록 만들기 → snapshot 고정 → Zustand 임시 저장 → 작성 route
    * → form·Zod → SQLite mutation → cache 갱신 → 기록 tab 순서로 흐릅니다.
+   * 저장 성공·실패와 사용자의 취소·화면 이탈은 각 결과 경로에서 별도로 정리됩니다.
    */
   // [FLOW-04 / 관련 코드] 현재 표시값을 불변 snapshot으로 복사하고 작성 route로 이동합니다.
-  // [FLOW-04 / 2단계] 현재 표시값을 한 시점의 불변 snapshot으로 복사합니다.
+  // [FLOW-04 / 2단계] 근접 센서 결과를 기록에 넣을 불변 ProximitySnapshot으로 정규화합니다.
+  // 현재 표시값을 한 시점의 불변 snapshot으로 복사합니다.
   const createObservation = useCallback(() => {
     // disabled UI와 별개로 함수 안에서도 조건을 확인하는 방어 절입니다.
     if (!canCreateObservation) {
@@ -284,6 +288,7 @@ export default function CurrentStatusScreen() {
           <Text accessibilityRole="header" style={styles.sectionTitle}>
             근접 센서
           </Text>
+          {/* [FLOW-02 / 12단계] state 변경으로 다시 render되어 상태·거리·마지막 감지 시각을 표시합니다. */}
           <View
             // 접근성 도구에는 색만이 아니라 현재 상태 문구까지 하나의 label로 전달합니다.
             accessibilityLabel={`근접 센서 상태 ${STATUS_LABELS[proximityStatus]}`}
@@ -335,6 +340,7 @@ export default function CurrentStatusScreen() {
             <Pressable
               accessibilityRole="button"
               disabled={proximityStatus !== "idle" || isMonitoring}
+              // [FLOW-02 / 3단계] 사용자가 누르면 화면의 startMonitoring handler를 호출합니다.
               onPress={startMonitoring}
               // Pressable의 style 함수는 누르는 동안 pressed=true를 받아 즉각적인 시각 피드백을 더합니다.
               style={({ pressed }) => [
@@ -349,6 +355,7 @@ export default function CurrentStatusScreen() {
             <Pressable
               accessibilityRole="button"
               disabled={!isMonitoring}
+              // [FLOW-02 / 13단계] 사용자가 누르면 Hook의 stopMonitoring으로 진입합니다.
               onPress={stopMonitoring}
               style={({ pressed }) => [
                 styles.secondaryButton,
@@ -365,7 +372,7 @@ export default function CurrentStatusScreen() {
           <Text accessibilityRole="header" style={styles.sectionTitle}>
             위치와 날씨
           </Text>
-          {/* [FLOW-03 / 11단계] 위치는 loading → 원인별 error → success → 미요청 순으로 한 분기만 표시합니다. */}
+          {/* [FLOW-03 / 8-B단계] 위치는 loading → 원인별 error → success → 미요청 순으로 한 분기만 표시합니다. */}
           {isLocating ? (
             <View accessibilityRole="progressbar" style={styles.inlineStatus}>
               <ActivityIndicator size="small" />
@@ -392,7 +399,7 @@ export default function CurrentStatusScreen() {
             <Text style={styles.helpText}>아직 위치를 조회하지 않았습니다.</Text>
           )}
 
-          {/* [FLOW-03 / 12단계] 날씨 loading, 오류·재시도와 success를 위치 상태와 별도로 표시합니다. */}
+          {/* [FLOW-03 / 13단계] 날씨 loading, 오류·재시도와 success를 위치 상태와 별도로 표시합니다. */}
           {/* 날씨 실패는 위치 성공과 별개입니다. 오류여도 위치 정보와 재시도 버튼을 유지합니다. */}
           {weatherIsPending ? (
             <View accessibilityRole="progressbar" style={styles.inlineStatus}>
@@ -408,6 +415,7 @@ export default function CurrentStatusScreen() {
               <Pressable
                 accessibilityRole="button"
                 onPress={() => {
+                  // [FLOW-03 / 14단계] 사용자가 다시 시도를 누르면 같은 좌표로 날씨 Query만 refetch합니다.
                   // refetch Promise는 버튼 handler가 반환할 필요가 없어 의도적으로 void 처리합니다.
                   void weatherQuery.refetch();
                 }}
@@ -424,10 +432,12 @@ export default function CurrentStatusScreen() {
               <Text style={styles.detailText}>
                 기온:{" "}
                 {/* [FLOW-06 / 관련 코드] API·DB의 섭씨 원본은 두고 표시할 때만 설정 단위로 변환합니다. */}
+                {/* [FLOW-06 / 8-A단계] 현재 상태 화면이 섭씨 날씨값의 표시 단위 변환을 요청합니다. */}
                 {convertTemperature(
                   weatherQuery.data.temperatureC,
                   temperatureUnit,
                 ).toFixed(1)}
+                {/* [FLOW-06 / 10-A단계] 변환한 숫자와 선택한 단위 문자를 현재 상태 화면에 표시합니다. */}
                 °{temperatureUnit === "celsius" ? "C" : "F"}
               </Text>
               <Text style={styles.detailText}>

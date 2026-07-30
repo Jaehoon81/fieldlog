@@ -36,7 +36,7 @@ public final class ProximitySensorModule: Module {
       return isAvailable
     }.runOnQueue(.main)
 
-    // [FLOW-02 / 관련 코드] JS 첫 addListener 때 NotificationCenter observer와 monitoring을 준비합니다.
+    // [FLOW-02 / 7-B단계] JS 첫 addListener 때 NotificationCenter observer와 monitoring을 준비합니다.
     OnStartObserving(proximityEventName) {
       self.runOnMain {
         self.hasEventListener = true
@@ -44,7 +44,7 @@ public final class ProximitySensorModule: Module {
       }
     }
 
-    // JS 마지막 listener 제거 시 observer와 UIDevice monitoring을 함께 정리합니다.
+    // [FLOW-02 / 15-B단계] JS 마지막 listener 제거 시 observer와 UIDevice monitoring을 함께 정리합니다.
     OnStopObserving(proximityEventName) {
       self.runOnMain {
         self.hasEventListener = false
@@ -77,7 +77,7 @@ public final class ProximitySensorModule: Module {
     }
   }
 
-  // [FLOW-02 / 7단계] listener 있음 + foreground + 아직 미시작 조건에서만 한 번 시작합니다.
+  // [FLOW-02 / 8-B단계] listener 있음 + foreground + 아직 미시작 조건에서만 한 번 시작합니다.
   private func startMonitoringIfNeeded() {
     // [Swift 문법] guard는 조건이 충족되지 않으면 else에서 조기 반환해 본문을 정상 경로로 유지합니다.
     guard hasEventListener, isAppForeground, !isMonitoring else {
@@ -108,7 +108,7 @@ public final class ProximitySensorModule: Module {
     sendCurrentState()
   }
 
-  // [FLOW-02 / 15단계] observer 제거와 UIDevice monitoring 해제를 하나의 cleanup으로 묶습니다.
+  // [FLOW-02 / 16-B단계] observer 제거와 UIDevice monitoring 해제를 하나의 cleanup으로 묶습니다.
   private func stopMonitoring() {
     removeProximityObserver()
 
@@ -126,7 +126,7 @@ public final class ProximitySensorModule: Module {
     }
   }
 
-  // [FLOW-02 / 9단계] iOS boolean 근접 상태를 JS ProximityEvent payload로 만듭니다.
+  // [FLOW-02 / 9-B단계] iOS boolean 근접 상태를 JS ProximityEvent payload로 만듭니다.
   private func sendCurrentState() {
     guard isMonitoring else {
       return

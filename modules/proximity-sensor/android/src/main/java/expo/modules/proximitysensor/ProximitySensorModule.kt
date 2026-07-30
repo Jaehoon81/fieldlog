@@ -49,7 +49,7 @@ class ProximitySensorModule : Module(), SensorEventListener {
     // Sensor API 상태를 다루므로 이 비동기 함수를 main queue에서 실행합니다.
     }.runOnQueue(Queues.MAIN)
 
-    // [FLOW-02 / 관련 코드] JS의 첫 `addListener`가 생기면 Expo가 호출합니다.
+    // [FLOW-02 / 7-A단계] JS의 첫 `addListener`가 생기면 Expo가 호출합니다.
     OnStartObserving(PROXIMITY_EVENT_NAME) {
       runOnMain {
         hasEventListener = true
@@ -57,7 +57,7 @@ class ProximitySensorModule : Module(), SensorEventListener {
       }
     }
 
-    // JS의 마지막 subscription.remove() 뒤에는 센서 listener를 해제합니다.
+    // [FLOW-02 / 15-A단계] JS의 마지막 subscription.remove() 뒤에는 센서 listener를 해제합니다.
     OnStopObserving(PROXIMITY_EVENT_NAME) {
       runOnMain {
         hasEventListener = false
@@ -92,7 +92,7 @@ class ProximitySensorModule : Module(), SensorEventListener {
     }
   }
 
-  // [FLOW-02 / 8단계] Android framework가 근접 센서 값이 바뀔 때 호출하는 callback입니다.
+  // [FLOW-02 / 9-A단계] Android framework가 근접 센서 값이 바뀔 때 호출하는 callback입니다.
   // 받은 sensor 값을 공통 ProximityEvent로 JavaScript에 보냅니다.
   override fun onSensorChanged(event: SensorEvent) {
     // 이미 해제됐거나 다른 센서 이벤트이면 JS로 보내지 않습니다.
@@ -143,7 +143,7 @@ class ProximitySensorModule : Module(), SensorEventListener {
       ?.also { proximitySensor = it }
   }
 
-  // [FLOW-02 / 6단계] 세 조건이 모두 맞을 때 한 번만 Android listener를 등록합니다.
+  // [FLOW-02 / 8-A단계] 세 조건이 모두 맞을 때 한 번만 Android listener를 등록합니다.
   private fun startMonitoringIfNeeded() {
     // listener 없음, background, 이미 등록됨 중 하나면 아무 작업도 하지 않는 guard clause입니다.
     if (!hasEventListener || !isAppForeground || isSensorRegistered) {
@@ -168,7 +168,7 @@ class ProximitySensorModule : Module(), SensorEventListener {
     registrationFailed = !isSensorRegistered
   }
 
-  // [FLOW-02 / 14단계] 실제 등록된 경우에만 해제하고 flag를 즉시 false로 맞춥니다.
+  // [FLOW-02 / 16-A단계] 실제 등록된 경우에만 해제하고 flag를 즉시 false로 맞춥니다.
   private fun stopMonitoring() {
     if (isSensorRegistered) {
       sensorManager?.unregisterListener(this)

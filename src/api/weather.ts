@@ -46,7 +46,7 @@ export async function fetchWeather({
 }: FetchWeatherOptions): Promise<WeatherSnapshot> {
   // [문법] async 함수는 Promise를 반환하며, await는 이 함수 안에서 Promise 완료를 기다립니다.
   // [라이브러리] `<unknown>`은 외부 응답을 아직 신뢰하지 않는다는 타입 안전 경계입니다.
-  // [FLOW-03 / 9단계] Axios가 좌표와 취소 신호를 포함한 Open-Meteo 요청을 보냅니다.
+  // [FLOW-03 / 10단계] Axios가 좌표와 취소 신호를 포함한 Open-Meteo 요청을 보냅니다.
   const response = await axios.get<unknown>(WEATHER_ENDPOINT, {
     // params 객체는 Axios가 URL query string으로 직렬화합니다.
     params: {
@@ -94,6 +94,7 @@ export function useWeatherQuery(
   coordinates: WeatherCoordinates | null,
 ): UseQueryResult<WeatherSnapshot, Error> {
   // [라이브러리] useQuery는 로딩·성공 데이터·오류·취소·재시도를 하나의 상태 객체로 관리합니다.
+  // [FLOW-03 / 12단계] 요청 결과를 cache와 pending/error/data 상태에 반영해 consumer를 다시 렌더합니다.
   return useQuery({
     queryKey: weatherKeys.current(coordinates),
     // 좌표가 없으면 queryFn 자체를 실행하지 않아 잘못된 API 요청을 막습니다.
@@ -106,7 +107,7 @@ export function useWeatherQuery(
       }
 
       // `{ ...coordinates, signal }`은 좌표 필드를 펼치고 signal을 추가한 새 객체입니다.
-      // [FLOW-03 / 8단계] Query가 좌표와 AbortSignal을 실제 요청 함수에 전달합니다.
+      // [FLOW-03 / 9단계] Query가 좌표와 AbortSignal을 실제 요청 함수에 전달합니다.
       return fetchWeather({ ...coordinates, signal });
     },
     // 같은 좌표의 성공 데이터는 5분 동안 신선한 값으로 취급합니다.

@@ -50,7 +50,7 @@ function parseOpenMeteoUtcTime(value: string): number {
 }
 
 /**
- * [FLOW-03 / 10단계]
+ * [FLOW-03 / 11단계]
  * `input: unknown`은 caller가 어떤 값도 넘길 수 있지만, 함수 내부에서는 Zod
  * parse 전까지 property에 접근할 수 없게 한다. parse 실패는 예외가 되어
  * TanStack Query의 error 상태로 전달된다.

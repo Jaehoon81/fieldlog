@@ -79,7 +79,7 @@ function ObservationForm({ captureContext }: ObservationFormProps) {
   useFocusEffect(
     useCallback(
       () => () => {
-        // [FLOW-04 / 관련 코드] 뒤로 가기 등 어떤 이탈 경로에서도 일회용 CaptureContext가 남지 않게 합니다.
+        // [FLOW-04 / 14-C단계] 뒤로 가기 등 어떤 이탈 경로에서도 일회용 CaptureContext가 남지 않게 합니다.
         clearCaptureContext();
       },
       [clearCaptureContext],
@@ -88,7 +88,9 @@ function ObservationForm({ captureContext }: ObservationFormProps) {
 
   // 명시적 취소는 임시 snapshot을 지운 뒤 이전 route로 돌아갑니다.
   const cancel = useCallback(() => {
+    // [FLOW-04 / 14-B단계] 사용자가 취소하면 일회용 CaptureContext를 먼저 제거합니다.
     clearCaptureContext();
+    // [FLOW-04 / 15-B단계] 취소 처리를 마친 뒤 이전 route로 돌아갑니다.
     router.back();
   }, [clearCaptureContext, router]);
 
@@ -97,15 +99,15 @@ function ObservationForm({ captureContext }: ObservationFormProps) {
     async (values: ObservationFormValues) => {
       try {
         // [문법] 스프레드로 title/note/category를 복사하고 captureContext 필드를 더한 새 입력 객체입니다.
-        // [FLOW-04 / 7단계] 검증된 form 값과 고정한 CaptureContext를 mutation 입력으로 합칩니다.
+        // [FLOW-04 / 9단계] 검증된 form 값과 고정한 CaptureContext를 mutation 입력으로 합칩니다.
         await createMutation.mutateAsync({
           ...values,
           captureContext,
         });
         // 저장이 확정된 뒤에만 임시값을 지우고, replace로 작성 화면을 navigation history에서 제거합니다.
-        // [FLOW-04 / 11단계] 저장 성공 뒤 일회용 CaptureContext를 제거합니다.
+        // [FLOW-04 / 14-A단계] 저장 성공 뒤 일회용 CaptureContext를 제거합니다.
         clearCaptureContext();
-        // [FLOW-04 / 12단계] 작성 route를 history에서 제거하고 기록 tab으로 이동합니다.
+        // [FLOW-04 / 15-A단계] 작성 route를 history에서 제거하고 기록 tab으로 이동합니다.
         router.replace("/(tabs)/records");
       } catch {
         // [이유] mutation이 error 상태를 보존하므로 여기서 별도 state를 만들지 않고 아래 UI가 안내합니다.
@@ -126,6 +128,7 @@ function ObservationForm({ captureContext }: ObservationFormProps) {
           // 키보드가 열린 상태에서도 버튼/입력처럼 처리되는 터치를 먼저 전달합니다.
           keyboardShouldPersistTaps="handled"
         >
+          {/* [FLOW-04 / 6단계] 사용자가 제목·메모를 입력하고 category를 선택해 form state를 갱신합니다. */}
           <View style={styles.card}>
             <Text accessibilityRole="header" style={styles.sectionTitle}>
               기록 내용
@@ -260,6 +263,7 @@ function ObservationForm({ captureContext }: ObservationFormProps) {
             />
           </View>
 
+          {/* [FLOW-04 / 13-A단계] INSERT가 실패하면 입력값과 snapshot을 유지한 오류 UI를 표시합니다. */}
           {/* mutation 실패는 입력값과 snapshot을 유지한 채 재시도 가능한 오류로 표시합니다. */}
           {createMutation.isError ? (
             <Text accessibilityRole="alert" style={styles.submitError}>
@@ -285,7 +289,9 @@ function ObservationForm({ captureContext }: ObservationFormProps) {
               accessibilityRole="button"
               disabled={createMutation.isPending}
               onPress={() => {
-                // [FLOW-04 / 6단계] handleSubmit이 Zod resolver를 거쳐 유효할 때만 submit을 호출합니다.
+                // [FLOW-04 / 7단계] 사용자가 저장을 누르면 form 제출 절차를 시작합니다.
+                // [FLOW-04 / 8단계] handleSubmit이 Zod resolver를 거쳐 유효할 때만 submit을 호출합니다.
+                // 검증 실패는 필드 오류를 표시하고 멈추며, 성공한 값만 submit으로 이어집니다.
                 // handleSubmit(submit)은 validation을 수행할 새 함수를 돌려주므로 마지막 `()`로 실행합니다.
                 // 반환 Promise를 Pressable이 사용하지 않으므로 void로 명시합니다.
                 void handleSubmit(submit)();
@@ -296,6 +302,7 @@ function ObservationForm({ captureContext }: ObservationFormProps) {
                 pressed && styles.pressed,
               ]}
             >
+              {/* [FLOW-04 / 10단계] mutation pending 중에는 저장 문구를 spinner로 바꾸고 동작을 잠급니다. */}
               {/* 저장 중에는 같은 자리의 문구를 spinner로 바꿉니다. */}
               {createMutation.isPending ? (
                 <ActivityIndicator color="#FFFFFF" size="small" />

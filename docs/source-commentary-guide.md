@@ -21,6 +21,7 @@ JSON처럼 문법상 주석을 넣을 수 없는 설정 파일의 의미를 설�
 | `[이유]` | 현재 구현 형태를 선택한 이유와 더 단순해 보이는 다른 방식의 문제 |
 | `[FLOW-번호]` | 해당 FLOW 전체를 처음부터 끝까지 요약하는 유일한 주석 |
 | `[FLOW-번호 / N단계]` | 여러 파일을 잇는 FLOW에서 정확히 한 실행 지점을 가리키는 유일한 단계 주석 |
+| `[FLOW-번호 / N-A단계]` | 같은 원인에서 갈라지는 platform 구현, 병렬 consumer, 결과 branch 또는 cleanup 경로를 A/B/C로 나눈 유일한 하위 단계 주석 |
 | `[FLOW-번호 / 관련 코드]` | 해당 FLOW의 정식 단계는 아니지만 이해에 필요한 type, helper, 공용 UI, 방어 경로나 추가 call site |
 | `[주의]` | nullable 값, lifecycle, 비동기 경합, cache 또는 platform 차이 |
 | `[검증 경계]` | 해당 코드나 test가 증명하는 것과 증명하지 않는 것 |
@@ -28,9 +29,13 @@ JSON처럼 문법상 주석을 넣을 수 없는 설정 파일의 의미를 설�
 주석은 identifier를 번역하지 않는다. 예를 들어 `captureContext`,
 `useQuery`, `isAvailableAsync`는 source와 문서에서 같은 이름으로 읽는다.
 
-각 `[FLOW-번호]`와 `[FLOW-번호 / N단계]`는 source 전체에서 정확히 한 번만
-사용한다. 단계에는 하나의 숫자만 쓰며 `1~3단계`, `1, 3단계`,
-`1·3단계`처럼 범위나 여러 단계를 한 표식에 합치지 않는다.
+각 `[FLOW-번호]`, `[FLOW-번호 / N단계]`와 `[FLOW-번호 / N-A단계]`는
+source 전체에서 정확히 한 번만 사용한다. 하위 단계는 같은 시점의
+platform별 구현, 병렬 consumer, 결과 branch 또는 서로 다른 cleanup 진입점을
+구분할 때만 사용한다.
+단계에는 하나의 숫자 또는 하나의 숫자-문자 조합만 쓰며 `1~3단계`,
+`1, 3단계`, `1·3단계`, `6-A/B단계`처럼 범위나 여러 단계를 한 표식에
+합치지 않는다.
 `[FLOW-번호 / 관련 코드]`는 같은 FLOW 안에서 여러 번 사용할 수 있지만,
 각 표식에는 정확히 하나의 FLOW 번호만 쓴다. 하나의 코드가 여러 FLOW를
 지원하면 번호를 한 표식에 합치지 않고 FLOW별 주석을 각각 둔다.
@@ -56,6 +61,17 @@ JSON처럼 문법상 주석을 넣을 수 없는 설정 파일의 의미를 설�
 8. [`TabLayout`](<../app/(tabs)/_layout.tsx>)이 현재 상태, 기록, 설정 route를
    하단 tab으로 구성한다.
 
+`app/_layout.tsx`를 불러올 때 먼저 `app-store.ts`와 `query-client.ts`의
+top-level export가 실행되어 store와 `queryClient`가 각각 한 번 준비된다.
+여기서 파일이 “평가된다”는 말은 import한 파일의 top-level 코드를 처음부터
+실행해 export 값을 만든다는 뜻이다. 이후 `RootLayout`과 자식 화면은 이미
+만들어진 값을 사용한다.
+
+따라서 6단계의 selector는 복원을 시작하는 호출이 아니라 4~5단계의 완료
+결과인 `hasHydrated`를 읽고 계속 구독하는 지점이다. 7단계의
+`QueryClientProvider`도 그때 `createQueryClient`를 처음 호출하는 것이 아니라
+import 시점에 만들어진 `queryClient`를 prop으로 전달받는다.
+
 2~3단계의 main database 준비와 4~5단계의 Zustand 설정 복원은 완료 시점이
 겹칠 수 있는 별도 준비 경로다. 숫자는 source 탐색 순서이며 두 경로는
 `HydratedRoutes`의 6단계에서 합류한다.
@@ -66,103 +82,184 @@ JSON처럼 문법상 주석을 넣을 수 없는 설정 파일의 의미를 설�
    확인해 달라고 `useProximity`에 요청한다.
 2. hook이 TypeScript bridge의 `isAvailableAsync`를 호출하고 지원 여부를
    화면 상태에 반영한다.
-3. 사용자가 모니터링 시작을 누르면 화면 handler가 iOS 안내 여부를 처리한 뒤
-   hook의 `startMonitoring`을 호출한다.
-4. hook이 실제 구독을 만들기 직전에 지원 여부를 다시 확인한다.
-5. 지원되는 경우 hook이 첫 `onProximityChange` listener를 추가한다.
-6. Android module이 `SensorManager`에 `SensorEventListener`를 등록한다.
-7. iOS module이 `NotificationCenter` observer와 `UIDevice` monitoring을
-   시작한다.
-8. Android
-   [`SensorEventListener`](../modules/proximity-sensor/android/src/main/java/expo/modules/proximitysensor/ProximitySensorModule.kt)
-   callback이 `ProximityEvent`를 JavaScript로 보낸다.
-9. iOS
-   [`NotificationCenter`](../modules/proximity-sensor/ios/ProximitySensorModule.swift)가
-   현재 상태를 공통 `ProximityEvent`로 JavaScript에 보낸다.
+3. 사용자가 현재 상태 화면의 모니터링 시작 버튼을 누른다.
+4. 화면 handler가 Android에서는 즉시, iOS에서는 안내 확인 뒤 hook의
+   `startMonitoring`을 호출한다.
+5. hook이 실제 구독을 만들기 직전에 지원 여부를 다시 확인한다.
+6. 지원되는 경우 hook이 첫 `onProximityChange` listener를 추가한다.
+7. 첫 JS listener에 대응하는 platform별 observing hook이 실행된다.
+   - `7-A`: Android `OnStartObserving(PROXIMITY_EVENT_NAME)`이
+     `startMonitoringIfNeeded`를 호출한다.
+   - `7-B`: iOS `OnStartObserving(proximityEventName)`이
+     `startMonitoringIfNeeded`를 호출한다.
+8. 활성 platform이 실제 native monitoring을 시작한다.
+   - `8-A`: Android module이 `SensorManager`에 `SensorEventListener`를
+     등록한다.
+   - `8-B`: iOS module이 `NotificationCenter` observer와 `UIDevice`
+     monitoring을 시작한다.
+9. 활성 platform이 공통 `ProximityEvent`를 JavaScript로 보낸다.
+   - `9-A`: Android
+     [`SensorEventListener`](../modules/proximity-sensor/android/src/main/java/expo/modules/proximitysensor/ProximitySensorModule.kt)
+     callback이 sensor 값을 event로 보낸다.
+   - `9-B`: iOS
+     [`NotificationCenter`](../modules/proximity-sensor/ios/ProximitySensorModule.swift)
+     callback 또는 시작 직후 현재 상태 전송이 event를 보낸다.
 10. hook의 listener callback이 활성 platform에서 온 event를 받는다.
-11. 함수형 state update가 event를 반영하고 React가 현재 상태 화면을 다시
-    render한다.
-12. 사용자가 중지하거나 화면이 blur되면 hook이 JS subscription을 정리한다.
-13. hook이 unmount되면 남은 비동기 응답과 JS subscription을 정리한다.
-14. Android module이 등록된 `SensorEventListener`를 해제한다.
-15. iOS module이 observer와 `UIDevice` monitoring을 해제한다.
+11. 함수형 state update가 event를 hook의 UI state에 반영한다.
+12. React가 현재 상태 화면을 다시 render해 상태, 거리와 마지막 감지 시각을
+    표시한다.
+13. 사용자가 모니터링 중지 버튼을 누른다.
+14. JS subscription을 해제하는 진입 경로를 구분한다.
+    - `14-A`: 수동 중지 또는 화면 blur가 공용 `stopMonitoring`을 호출한다.
+    - `14-B`: hook owner가 unmount되면 hook의 effect cleanup이 남은 비동기
+      응답을 무효화하고 잔여 subscription을 직접 정리한다.
+15. 마지막 JS listener 제거에 대응하는 platform별 observing hook이 실행된다.
+    - `15-A`: Android `OnStopObserving(PROXIMITY_EVENT_NAME)`이
+      `stopMonitoring`을 호출한다.
+    - `15-B`: iOS `OnStopObserving(proximityEventName)`이
+      `stopMonitoring`을 호출한다.
+16. 활성 platform이 실제 native resource를 해제한다.
+    - `16-A`: Android module이 등록된 `SensorEventListener`를 해제한다.
+    - `16-B`: iOS module이 observer와 `UIDevice` monitoring을 해제한다.
 
-Android 실행 경로는 5→6→8→10, iOS 실행 경로는 5→7→9→10으로 갈라졌다가
-공통 11단계로 합류한다. 명시적 중지·blur는 12단계, unmount는 13단계에서
-시작하며 현재 platform에 따라 14단계 또는 15단계 cleanup으로 이어진다.
+시작 경로는 6단계 뒤 Android의 7-A→8-A→9-A와 iOS의
+7-B→8-B→9-B로 갈라졌다가 공통 10→11→12단계로 합류한다. 13단계는
+수동 중지에서만 거치며, 화면 blur는 13단계 없이 14-A로 들어간다.
+수동 중지가 unmount를 일으키는 것은 아니다. 화면이 unmount될 때는
+14-A의 focus cleanup과 14-B의 hook cleanup이 남은 subscription을 정리하며,
+마지막 listener가 제거된 platform에서 15-A→16-A 또는 15-B→16-B로 이어진다.
 
 ### FLOW-03: 위치와 날씨 조회
 
 1. 사용자가 현재 상태 화면의 위치 및 날씨 조회 버튼을 누른다.
 2. 화면이 이전 위치·오류를 지우고 새 요청의 loading 상태를 시작한다.
 3. `hasServicesEnabledAsync`로 위치 service가 켜져 있는지 확인한다.
-4. 현재 foreground permission을 읽고 필요한 경우에만 권한을 요청한다.
-5. 권한이 있으면 `getCurrentPositionAsync`로 현재 위치를 한 번 요청한다.
-6. Expo Location 결과에서 필요한 값만 `LocationSnapshot`으로 바꿔 저장한다.
-7. 좌표가 생기면
-   [`useWeatherQuery`](../src/api/weather.ts)의 `enabled` 조건이 충족된다.
-8. TanStack Query의 `queryFn`이 `AbortSignal`과 좌표를 `fetchWeather`에
+4. 현재 foreground permission을 읽는다.
+5. 권한이 없고 다시 요청할 수 있으면 system prompt를 열고 사용자의 선택
+   결과가 돌아올 때까지 기다린다.
+6. 권한이 있으면 `getCurrentPositionAsync`로 현재 위치를 한 번 요청한다.
+7. Expo Location 결과에서 필요한 값만 `LocationSnapshot`으로 바꿔 저장한다.
+8. 좌표 반영 뒤 시작되는 두 consumer를 구분한다.
+   - `8-A`: [`useWeatherQuery`](../src/api/weather.ts)의 `enabled` 조건이
+     충족되어 날씨 query가 시작된다.
+   - `8-B`: 현재 상태 화면이 위치의 loading, 원인별 오류, 성공과 미요청
+     상태를 표시한다.
+9. TanStack Query의 `queryFn`이 `AbortSignal`과 좌표를 `fetchWeather`에
    전달한다.
-9. Axios가 Open-Meteo에 실제 HTTP 요청을 보낸다.
-10. [`parseWeatherResponse`](../src/schemas/weather.ts)가 외부 `unknown`
-   payload를 검증하고 `WeatherSnapshot`으로 변환한다.
-11. 화면이 위치 loading, 원인별 오류, 성공과 미요청 상태를 구분해 표시한다.
-12. 화면이 날씨 loading, 오류·재시도와 성공 상태를 별도로 표시한다.
+10. Axios가 Open-Meteo에 실제 HTTP 요청을 보낸다.
+11. [`parseWeatherResponse`](../src/schemas/weather.ts)가 외부 `unknown`
+    payload를 검증하고 `WeatherSnapshot`으로 변환한다.
+12. TanStack Query가 결과를 cache와 `pending`·`error`·`data` 상태에
+    반영하고 consumer를 다시 render한다.
+13. 화면이 날씨 loading, 오류·재시도와 성공 상태를 위치와 별도로 표시한다.
+14. 사용자가 날씨 다시 시도를 누르면 현재 좌표를 유지한 채
+    `weatherQuery.refetch()`로 9단계부터 날씨 경로만 반복한다.
+
+7단계 뒤 위치 표시는 8-B로 바로 이어지고 날씨 조회는 8-A→9→10→11→12→13으로
+진행한다. 위치가 성공해도 날씨가 실패할 수 있으므로 두 UI 상태는 합치지 않는다.
 
 ### FLOW-04: 현재 값을 기록으로 저장
 
 1. 사용자가 현재 상태 화면에서 기록 만들기 버튼을 누른다.
-2. `createObservation`이 근접 센서, 위치, 날씨와 platform을 한 시점의
-   snapshot으로 만든다.
-3. Zustand `setCaptureContext`가 snapshot을 memory에 저장한다.
+2. `createObservation`이 근접 센서 결과를 기록용 `ProximitySnapshot`으로
+   복사·정규화한다.
+3. Zustand `setCaptureContext`가 근접 센서, 위치, 날씨, platform과 캡처 시각을
+   하나의 `CaptureContext`로 memory에 저장한다.
 4. Expo Router가
    [`/observations/new`](../app/observations/new.tsx) route를 연다.
 5. 새 기록 화면이 store의 `CaptureContext`를 읽고 form 또는 방어 화면을
    선택한다.
-6. 저장 버튼이 React Hook Form의 `handleSubmit`을 실행하고 Zod resolver가
-   제출값을 검증한다.
-7. 검증된 form 값과 `CaptureContext`를 합쳐 mutation에 전달한다.
-8. `useCreateObservationMutation`이
-   [`createObservation`](../src/db/observations.ts)을 호출한다.
-9. repository가 값을 다시 검증하고 named parameter로 binding해 INSERT한다.
-10. mutation 성공 callback이 observation query를 invalidate한다.
-11. 작성 화면이 일회용 `CaptureContext`를 지운다.
-12. 작성 route를 history에서 제거하고 기록 tab으로 이동한다.
+6. 사용자가 제목·메모를 입력하고 category를 선택해 form state를 갱신한다.
+7. 사용자가 저장 버튼을 눌러 제출 절차를 시작한다.
+8. React Hook Form의 `handleSubmit`이 Zod resolver로 제출값을 검증한다.
+   검증 실패는 field 오류를 표시하고 멈추며, 성공한 값만 다음 단계로 간다.
+9. 검증된 form 값과 `CaptureContext`를 합쳐 mutation에 전달한다.
+10. mutation pending 동안 저장 문구를 spinner로 바꾸고 취소·저장 동작을
+    잠근다.
+11. `useCreateObservationMutation`이
+    [`createObservation`](../src/db/observations.ts)을 호출한다.
+12. repository가 값을 다시 검증하고 named parameter로 binding해 INSERT한다.
+13. mutation 결과 경로를 구분한다.
+    - `13-A`: 실패하면 입력값과 snapshot을 유지한 오류 UI를 표시하며,
+      사용자는 7단계부터 다시 시도할 수 있다.
+    - `13-B`: 성공 callback이 observation query를 invalidate한다.
+14. 일회용 `CaptureContext`를 지우는 경로를 구분한다.
+    - `14-A`: 저장 성공 뒤 작성 화면이 context를 지운다.
+    - `14-B`: 사용자가 취소하면 context를 먼저 지운다.
+    - `14-C`: 화면 blur 또는 unmount의 focus cleanup이 다른 이탈 경로의
+      잔여 context를 지운다.
+15. 작성 route를 떠나는 명시적 navigation 경로를 구분한다.
+    - `15-A`: 저장 성공 뒤 작성 route를 history에서 제거하고 기록 tab으로
+      이동한다.
+    - `15-B`: 취소 처리를 마치고 이전 route로 돌아간다.
+
+사용자 취소는 6단계 이후 언제든 14-B→15-B로 갈 수 있다. 저장 성공은
+13-B→14-A→15-A로 이어지고, route가 실제로 focus를 잃으면 14-C가 안전망으로
+동작한다.
 
 ### FLOW-05: 기록 조회, 상세 이동과 삭제
 
-1. [`RecordsScreen`](<../app/(tabs)/records.tsx>)이 SQLite 기반 list query를
-   요청한다.
-2. list query hook이 `listObservations` repository를 호출한다.
-3. repository가 최신순 SELECT 결과를 `mapObservationRow`로 변환한다.
-4. 사용자가 row를 누르면 id를 `/observations/[id]` 동적 route에 전달한다.
-5. [`ObservationDetailScreen`](<../app/observations/[id].tsx>)이 URL parameter를
+1. 사용자가 기록 tab을 열면
+   [`RecordsScreen`](<../app/(tabs)/records.tsx>) route가 render된다.
+2. 기록 화면이 SQLite 기반 list query를 요청한다.
+3. list query hook이 `listObservations` repository를 호출한다.
+4. repository가 최신순 SELECT 결과를 `mapObservationRow`로 변환한다.
+5. 기록 화면이 query 결과에 따라 pending, error, empty 또는 data 목록을
+   표시한다.
+6. 사용자가 목록 row를 누른다.
+7. row callback이 선택한 id를 `/observations/[id]` 동적 route에 전달한다.
+8. [`ObservationDetailScreen`](<../app/observations/[id].tsx>)이 URL parameter를
    양의 정수로 검증한다.
-6. 상세 화면이 유효한 id로 detail query를 요청한다.
-7. detail query hook이 `getObservation` repository를 호출한다.
-8. repository가 해당 id의 row를 조회하고 domain model로 변환한다.
-9. 사용자가 삭제를 확인하면 화면이 id를 delete mutation에 전달한다.
-10. delete mutation이 `deleteObservation` repository를 호출한다.
-11. repository가 id를 binding해 해당 row를 삭제한다.
-12. mutation 성공 callback이 list query를 invalidate하고 삭제된 detail
-    cache를 제거한다.
-13. 상세 화면이 기록 tab으로 돌아간다.
+9. 상세 화면이 유효한 id로 detail query를 요청한다.
+10. detail query hook이 `getObservation` repository를 호출한다.
+11. repository가 해당 id의 row를 조회하고 domain model로 변환한다.
+12. 상세 화면이 invalid, pending, error, not-found 또는 success UI를 표시한다.
+13. 사용자가 기록 삭제 버튼을 누른다.
+14. 화면이 삭제 여부를 선택할 native `Alert`를 연다.
+15. 사용자의 선택을 구분한다.
+    - `15-A`: 취소하면 mutation 없이 `Alert`만 닫힌다.
+    - `15-B`: 삭제를 확인하면 화면이 id를 delete mutation에 전달한다.
+16. mutation pending 동안 삭제 문구를 spinner로 바꾸고 중복 실행을 막는다.
+17. delete mutation이 `deleteObservation` repository를 호출한다.
+18. repository가 id를 binding해 해당 row를 삭제한다.
+19. mutation 결과 경로를 구분한다.
+    - `19-A`: 실패하면 상세 정보와 다시 누를 수 있는 삭제 버튼을 유지한다.
+    - `19-B`: 성공 callback이 list query를 invalidate하고 삭제된 detail
+      cache를 제거한다.
+20. cache 정리가 끝나면 상세 route를 기록 tab으로 교체한다.
+
+취소 경로는 15-A에서 끝난다. 실패 경로는 19-A에서 13단계로 다시 시도할 수
+있고, 성공 경로만 19-B→20단계로 이어진다.
 
 ### FLOW-06: 온도 단위 영속화
 
-1. [`SettingsScreen`](<../app/(tabs)/settings.tsx>)이 Zustand selector로
-   `temperatureUnit`과 action만 구독한다.
-2. 사용자가 섭씨 또는 화씨를 누르면 `setTemperatureUnit`이 store를 갱신한다.
-3. store action이 선택한 `temperatureUnit`을 현재 state에 반영한다.
-4. `partialize`가 전체 state에서 `temperatureUnit`만 영속 대상으로 고른다.
-5. `createJSONStorage`가 `expo-sqlite/kv-store`를 통해 설정을 저장하고 읽는다.
-6. 앱을 다시 시작하면 hydration 완료 callback이 복원 완료를 알린다.
-7. `convertTemperature`가 원본 섭씨를 바꾸지 않고 표시할 때만 선택한 단위로
-   변환한다.
+1. 사용자가 설정 tab을 열면
+   [`SettingsScreen`](<../app/(tabs)/settings.tsx>) route가 render된다.
+2. 설정 화면이 Zustand selector로 `temperatureUnit`과 action만 구독한다.
+3. 사용자가 섭씨 또는 화씨 option을 누른다.
+4. `setTemperatureUnit` action이 선택한 값을 현재 state에 반영한다.
+5. store 갱신을 소비하는 두 경로를 구분한다.
+   - `5-A`: 설정 화면이 현재 값과 같은 radio option을 선택 상태로 다시
+     render한다.
+   - `5-B`: `partialize`가 전체 state에서 `temperatureUnit`만 영속 대상으로
+     고른다.
+6. `createJSONStorage` adapter가 `expo-sqlite/kv-store`를 통해 설정을
+   저장하고 다음 시작에 읽는다.
+7. 앱을 다시 시작하면 persisted state가 store에 합쳐진 뒤 hydration 완료
+   callback이 복원 완료를 알린다.
+8. 표시값 변환을 요청하는 consumer를 구분한다.
+   - `8-A`: 현재 상태 화면이 API의 섭씨 날씨값을 선택 단위로 요청한다.
+   - `8-B`: 작성 미리보기와 상세 화면의 공용 `SnapshotSummary`가 저장된
+     섭씨값을 선택 단위로 요청한다.
+9. `convertTemperature`가 원본 섭씨를 바꾸지 않고 표시용 숫자를 계산한다.
+10. 변환 결과를 표시하는 consumer를 구분한다.
+    - `10-A`: 현재 상태 화면이 변환한 숫자와 단위 문자를 표시한다.
+    - `10-B`: `SnapshotSummary`가 변환한 숫자와 단위 문자를 표시한다.
 
-현재 실행에서 설정을 바꿀 때는 1→5단계를 거친 뒤 React render가 7단계를
-다시 사용한다. 앱 재시작 때는 FLOW-01의 초기화 경로 안에서 5→6단계를 거쳐
-복원한 값이 7단계의 표시 계산에 사용된다.
+현재 실행에서 설정을 바꾸면 1→2→3→4 뒤 5-A의 설정 UI와 5-B→6의 저장
+경로로 갈라진다. 온도 consumer가 render될 때는 8-A→9→10-A 또는
+8-B→9→10-B를 따른다. 앱 재시작 때는 FLOW-01의 초기화 안에서 6→7을 거쳐
+복원한 값이 같은 8→9→10 표시 경로에 사용된다.
 
 ## 3. Inline 주석 대상
 

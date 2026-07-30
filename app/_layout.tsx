@@ -83,6 +83,7 @@ class InitializationErrorBoundary extends Component<
  * [FLOW-01 / 6단계]
  * SQLite가 준비된 뒤 호출되며, persisted Zustand 설정의 비동기 hydration까지
  * 끝나야 실제 route와 QueryClient를 노출한다.
+ * 이때 4단계에서 이미 만든 store를 새로 만드는 것이 아니라 읽고 구독한다.
  */
 function HydratedRoutes() {
   /**
@@ -108,6 +109,7 @@ function HydratedRoutes() {
   return (
     // [FLOW-01 / 7단계] 모든 descendant query/mutation hook이 같은 queryClient cache를 사용한다.
     // 공용 Query cache와 root Stack은 hydration gate 뒤에 표시한다.
+    // Provider는 import 시 이미 만든 queryClient를 전달받는다.
     <QueryClientProvider client={queryClient}>
       <StatusBar style="dark" />
       <Stack>
@@ -119,6 +121,7 @@ function HydratedRoutes() {
 }
 
 // [FLOW-01 / 1단계] RootLayout이 초기화 error boundary와 Suspense 경계를 준비한다.
+// Import한 store와 queryClient는 이 함수가 호출되기 전에 이미 만들어져 있다.
 // Expo Router가 `app/_layout.tsx`의 default export를 root layout으로 인식한다.
 export default function RootLayout() {
   return (

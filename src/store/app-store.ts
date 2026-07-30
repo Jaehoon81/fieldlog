@@ -37,7 +37,7 @@ export type AppStore = {
  */
 export type PersistedAppState = Pick<AppStore, "temperatureUnit">;
 
-// [FLOW-06 / 4단계] persist middleware가 저장 직전에 호출하는 순수 함수다.
+// [FLOW-06 / 5-B단계] persist middleware가 저장 직전에 호출하는 순수 함수다.
 // 전체 state에서는 temperatureUnit만 영속 대상으로 고른다.
 export function partializeAppState(state: AppStore): PersistedAppState {
   return {
@@ -53,6 +53,7 @@ export function partializeAppState(state: AppStore): PersistedAppState {
  */
 export const useAppStore = create<AppStore>()(
   // [FLOW-01 / 4단계] store 생성 시 persist가 SQLite 설정 복원을 자동으로 시작한다.
+  // 여기서 "store 생성 시"는 이 파일을 처음 import해 아래 줄이 실행되는 시점이다.
   persist(
     // `set`은 Zustand가 주입하는 갱신 함수다.
     (set) => ({
@@ -61,7 +62,7 @@ export const useAppStore = create<AppStore>()(
       captureContext: null,
       hasHydrated: false,
       // [문법] `{ temperatureUnit }`은 같은 이름의 key와 변수를 줄인 object shorthand다.
-      // [FLOW-06 / 3단계] 설정 화면이 전달한 단위를 현재 Zustand state에 반영한다.
+      // [FLOW-06 / 4단계] 설정 화면이 전달한 단위를 현재 Zustand state에 반영한다.
       setTemperatureUnit: (temperatureUnit) => set({ temperatureUnit }),
       setCaptureContext: (captureContext) => set({ captureContext }),
       clearCaptureContext: () => set({ captureContext: null }),
@@ -71,14 +72,17 @@ export const useAppStore = create<AppStore>()(
       // SQLite kv-store에서 이 persisted object를 식별하는 key다.
       name: "fieldlog-settings",
       /**
-       * [FLOW-06 / 5단계]
+       * [FLOW-06 / 6단계]
        * Zustand object를 JSON 문자열로 직렬화하고 SQLiteStorage에 읽고 쓰는
        * adapter를 만든다. Generic은 저장되는 shape를 PersistedAppState로 제한한다.
+       * 이 adapter는 persist의 설정 저장과 다음 앱 시작의 설정 복원에 함께 사용된다.
        */
       storage: createJSONStorage<PersistedAppState>(() => SQLiteStorage),
       partialize: partializeAppState,
       // [FLOW-01 / 5단계] storage 읽기가 끝나면 route gate가 구독하는 flag를 올린다.
-      // [FLOW-06 / 6단계] 앱 재시작 시 저장 단위 복원이 완료됐음을 같은 callback이 알린다.
+      // 6단계가 복원을 시작하는 것이 아니라, 이 완료 결과를 읽고 구독한다.
+      // [FLOW-06 / 7단계] 앱 재시작 시 저장 단위 복원이 완료됐음을 같은 callback이 알린다.
+      // persisted state가 store에 합쳐진 뒤 이 callback이 완료 상태를 알린다.
       /**
        * `() => (state) => {}`는 함수를 반환하는 고차 함수다. 바깥 함수는
        * rehydration 시작 때, 반환된 안쪽 함수는 storage 읽기가 끝난 뒤 호출된다.

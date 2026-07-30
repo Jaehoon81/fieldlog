@@ -140,7 +140,7 @@ export function mapObservationRow(row: ObservationRow): Observation {
   };
 }
 
-// [FLOW-05 / 3단계] 기록 탭이 요청하면 캡처 시각이 최신인 행부터 모두 읽습니다.
+// [FLOW-05 / 4단계] 기록 탭이 요청하면 캡처 시각이 최신인 행부터 모두 읽습니다.
 // SELECT 결과는 domain Observation 배열로 변환합니다.
 export async function listObservations(
   db: SQLiteDatabase,
@@ -156,7 +156,7 @@ export async function listObservations(
   return rows.map(mapObservationRow);
 }
 
-// [FLOW-05 / 8단계] 상세 route의 숫자 id에 해당하는 행 하나만 조회합니다.
+// [FLOW-05 / 11단계] 상세 route의 숫자 id에 해당하는 행 하나만 조회합니다.
 // 조회한 row는 domain Observation으로 변환합니다.
 export async function getObservation(
   db: SQLiteDatabase,
@@ -176,7 +176,7 @@ export async function getObservation(
   return row === null ? null : mapObservationRow(row);
 }
 
-// [FLOW-04 / 9단계] 작성 폼과 홈에서 캡처한 문맥을 하나의 DB 행으로 저장합니다.
+// [FLOW-04 / 12단계] 작성 폼과 홈에서 캡처한 문맥을 하나의 DB 행으로 저장합니다.
 // 입력을 다시 검증하고 named parameter로 binding해 INSERT합니다.
 export async function createObservation(
   db: SQLiteDatabase,
@@ -271,7 +271,7 @@ export async function createObservation(
   return result.lastInsertRowId;
 }
 
-// [FLOW-05 / 11단계] 삭제 확인을 받은 id 한 건을 parameter binding으로 삭제합니다.
+// [FLOW-05 / 18단계] 삭제 확인을 받은 id 한 건을 parameter binding으로 삭제합니다.
 export async function deleteObservation(
   db: SQLiteDatabase,
   id: number,
@@ -279,7 +279,7 @@ export async function deleteObservation(
   await db.runAsync("DELETE FROM observations WHERE id = $id", { $id: id });
 }
 
-// [FLOW-05 / 2단계] React 컴포넌트가 사용하는 목록 조회 Hook입니다.
+// [FLOW-05 / 3단계] React 컴포넌트가 사용하는 목록 조회 Hook입니다.
 // 이 Hook이 listObservations repository를 호출합니다.
 export function useObservationsQuery(): UseQueryResult<Observation[], Error> {
   // [라이브러리] SQLiteProvider가 연 DB를 React Context에서 꺼냅니다.
@@ -294,7 +294,7 @@ export function useObservationsQuery(): UseQueryResult<Observation[], Error> {
   });
 }
 
-// [FLOW-05 / 7단계] 상세 화면이 사용하는 단건 조회 Hook입니다.
+// [FLOW-05 / 10단계] 상세 화면이 사용하는 단건 조회 Hook입니다.
 // 이 Hook이 유효한 id로 getObservation을 호출합니다.
 export function useObservationQuery(
   id: number,
@@ -321,11 +321,11 @@ export function useCreateObservationMutation(): UseMutationResult<
   const queryClient = useQueryClient();
 
   return useMutation({
-    // [FLOW-04 / 8단계] mutation이 검증된 입력을 createObservation repository에 넘깁니다.
+    // [FLOW-04 / 11단계] mutation이 검증된 입력을 createObservation repository에 넘깁니다.
     mutationFn: (input) => createObservation(db, input),
     retry: false,
     // 성공하면 observations 아래 캐시를 stale로 만들어 다음 화면에서 최신 DB 값을 읽게 합니다.
-    // [FLOW-04 / 10단계] INSERT 성공 뒤 observations cache를 stale 상태로 만듭니다.
+    // [FLOW-04 / 13-B단계] INSERT 성공 뒤 observations cache를 stale 상태로 만듭니다.
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: observationKeys.all });
     },
@@ -342,11 +342,11 @@ export function useDeleteObservationMutation(): UseMutationResult<
   const queryClient = useQueryClient();
 
   return useMutation({
-    // [FLOW-05 / 10단계] mutation이 확인된 id를 deleteObservation repository에 넘깁니다.
+    // [FLOW-05 / 17단계] mutation이 확인된 id를 deleteObservation repository에 넘깁니다.
     mutationFn: (id) => deleteObservation(db, id),
     retry: false,
     // 첫 매개변수 `_`는 사용하지 않는 성공값(void), id는 mutation에 전달했던 변수입니다.
-    // [FLOW-05 / 12단계] 삭제 뒤 목록을 invalidate하고 해당 detail cache를 제거합니다.
+    // [FLOW-05 / 19-B단계] 삭제 뒤 목록을 invalidate하고 해당 detail cache를 제거합니다.
     onSuccess: async (_, id) => {
       // 목록 등 observations 계열 캐시는 다시 조회하도록 무효화합니다.
       await queryClient.invalidateQueries({ queryKey: observationKeys.all });
