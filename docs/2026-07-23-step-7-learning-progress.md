@@ -6,7 +6,7 @@
 - authoritative 계획서: [implementation-plan.md](./implementation-plan.md)
 - 7번 완료 기록: [2026-07-23-step-7-handoff.md](./2026-07-23-step-7-handoff.md)
 - 저장소 선행 작업 완료 기록: [2026-07-24-step-9-10-handoff.md](./2026-07-24-step-9-10-handoff.md)
-- 현재 상태: **대화형 학습 진행 중, 1단원 1-1~1-4·2단원 2-1~2-3 사용자 검증 완료, 3단원 시작 대기**
+- 현재 상태: **대화형 학습 진행 중, 1단원 1-1~1-4·2단원 2-1~2-3·3단원 3-1~3-4 사용자 검증 완료, 4단원 시작 대기**
 
 이 문서는 대화 내용을 복제하지 않고 대화형 학습의 현재 위치, 사용자 source 확인 결과, 질문의 결론과 학습서 수정 필요 사항을 새 세션에서도 복원할 수 있게 기록한다.
 
@@ -15,7 +15,7 @@
 1. `[완료]` 8번 `AGENTS.md Improver` 조사·수정안 검토와 승인된 반영을 마쳤다.
 2. `[완료]` 9번 GitHub repository 조건 확정·생성·연결을 마쳤다.
 3. `[완료]` 10번 현재 기준 source·문서의 의미·기능·작업별 commit과 1차 push를 마쳤다.
-4. `[진행 중]` 이 진행표를 기준으로 대화형 학습과 실제 source 확인을 진행한다. 현재 1단원 1-1~1-4와 2단원 2-1~2-3을 완료했고 3단원 시작을 기다린다.
+4. `[진행 중]` 이 진행표를 기준으로 대화형 학습과 실제 source 확인을 진행한다. 현재 1단원 1-1~1-4, 2단원 2-1~2-3과 3단원 3-1~3-4를 완료했고 4단원 시작을 기다린다.
 5. 학습 중 오류·누락이 발견되면 학습서를 수정하고 필요한 문서 검증을 다시 수행한다.
 6. 학습으로 생긴 수정은 기존 1차 push와 구분해 추가 commit/push한다.
 
@@ -62,7 +62,7 @@
 | --- | --- | --- | --- |
 | 1 | 먼저 알아둘 검증 경계 | 사용자 검증 완료 | 1-1~1-4 사용자 검증 완료 |
 | 2 | 프로젝트 구조와 책임 | 사용자 검증 완료 | 2-1~2-3 사용자 검증 완료 |
-| 3 | Expo Router 화면 흐름 | 대기 |  |
+| 3 | Expo Router 화면 흐름 | 사용자 검증 완료 | 3-1~3-4 사용자 검증 완료 |
 | 4 | 앱 시작, SQLite migration, Zustand hydration | 대기 |  |
 | 5 | 근접 센서와 native lifecycle | 대기 |  |
 | 6 | 위치, 날씨, `CaptureContext`, 저장 흐름 | 대기 |  |
@@ -72,7 +72,7 @@
 | 10 | 자동화와 실기기 검증 구분 | 대기 |  |
 | 11 | 복습 실습 | 대기 |  |
 
-각 대단원의 서브 스탭 목록은 실제 학습 직전에 제시하고 사용자가 분량을 확인한 뒤 이 표 또는 해당 단원 아래에 추가한다. 2단원은 학습서와 실제 source를 다시 대조해 아래 3개 서브 스탭으로 확정했으며, 완료를 명시한 서브 스탭만 완료로 기록한다.
+각 대단원의 서브 스탭 목록은 실제 학습 직전에 제시하고 사용자가 분량을 확인한 뒤 이 표 또는 해당 단원 아래에 추가한다. 2단원은 학습서와 실제 source를 다시 대조해 아래 3개, 3단원은 Expo SDK 54·설치된 Expo Router 계약과 실제 route source를 다시 대조해 아래 4개 서브 스탭으로 확정했다. 완료를 명시한 서브 스탭만 완료로 기록한다.
 
 ### 1단원 서브 스탭 진행 상태
 
@@ -91,11 +91,22 @@
 | 2-2 | 계층별 책임과 공용 코드 분리 기준 | 사용자 검증 완료 | route 화면, 공용 TypeScript 계층과 실제 재사용을 기준으로 한 component 분리 |
 | 2-3 | 하나의 기록을 따라가는 source 읽기 순서 | 사용자 검증 완료 | 관측 기록의 type, capture, form, SQLite, 목록·상세 연결 순서 |
 
+### 3단원 서브 스탭 진행 상태
+
+| 순서 | 서브 스탭 | 상태 | 확인 범위 |
+| --- | --- | --- | --- |
+| 3-1 | Root Stack, Tabs와 파일 기반 route | 사용자 검증 완료 | `expo-router/entry`, Root Stack·Tabs navigator 계층, route group·index·동적 segment와 화면·URL 대응 |
+| 3-2 | 현재 상태에서 새 기록 화면으로 | 사용자 검증 완료 | `CaptureContext`를 navigation 전제로만 확인하고 생성 route의 `push`·`back`·`replace`와 이탈 경로 추적 |
+| 3-3 | 기록 목록에서 동적 상세 화면으로 | 사용자 검증 완료 | 목록 row의 ID 전달, 동적 route parameter 검증과 상세 상태별 navigation 결과 |
+| 3-4 | URL·memory state, navigation history와 platform header 경계 | 사용자 검증 완료 | URL 식별자와 memory-only 상태, `push`·`back`·`replace`, 공통 navigator와 iOS header 표시 차이 |
+
 ### 3~11단원 서브 스탭 예정안
 
-아래 목록은 2026-07-24 기준 전체 학습량과 흐름을 파악하기 위한 비확정 예정안이다. 2단원은 위 목록으로 확정했으며, 아래 예정안만으로 3~11단원의 `대기` 상태를 바꾸거나 학습 완료 증거로 사용하지 않는다.
+아래 목록은 2026-07-24 기준 전체 학습량과 흐름을 파악하기 위한 비확정 예정안이다. 2단원과 3단원은 위 목록으로 확정했으며, 아래 예정안만으로 나머지 단원의 `대기` 상태를 바꾸거나 학습 완료 증거로 사용하지 않는다. 아래 3단원 행은 최초 예정안을 보존한 이력이고 현재 범위와 상태는 위 확정 목록을 따른다.
 
 각 단원을 시작하기 직전에 `docs/learning-guide.md`와 실제 source를 다시 읽고 의존 관계와 분량을 확인한 뒤 사용자와 최종 목록을 확정한다. 이 과정에서 제목·개수·경계가 조정될 수 있으며, 확정된 목록만 해당 단원의 진행 상태로 기록한다.
+
+3단원은 기존 4개 순서와 3-1~3-3 제목을 유지했다. 3-4는 별도의 platform별 navigator가 있는 것으로 오해하거나 6단원의 `CaptureContext` 구현을 침범하지 않도록 `URL·memory state, navigation history와 platform header 경계`로 제목과 범위를 좁혀 확정했다.
 
 | 단원 | 예상 개수 | 예정 서브 스탭 | 간략 범위 |
 | --- | ---: | --- | --- |
@@ -122,6 +133,10 @@
 | 2-1 저장소 지도와 source/generated 경계 | `.gitignore`, `package.json`, `app/(tabs)/index.tsx`, `modules/proximity-sensor/expo-module.config.json`, TypeScript bridge와 Kotlin·Swift module source, 현재 Git tracked·ignored 상태 | root `android/`와 module의 Android source, app 수준 native 설정과 근접 센서 구현 기준, route·공용 TypeScript·화면 test 위치, `.expo/`의 성격을 구분함 | 앱 수준 native 설정은 `app.json`, 근접 센서 구현은 `modules/proximity-sensor/`가 기준이다. Route는 `app/`, 여러 화면에서 쓰는 TypeScript 기능은 `src/`, 화면 test는 `app-tests/`에 둔다. `.expo/`는 Expo CLI·개발 서버·build inspection 등이 만드는 재생성 가능하고 오래될 수 있는 ignored output이므로 구현 source의 기준이 아니다. 학습서 오류·누락은 발견되지 않음 | 사용자 검증 완료 |
 | 2-2 계층별 책임과 공용 코드 분리 기준 | `app/observations/new.tsx`, `app/observations/[id].tsx`, `src/components/snapshot-summary.tsx`, `src/types/observation.ts`, `src/schemas/observation.ts`, `src/api/weather.ts`, `src/db/observations.ts`, `src/hooks/use-proximity.ts`, `src/store/app-store.ts` | Route가 하위 기능을 조합하는 구조, `SnapshotSummary`와 route 전용 `MessageState`의 분리 기준, API·schema·DB·store의 책임을 구분했다. 임시 캡처 상태를 처음에는 `src/components/`로 분류해 실제 소유 위치를 다시 확인함 | `SnapshotSummary`는 생성·상세 화면에서 같은 props 계약으로 사용하므로 공용 component이고, `MessageState`와 한 화면 전용 helper·style은 route에 남긴다. Open-Meteo 호출은 `src/api/`, runtime 검증은 `src/schemas/`, SQLite query는 `src/db/`가 맡는다. `captureContext`는 `src/store/app-store.ts`가 소유하며 `SnapshotSummary`는 상태를 저장하지 않고 props로 전달받아 표시한다. 학습서 오류·누락은 발견되지 않음 | 사용자 검증 완료 |
 | 2-3 하나의 기록을 따라가는 source 읽기 순서 | `src/types/observation.ts`, `app/(tabs)/index.tsx`, `src/store/app-store.ts`, `app/observations/new.tsx`, `src/db/observations.ts`, `app/(tabs)/records.tsx`, `app/observations/[id].tsx` | `CaptureContext`·`CreateObservationInput`·`Observation`의 변화, 사용자 입력과 snapshot의 결합 지점, 저장 함수가 반환한 ID와 상세 route에 전달되는 ID의 경로를 구분함 | `CaptureContext`의 근접 센서·위치·날씨·platform·`capturedAt`에 form의 `title`·`note`·`category`가 `new.tsx`의 `mutateAsync({ ...values, captureContext })`에서 결합된다. DB 저장·조회 뒤에는 ID가 포함되고 snapshot 필드가 펼쳐진 `Observation`이 된다. 새 기록 화면은 저장 반환 ID를 route에 사용하지 않으며, 기록 목록의 `renderItem`이 선택한 `item.id`를 상세 route에 전달한다. 학습서 오류·누락은 발견되지 않음 | 사용자 검증 완료 |
+| 3-1 Root Stack, Tabs와 파일 기반 route | `package.json`, `app/_layout.tsx`, `app/(tabs)/_layout.tsx`, `app/(tabs)/index.tsx`, `app/(tabs)/records.tsx`, `app/(tabs)/settings.tsx`, `app/observations/new.tsx`, `app/observations/[id].tsx` | `expo-router/entry`부터 Root Stack·Tabs와 route 파일의 대응을 확인했다. `(tabs)`가 URL에서 빠지는 route group이고 `[id]`가 동적 segment이며, root layout에 observation용 `Stack.Screen`을 명시하지 않아도 파일 route가 자동 연결되는 점을 확인한 뒤 추가 질문 없이 완료를 명시함 | 파일이 route를 만들고 `_layout.tsx`가 navigator 관계를 정한다. Root Stack의 `(tabs)` 아래에 세 tab이 있고 observation route는 Tabs 바깥의 Root Stack에 있다. Root는 `(tabs)` header를 숨기고 각 tab header는 Tabs가 담당한다. 학습서와 source의 오류·누락은 발견되지 않음 | 사용자 검증 완료 |
+| 3-2 현재 상태에서 새 기록 화면으로 | `app/(tabs)/index.tsx`, `src/store/app-store.ts`, `app/observations/new.tsx` | 현재 상태 화면이 `setCaptureContext`를 먼저 호출한 뒤 `/observations/new`를 `push`하고, 작성 화면이 context 유무에 따라 form과 방어 화면을 선택하는 흐름을 확인했다. 취소·system/gesture back·저장 성공·실패·context 없는 직접 접근의 navigation 결과를 대조한 뒤 추가 질문 없이 완료를 명시함 | 취소는 context를 지우고 `back`, 저장 성공은 context를 지우고 기록 tab으로 `replace`, 저장 실패는 현재 route와 context를 유지한다. system/gesture back 등 기타 이탈은 `useFocusEffect` cleanup이 context를 제거하며, 직접 접근 방어 화면은 이전 history를 신뢰하지 않고 현재 상태 tab으로 `replace`한다. `CaptureContext`의 생성·저장 구현은 6단원에 남겼고 학습서와 source의 오류·누락은 발견되지 않음 | 사용자 검증 완료 |
+| 3-3 기록 목록에서 동적 상세 화면으로 | `package.json`, `app.json`, 설치된 Expo Router type, `app/(tabs)/records.tsx`, `app/observations/[id].tsx`, `src/db/observations.ts` | 목록 row의 숫자 `item.id`가 URL 문자열로 변환되어 `/observations/[id]`의 `params.id`로 전달되고, 상세 화면이 local parameter를 양의 정수로 다시 검증하는 경계를 확인했다. invalid·pending·error·not-found·success 상태와 삭제 취소·처리 중·실패·성공의 navigation 결과를 대조한 뒤 추가 질문 없이 완료를 명시함 | `typedRoutes`의 source 작성 시점 검사는 외부 URL의 runtime 유효성을 대신하지 않는다. 형식이 잘못된 ID는 SQL을 실행하지 않고, 형식은 유효하지만 행이 없는 ID와 조회 오류는 별도 상태로 처리한다. 목록에서 상세로는 `push`, invalid·not-found 복귀 버튼과 삭제 성공은 기록 tab으로 `replace`하며 나머지 처리 중·오류·취소 상태는 상세 route를 유지한다. SQL·cache 구현 상세는 6·7단원에 남겼고 학습서와 source의 오류·누락은 발견되지 않음 | 사용자 검증 완료 |
+| 3-4 URL·memory state, navigation history와 platform header 경계 | `app/_layout.tsx`, `app/(tabs)/_layout.tsx`, `app/(tabs)/index.tsx`, `app/(tabs)/records.tsx`, `app/observations/new.tsx`, `app/observations/[id].tsx`, `src/store/app-store.ts`, 설치된 Expo Router·native-stack type | URL·route state, runtime navigation history와 memory-only `captureContext`를 구분하고 현재 source의 모든 `push`·`back`·`replace` 결과를 대조했다. 공통 Root Stack의 `title`·`headerBackTitle` option과 iOS·Android 표시 계약을 확인한 뒤 추가 질문 없이 완료를 명시함 | 기록 ID는 다시 조회 가능한 URL 식별자지만 `captureContext`는 영속 대상에서 제외되고 작성 route 이탈 시 제거된다. `push`는 이전 화면을 남기고, `back`은 실제 이전 history로 돌아가며, `replace`는 이전 history를 신뢰할 수 없거나 현재 route를 남기지 않을 때 명시적 목적지로 교체한다. `headerBackTitle`은 iOS·Web의 표시 후보일 뿐 back 목적지를 바꾸지 않고 Android는 icon 중심이다. 앱 초기화는 4단원, `CaptureContext` 생성·form·저장과 cache는 6단원에 남겼다. 학습서와 source의 오류·누락은 발견되지 않았으며 detail not-found 보완 뒤 iPhone runtime 미재검증 한계는 유지한다. | 사용자 검증 완료 |
 
 ## 학습서 수정 대기 목록
 
@@ -138,6 +153,7 @@
 | 2026-07-29 관련 코드 소속·설명 원복 | `docs/source-commentary-guide.md`, FLOW 관련 주석이 있던 source 23개, 이 진행표 | 직전 정정에서 단계가 아닌 설명을 plain `[관련 코드]`로 바꾸면서 keyword 검색만으로 소속 FLOW를 알 수 없었고, 일부 기존 설명이 새 단계 문구로 대체되며 축약됐음 | plain `[관련 코드]` 0건, `[FLOW-번호 / 관련 코드]` 57건의 단일 FLOW 소속, 전체 요약 6/6·단계 67/67 유지, `HEAD` 대비 기존 주석 본문 누락 0건, source 실행문 비변경, `npm run lint`, `npm run typecheck`, local link·Markdown 구조·trailing whitespace, `git diff --check` 확인 | 반영 완료 |
 | 2026-07-30 FLOW-02 사용자 검증 보완 | `docs/source-commentary-guide.md`, `app/(tabs)/index.tsx`, `src/hooks/use-proximity.ts`, Android·iOS `ProximitySensorModule`, 이 진행표 | 시작·중지 버튼의 사용자 동작, React UI 반영, `OnStartObserving`·`OnStopObserving`이 정식 단계에서 빠졌고 Android·iOS 구현과 수동 중지·unmount cleanup이 순차 단계처럼 분리되어 실제 분기 관계가 드러나지 않았음 | 실제 caller·consumer와 Expo SDK 54 observing 계약을 재대조하고 platform 경로는 A/B, JS cleanup 진입점은 14-A/14-B로 구분했다. FLOW-02 단계 표식 22/22의 각 1회 사용, 전체 FLOW 단계 표식 74/74, source 실행문 비변경, `npm run lint`, `npm run typecheck`, local link·Markdown 구조·trailing whitespace와 `git diff --check` 확인 | 반영 완료 |
 | 2026-07-30 FLOW-01~06 사용자 검증 통합 반영 | `docs/source-commentary-guide.md`, `docs/learning-guide.md`, FLOW-03~06 관련 source, 이 진행표 | FLOW-01의 import·store/queryClient 생성 시점과 FLOW-02의 사용자 동작·observing·cleanup 설명을 관련 문서에 반영하고, 같은 기준으로 FLOW-03~06의 권한 prompt, 병렬 consumer, form·query·mutation UI 상태, 취소·실패·성공·cleanup 경로를 각각 한 단계로 분리할 필요가 있었음 | 기존 주석 본문을 삭제·축소하지 않고 표식 변경과 설명 추가로 반영했다. FLOW별 단계 표식 8/22/15/19/22/13, 전체 99/99와 전체 요약 6/6의 각 1회 사용, 복수·범위 단계와 plain `[관련 코드]` 0건, `HEAD` 대비 기존 주석 본문 누락 0건, FLOW-01/02 보강 문구 유지, source 실행문 비변경, `npm run lint`, `npm run typecheck`, local link·code fence·Markdown 구조·trailing whitespace와 `git diff --check` 확인 | 반영 완료 |
+| 2026-07-31 FLOW-01~06 주석 흐름 사용자 검증 마무리 | `docs/source-commentary-guide.md`, FLOW-01~06 관련 source, 이 진행표 | 사용자가 각 FLOW의 단계 표식을 따라 source 호출·분기·UI 반영·cleanup 흐름을 직접 확인하고 FLOW-04·05·06까지 적절하다고 최종 확인함 | FLOW-01~06 주석 작업은 추가 수정 없이 마무리한다. 이 검증은 대화형 학습 3단원 완료와 구분하며, 이번 문서 변경은 의도적으로 commit/push하지 않고 새 세션의 3단원 진행 중 생기는 문서 변경과 함께 Git에 반영한다. | 사용자 검증 완료 |
 
 학습 중 수정이 생기면 source·package·build·app config 변경과 문서 전용 변경을 구분한다. 문서 보완은 좁은 link·snippet·Markdown 검증을 수행하고, 동작 변경이 필요할 때는 별도 Impact Review와 해당 범위의 자동화·build·실기기 검증을 먼저 정한다.
 
