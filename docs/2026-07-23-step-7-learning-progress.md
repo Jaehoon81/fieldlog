@@ -6,7 +6,7 @@
 - authoritative 계획서: [implementation-plan.md](./implementation-plan.md)
 - 7번 완료 기록: [2026-07-23-step-7-handoff.md](./2026-07-23-step-7-handoff.md)
 - 저장소 선행 작업 완료 기록: [2026-07-24-step-9-10-handoff.md](./2026-07-24-step-9-10-handoff.md)
-- 현재 상태: **대화형 학습 진행 중, 1단원 1-1~1-4·2단원 2-1~2-3·3단원 3-1~3-4 사용자 검증 완료, 4단원 시작 대기**
+- 현재 상태: **대화형 학습 진행 중, 1단원 1-1~1-4·2단원 2-1~2-3·3단원 3-1~3-4·4단원 4-1~4-4 사용자 검증 완료, 5단원 시작 대기**
 
 이 문서는 대화 내용을 복제하지 않고 대화형 학습의 현재 위치, 사용자 source 확인 결과, 질문의 결론과 학습서 수정 필요 사항을 새 세션에서도 복원할 수 있게 기록한다.
 
@@ -15,7 +15,7 @@
 1. `[완료]` 8번 `AGENTS.md Improver` 조사·수정안 검토와 승인된 반영을 마쳤다.
 2. `[완료]` 9번 GitHub repository 조건 확정·생성·연결을 마쳤다.
 3. `[완료]` 10번 현재 기준 source·문서의 의미·기능·작업별 commit과 1차 push를 마쳤다.
-4. `[진행 중]` 이 진행표를 기준으로 대화형 학습과 실제 source 확인을 진행한다. 현재 1단원 1-1~1-4, 2단원 2-1~2-3과 3단원 3-1~3-4를 완료했고 4단원 시작을 기다린다.
+4. `[진행 중]` 이 진행표를 기준으로 대화형 학습과 실제 source 확인을 진행한다. 현재 1단원 1-1~1-4, 2단원 2-1~2-3, 3단원 3-1~3-4와 4단원 4-1~4-4를 완료했고 5단원 시작을 기다린다.
 5. 학습 중 오류·누락이 발견되면 학습서를 수정하고 필요한 문서 검증을 다시 수행한다.
 6. 학습으로 생긴 수정은 기존 1차 push와 구분해 추가 commit/push한다.
 
@@ -63,7 +63,7 @@
 | 1 | 먼저 알아둘 검증 경계 | 사용자 검증 완료 | 1-1~1-4 사용자 검증 완료 |
 | 2 | 프로젝트 구조와 책임 | 사용자 검증 완료 | 2-1~2-3 사용자 검증 완료 |
 | 3 | Expo Router 화면 흐름 | 사용자 검증 완료 | 3-1~3-4 사용자 검증 완료 |
-| 4 | 앱 시작, SQLite migration, Zustand hydration | 대기 |  |
+| 4 | 앱 시작, SQLite migration, Zustand hydration | 사용자 검증 완료 | 4-1~4-4 사용자 검증 완료 |
 | 5 | 근접 센서와 native lifecycle | 대기 |  |
 | 6 | 위치, 날씨, `CaptureContext`, 저장 흐름 | 대기 |  |
 | 7 | 각 library의 실제 역할 | 대기 |  |
@@ -72,7 +72,7 @@
 | 10 | 자동화와 실기기 검증 구분 | 대기 |  |
 | 11 | 복습 실습 | 대기 |  |
 
-각 대단원의 서브 스탭 목록은 실제 학습 직전에 제시하고 사용자가 분량을 확인한 뒤 이 표 또는 해당 단원 아래에 추가한다. 2단원은 학습서와 실제 source를 다시 대조해 아래 3개, 3단원은 Expo SDK 54·설치된 Expo Router 계약과 실제 route source를 다시 대조해 아래 4개 서브 스탭으로 확정했다. 완료를 명시한 서브 스탭만 완료로 기록한다.
+각 대단원의 서브 스탭 목록은 실제 학습 직전에 제시하고 사용자가 분량을 확인한 뒤 이 표 또는 해당 단원 아래에 추가한다. 2단원은 학습서와 실제 source를 다시 대조해 아래 3개, 3단원은 Expo SDK 54·설치된 Expo Router 계약과 실제 route source를 다시 대조해 아래 4개, 4단원은 Expo SQLite·Zustand·TanStack Query 설치 계약과 실제 초기화 source를 다시 대조해 아래 4개 서브 스탭으로 확정했다. 완료를 명시한 서브 스탭만 완료로 기록한다.
 
 ### 1단원 서브 스탭 진행 상태
 
@@ -100,13 +100,24 @@
 | 3-3 | 기록 목록에서 동적 상세 화면으로 | 사용자 검증 완료 | 목록 row의 ID 전달, 동적 route parameter 검증과 상세 상태별 navigation 결과 |
 | 3-4 | URL·memory state, navigation history와 platform header 경계 | 사용자 검증 완료 | URL 식별자와 memory-only 상태, `push`·`back`·`replace`, 공통 navigator와 iOS header 표시 차이 |
 
+### 4단원 서브 스탭 진행 상태
+
+| 순서 | 서브 스탭 | 상태 | 확인 범위 |
+| --- | --- | --- | --- |
+| 4-1 | Import 시점과 Root 초기화 tree | 사용자 검증 완료 | module 평가와 React render, `InitializationErrorBoundary`·`Suspense`·`SQLiteProvider`·`HydratedRoutes`·`QueryClientProvider`·`Stack`의 책임과 두 준비 경로 |
+| 4-2 | SQLite migration과 schema version | 사용자 검증 완료 | WAL, `PRAGMA user_version`, version 분기와 exclusive transaction 안의 table·index·version 갱신 |
+| 4-3 | Zustand persist와 hydration 성공·실패 경계 | 사용자 검증 완료 | persisted·memory state, 별도 SQLite key-value storage, hydration 성공·실패 callback과 현행 유지 결정 |
+| 4-4 | 두 준비 경로의 합류와 QueryClient 노출 정책 | 사용자 검증 완료 | DB·설정 준비 gate, singleton 제공 시점과 기본 retry·refetch 정책 |
+
 ### 3~11단원 서브 스탭 예정안
 
-아래 목록은 2026-07-24 기준 전체 학습량과 흐름을 파악하기 위한 비확정 예정안이다. 2단원과 3단원은 위 목록으로 확정했으며, 아래 예정안만으로 나머지 단원의 `대기` 상태를 바꾸거나 학습 완료 증거로 사용하지 않는다. 아래 3단원 행은 최초 예정안을 보존한 이력이고 현재 범위와 상태는 위 확정 목록을 따른다.
+아래 목록은 2026-07-24 기준 전체 학습량과 흐름을 파악하기 위한 비확정 예정안이다. 2~4단원은 위 목록으로 확정했으며, 아래 예정안만으로 나머지 단원의 `대기` 상태를 바꾸거나 학습 완료 증거로 사용하지 않는다. 아래 3·4단원 행은 최초 예정안을 보존한 이력이고 현재 범위와 상태는 위 확정 목록을 따른다.
 
 각 단원을 시작하기 직전에 `docs/learning-guide.md`와 실제 source를 다시 읽고 의존 관계와 분량을 확인한 뒤 사용자와 최종 목록을 확정한다. 이 과정에서 제목·개수·경계가 조정될 수 있으며, 확정된 목록만 해당 단원의 진행 상태로 기록한다.
 
 3단원은 기존 4개 순서와 3-1~3-3 제목을 유지했다. 3-4는 별도의 platform별 navigator가 있는 것으로 오해하거나 6단원의 `CaptureContext` 구현을 침범하지 않도록 `URL·memory state, navigation history와 platform header 경계`로 제목과 범위를 좁혀 확정했다.
+
+4단원은 기존 4개 순서를 유지하되 4-1의 import·Root tree와 4-4의 준비 경로 합류·QueryClient 노출이 겹치지 않도록 제목과 범위를 나눴다. 4-3은 설치된 Zustand 실패 callback 계약에서 확인한 hydration 실패 처리 후보를 source 수정 없이 재검토하는 범위까지 포함한다.
 
 | 단원 | 예상 개수 | 예정 서브 스탭 | 간략 범위 |
 | --- | ---: | --- | --- |
@@ -137,16 +148,21 @@
 | 3-2 현재 상태에서 새 기록 화면으로 | `app/(tabs)/index.tsx`, `src/store/app-store.ts`, `app/observations/new.tsx` | 현재 상태 화면이 `setCaptureContext`를 먼저 호출한 뒤 `/observations/new`를 `push`하고, 작성 화면이 context 유무에 따라 form과 방어 화면을 선택하는 흐름을 확인했다. 취소·system/gesture back·저장 성공·실패·context 없는 직접 접근의 navigation 결과를 대조한 뒤 추가 질문 없이 완료를 명시함 | 취소는 context를 지우고 `back`, 저장 성공은 context를 지우고 기록 tab으로 `replace`, 저장 실패는 현재 route와 context를 유지한다. system/gesture back 등 기타 이탈은 `useFocusEffect` cleanup이 context를 제거하며, 직접 접근 방어 화면은 이전 history를 신뢰하지 않고 현재 상태 tab으로 `replace`한다. `CaptureContext`의 생성·저장 구현은 6단원에 남겼고 학습서와 source의 오류·누락은 발견되지 않음 | 사용자 검증 완료 |
 | 3-3 기록 목록에서 동적 상세 화면으로 | `package.json`, `app.json`, 설치된 Expo Router type, `app/(tabs)/records.tsx`, `app/observations/[id].tsx`, `src/db/observations.ts` | 목록 row의 숫자 `item.id`가 URL 문자열로 변환되어 `/observations/[id]`의 `params.id`로 전달되고, 상세 화면이 local parameter를 양의 정수로 다시 검증하는 경계를 확인했다. invalid·pending·error·not-found·success 상태와 삭제 취소·처리 중·실패·성공의 navigation 결과를 대조한 뒤 추가 질문 없이 완료를 명시함 | `typedRoutes`의 source 작성 시점 검사는 외부 URL의 runtime 유효성을 대신하지 않는다. 형식이 잘못된 ID는 SQL을 실행하지 않고, 형식은 유효하지만 행이 없는 ID와 조회 오류는 별도 상태로 처리한다. 목록에서 상세로는 `push`, invalid·not-found 복귀 버튼과 삭제 성공은 기록 tab으로 `replace`하며 나머지 처리 중·오류·취소 상태는 상세 route를 유지한다. SQL·cache 구현 상세는 6·7단원에 남겼고 학습서와 source의 오류·누락은 발견되지 않음 | 사용자 검증 완료 |
 | 3-4 URL·memory state, navigation history와 platform header 경계 | `app/_layout.tsx`, `app/(tabs)/_layout.tsx`, `app/(tabs)/index.tsx`, `app/(tabs)/records.tsx`, `app/observations/new.tsx`, `app/observations/[id].tsx`, `src/store/app-store.ts`, 설치된 Expo Router·native-stack type | URL·route state, runtime navigation history와 memory-only `captureContext`를 구분하고 현재 source의 모든 `push`·`back`·`replace` 결과를 대조했다. 공통 Root Stack의 `title`·`headerBackTitle` option과 iOS·Android 표시 계약을 확인한 뒤 추가 질문 없이 완료를 명시함 | 기록 ID는 다시 조회 가능한 URL 식별자지만 `captureContext`는 영속 대상에서 제외되고 작성 route 이탈 시 제거된다. `push`는 이전 화면을 남기고, `back`은 실제 이전 history로 돌아가며, `replace`는 이전 history를 신뢰할 수 없거나 현재 route를 남기지 않을 때 명시적 목적지로 교체한다. `headerBackTitle`은 iOS·Web의 표시 후보일 뿐 back 목적지를 바꾸지 않고 Android는 icon 중심이다. 앱 초기화는 4단원, `CaptureContext` 생성·form·저장과 cache는 6단원에 남겼다. 학습서와 source의 오류·누락은 발견되지 않았으며 detail not-found 보완 뒤 iPhone runtime 미재검증 한계는 유지한다. | 사용자 검증 완료 |
+| 4-1 Import 시점과 Root 초기화 tree | `package.json`, `app/_layout.tsx`, `src/db/migrate.ts`, `src/store/app-store.ts`, `src/query-client.ts`, `docs/learning-guide.md` 4장 | `expo-router/entry`가 Root route를 불러올 때 import된 module이 React render보다 먼저 평가되고, 이때 QueryClient singleton 생성과 Zustand persist hydration 시작이 일어나는 반면 migration import는 함수만 정의한다는 경계를 확인했다. Root provider tree와 서로 독립적인 DB 준비·설정 복원 경로를 대조한 뒤 추가 질문 없이 완료를 명시함 | `HydratedRoutes`는 hydration을 시작하지 않고 완료 상태를 구독하며, `QueryClientProvider`는 이미 생성된 client를 하위 tree에 노출한다. `Suspense`는 `SQLiteProvider` 초기화가 끝날 때까지 하위 tree를 막으므로 hydration이 먼저 끝나면 설정 복원 안내 화면은 보이지 않을 수 있다. React에 전달된 초기화·render 오류는 `InitializationErrorBoundary`가 처리한다. 별도 hydration 실패 처리 후보는 4-3 직전에 재검토하며 현재 source를 수정하지 않았다. 4-1 범위의 학습서와 source 오류·누락은 발견되지 않음 | 사용자 검증 완료 |
+| 4-2 SQLite migration과 schema version | `app/_layout.tsx`, `src/db/migrate.ts`, `src/db/observations.ts`, `src/db/observations.test.tsx`, 설치된 `expo-sqlite` 16.0.10의 `hooks.tsx`·`SQLiteDatabase.ts`, Expo SDK 54 SQLite 문서, `docs/learning-guide.md` 4장 | `SQLiteProvider.onInit`의 대기 계약, WAL과 `PRAGMA user_version`, version 0·1·상위 version 분기, table·index·version 갱신의 transaction 경계를 확인했다. 사용자는 callback 안에서 원래 `db` 대신 전달받은 `transaction`을 써야 하는 이유를 질문한 뒤 설명을 확인하고 완료를 명시함 | callback의 중괄호가 아니라 SQL을 실행한 connection이 transaction 포함 여부를 결정한다. 설치된 구현은 `withExclusiveTransactionAsync`용 새 connection에서 `BEGIN`하고, 전달된 `transaction`에서 실행한 SQL만 같은 `COMMIT`·`ROLLBACK` 경계에 둔다. FieldLog는 `observations` table, 최신순 query와 일치하는 index, `user_version = 1`을 함께 원자적으로 갱신한다. WAL은 이 transaction 밖의 설정이며, 전용 migration 자동화 test 부재는 기존 가짜 DB test가 명시한 검증 경계이고 Android DB 직접 확인 기록이 있어 새 오류·누락으로 판정하지 않았다. 학습서와 source의 새 오류·누락은 발견되지 않음 | 사용자 검증 완료 |
+| 4-3 Zustand persist와 hydration 성공·실패 경계 | `src/store/app-store.ts`, `app/_layout.tsx`, `src/store/app-store.test.ts`, 설치된 Zustand 5.0.14 `middleware.js`, 설치된 Expo SQLite 16.0.10 `Storage.ts`, `docs/learning-guide.md` 4장 | `temperatureUnit`만 `partialize`로 영속화되고 `captureContext`·`hasHydrated`는 memory에 남는 경계를 확인했다. `createJSONStorage`의 JSON envelope, `fieldlog-settings` key와 `ExpoSQLiteStorage` database를 따라간 뒤, 설정 저장소와 기록용 `fieldlog.db`가 같은 Expo SQLite engine을 사용하면서도 API·파일·table·schema·migration·연결이 분리된 이유를 질문해 확인하고 완료를 명시함 | 저장된 화씨를 정상적으로 읽으면 store merge가 callback보다 먼저 일어나 화씨를 유지·재저장하고, key가 없으면 기본 섭씨를 저장한다. 읽기·JSON parsing 실패 시 설치된 middleware가 `(undefined, error)`를 사후 callback에 전달하고 현재 optional chaining은 action을 건너뛰므로 `hasHydrated`가 `false`로 남아 loading 화면에 머물 수 있다. 기존 test는 mock storage의 성공 경로만 검증한다. 사용자는 정식 배포용이 아닌 학습용 sample 범위에서는 이 한계를 인정하고 기존 source를 유지하기로 결정했으며 source·test·학습서 수정은 수행하지 않음 | 사용자 검증 완료 |
+| 4-4 두 준비 경로의 합류와 QueryClient 노출 정책 | `app/_layout.tsx`, `src/query-client.ts`, `src/api/weather.ts`, `src/db/observations.ts`, 설치된 TanStack Query 5.101.2, Expo SDK 54 SQLite 문서, `docs/learning-guide.md` 4장, `docs/source-commentary-guide.md` FLOW-01 | DB migration과 Zustand hydration이 서로 독립적으로 진행되다가 `HydratedRoutes`에서 합류하고, 둘 다 끝난 뒤 `QueryClientProvider`와 route가 노출되는 조건을 확인했다. singleton이 이미 생성됐는데도 provider를 gate 뒤에 두는 이유를 질문한 뒤 설명을 확인하고 완료를 명시함 | `QueryClient` 생성 자체는 query를 실행하지 않으며 실제 I/O는 gate 뒤 screen의 query hook이 mount될 때 시작한다. 기술적으로 provider를 먼저 둘 수는 있지만 `Stack`과 query consumer는 준비 완료 뒤에 있어야 하며, 현재 구조는 provider와 route를 하나의 준비 완료 subtree로 묶어 경계를 명확히 한다. 기본 query의 retry·focus/reconnect refetch와 mutation retry는 끄고, 날씨 query만 제한적인 retry를 재정의한다. Query cache는 현재 JS runtime의 memory에만 있고 SQLite 데이터처럼 앱 재시작 뒤 유지되지 않는다. 학습서와 source의 새 오류·누락은 발견되지 않음 | 사용자 검증 완료 |
 
 ## 학습서 수정 대기 목록
 
-현재 수정 대기 항목은 없다. 1-4에서 발견한 상태 문구 누락, 2단원 시작 전 전체 source 대조에서 발견한 학습 주석 오류, 3단원 시작 전 상세 화면 header option 누락과 docs·repository 진입 문서 정합성 보완을 아래와 같이 반영했다. 단원 시작 전 보완은 해당 단원의 학습 시작이나 완료로 계산하지 않는다.
+현재 학습서·source 수정 대기 항목은 없다. 4단원 시작 전 발견한 source 수정 후보는 4-3에서 실제 source와 설치 계약을 재검토했고, 사용자가 학습용 sample 범위에서 기존 hydration 실패 한계를 인정해 현행 source를 유지하기로 결정했다. 1-4에서 발견한 상태 문구 누락, 2단원 시작 전 전체 source 대조에서 발견한 학습 주석 오류, 3단원 시작 전 상세 화면 header option 누락과 docs·repository 진입 문서 정합성 보완을 아래와 같이 기록한다. 단원 시작 전 보완과 수정 후보 기록은 해당 단원의 학습 시작이나 완료로 계산하지 않는다.
 
 | 단원·서브 스탭 | 수정 대상 | 근거 | 검증 방법 | 반영 상태 |
 | --- | --- | --- | --- | --- |
 | 1-4 | `docs/learning-guide.md`, `docs/implementation-plan.md`, 이 진행표 | 실제 학습이 진행 중인데 비날짜 상태 문구 일부가 `대기`로 남아 있었음 | 경로·link·Markdown 구조·오래된 상태 문구·trailing whitespace 확인 | 반영 완료 |
 | 2단원 시작 전 source 대조 | `modules/proximity-sensor/` bridge·native source의 학습 주석, `src/hooks/use-proximity.ts`, `src/api/weather.ts`, `src/components/snapshot-summary.tsx`, `src/db/observations.ts`, 이 진행표 | `docs/source-commentary-guide.md`의 `FLOW-02`·`FLOW-03`·`FLOW-04`·`FLOW-05`·`FLOW-06` 단계 정의와 일부 source 표식이 어긋났고, 생성된 ID를 상세 route에 사용한다는 주석이 실제 기록 탭 이동과 달랐음 | 실제 caller·consumer와 중앙 `FLOW` 정의 재대조, source executable line 비변경 확인, `git diff --check`, Markdown 구조·trailing whitespace 확인 | 반영 완료 |
 | 3단원 시작 전 source 대조 | `app/observations/[id].tsx`, 설치된 Expo Router·React Navigation option 처리, 이 진행표 | 상세 화면의 invalid·pending·error·success 분기는 iOS `headerBackTitle: "기록"`을 명시하지만 not-found 분기만 title만 설정했다. 기존 option의 얕은 병합으로 일반적인 전환에서는 누락이 가려질 수 있으나 해당 분기가 원하는 문구를 독립적으로 선언하지 않았고, 상세 화면 전용 자동화 test도 없음 | 모든 상세 상태 분기의 option 재대조, not-found 분기에 동일한 `headerBackTitle` 적용, `npm run lint`, `npm run typecheck`, `npm test -- --runInBand` 9 suites·33 tests, `git diff --check`, Markdown 구조·link·trailing whitespace 확인. iPhone runtime은 다시 실행하지 않아 source·type·기존 자동화 회귀 검증으로 한정 | 반영 완료 |
+| 4단원 시작 전 source 대조 | `src/store/app-store.ts`, `app/_layout.tsx`, `src/store/app-store.test.ts`, 설치된 Zustand persist 계약, 이 진행표 | 설치된 Zustand 5.0.14는 hydration 실패 시 사후 callback에 `state`가 없는 상태와 `error`를 전달한다. 현재 callback의 `state?.setHasHydrated(true)`는 실패 시 앱의 `hasHydrated`를 바꾸지 않고, `HydratedRoutes`는 설정 복원 안내 화면에 계속 머물 수 있으며 기존 test는 성공 경로만 다룬다. | 4-3에서 현재 source, Zustand middleware와 Expo SQLite key-value 구현을 다시 대조했다. 실패 UI 추가안도 검토했으나 사용자가 정식 배포용이 아닌 학습용 sample에는 기존 프로세스로 충분하다고 결정해 source·test·학습서는 변경하지 않았다. 문서 상태만 갱신했으므로 Markdown 구조·link·trailing whitespace와 `git diff --check`를 확인하고 app test·build는 다시 실행하지 않는다. | 4-3 검토 완료, 사용자 결정으로 현행 source 유지 |
 | 3단원 시작 전 docs 전체 정합성 대조 | `docs/implementation-plan.md`, `docs/learning-guide.md`, `docs/architecture-internals.md`, `docs/2026-07-23-step-5-handoff.md`, `docs/2026-07-20-implementation-handoff.md`, 이 진행표 | 계획서가 완료 단원을 중복 기록해 다음 단원에서 stale될 구조였고, 2026-07-28 header 보완이 일부 문서에 반영되지 않았다. 구조 지도에는 `src/query-client.ts`와 일부 공용 component가 빠졌고 schema 책임은 외부 API 응답 검증을 포함하지 않았으며, 과거 APK link는 Git에 없는 ignored output을 가리켰음 | 현재 source·config와 전체 docs 재대조, local link·경로·Markdown table·code fence·상태 문구·trailing whitespace 확인, `git diff --check`. 문서 전용 변경이므로 test·build는 실행하지 않음 | 반영 완료 |
 | 3단원 시작 전 repository 진입 문서 대조 | `AGENTS.md`, `README.md`, `docs/architecture-internals.md`, 이 진행표 | source 주석 안내서와 app-wide query 정책이 `AGENTS.md`·`README.md`에 연결되지 않았고, 1~10번 완료 뒤에도 외부 작업 승인 기준이 `현재 번호 단계`로 한정돼 있었다. 내부 구조 문서는 module Android source와 그 아래 ignored Gradle `build/` output의 예외를 명시하지 않았음 | 최신 source·config·docs와 책임·경계 재대조, local link·경로·Markdown table·code fence·상태 문구·trailing whitespace 확인, `git diff --check`. 문서 전용 변경이므로 test·build는 실행하지 않음 | 반영 완료 |
 | 2026-07-29 FLOW 표식 정정 | `docs/source-commentary-guide.md`, FLOW 관련 주석이 있던 source 23개, 이 진행표 | FLOW 전체 요약의 누락·오용, 범위·복수 단계 표식과 동일 단계 중복 때문에 keyword 검색 결과가 하나의 실행 흐름과 일대일로 대응하지 않았음 | inline 주석 관리 대상 37개와 실제 caller·consumer 재대조, 전체 요약 6/6·단계 67/67의 각 1회 사용, 범위·복수 단계와 보조 주석의 FLOW 번호 0건, source 실행문 비변경, `npm run lint`, `npm run typecheck`, local link·Markdown 구조·trailing whitespace, `git diff --check` 확인 | 반영 완료 |
