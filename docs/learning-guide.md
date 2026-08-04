@@ -29,12 +29,14 @@
 
 ## 1. 먼저 알아둘 검증 경계
 
+### 1.1 증거 층과 주장 범위
+
 검증 결과는 “테스트가 통과했으니 모두 된다”로 합치지 않고 증거 층별로 읽는다.
 
 | 증거 층 | 현재 결과 | 여기서 확인한 것 |
 | --- | --- | --- |
 | source·config 정적 확인 | 통과 | Expo SDK 54 package 조합, app config, route와 data flow, Android/iOS module 계약 |
-| 자동화 | 통과 | Jest 9 suites·33 tests, ESLint, strict TypeScript, Expo Doctor 18/18, Expo dependency 호환 |
+| 자동화 | 통과 | Jest 9 suites·35 tests, ESLint, strict TypeScript, Expo Doctor 18/18, Expo dependency 호환 |
 | Android local build | 통과 | clean prebuild, local module autolinking, Kotlin compile, debug APK, merged manifest |
 | Android EAS development build | 통과 | build `f9f2f11a-d340-4c40-b64d-e087e105ee02`, 설치 가능한 development APK와 native module 포함 |
 | iOS EAS development build | 통과 | build `5585528e-f84a-4da1-9796-bcdf774afe16`, Swift arm64 compile, pod autolink, signed IPA |
@@ -44,6 +46,16 @@
 
 `스킵`은 성공의 다른 표현이 아니다. Android native module이 센서 없는 기기에서 실제로 `unavailable`을 내보내는지는 확인하지 않았고, 기기 조달이나 emulator 구성으로 검증 범위를 늘리지 않기로 한 것이다.
 
+### 1.2 Jest mock과 실제 native code의 경계
+
+Jest에서 local native module을 mock한 결과는 TypeScript 계약과 UI 상태 전이의 근거다. Kotlin·Swift 실행 근거는 각각 build와 지원 실기기 결과에서 가져온다.
+
+### 1.3 Native build·artifact와 실기기 증거
+
+Native build log는 autolinking과 Kotlin·Swift compile을, APK·IPA 검사는 compile된 module이 binary에 포함됐음을 확인한다. 실제 설치·센서 event·lifecycle 동작은 지원 실기기 관찰이 추가로 필요하다. 자세한 검증 원문은 [implementation-plan.md](./implementation-plan.md)의 9장, [4번 build handoff](./2026-07-22-step-4-handoff.md), [5번 runtime handoff](./2026-07-23-step-5-handoff.md)를 기준으로 한다.
+
+### 1.4 결과 상태와 남은 제한사항
+
 아직 남아 있는 제한도 성공으로 확대하지 않는다.
 
 - iPhone 11의 iOS version은 수집하지 않았다.
@@ -52,9 +64,9 @@
 - 2026-07-28 상세 not-found 분기의 `headerBackTitle` 누락을 보완한 뒤 source·type·기존 자동화 회귀 검사는 통과했지만, 상세 화면 전용 자동화 test와 iPhone runtime 재검증은 수행하지 않았다.
 - 실제 날씨 코드는 위치와 시각에 따라 달라진다. Android에서 본 `2`와 iPhone에서 본 `53`은 서로 같아야 하는 고정 기대값이 아니다.
 
-Jest에서 local native module을 mock한 결과는 TypeScript 계약과 UI 상태 전이의 근거다. Kotlin·Swift 실행 근거는 각각 build와 지원 실기기 결과에서 가져온다. 자세한 검증 원문은 [implementation-plan.md](./implementation-plan.md)의 9장, [4번 build handoff](./2026-07-22-step-4-handoff.md), [5번 runtime handoff](./2026-07-23-step-5-handoff.md)를 기준으로 한다.
-
 ## 2. 프로젝트 구조와 책임
+
+### 2.1 저장소 지도와 source/generated 경계
 
 ```text
 app/
@@ -97,6 +109,10 @@ jest.setup.ts
 tsconfig.json
 ```
 
+현재 root `android/`, `.expo/`, `modules/proximity-sensor/android/build/`는 존재하지만 generated 또는 ignored output이고, root `ios/`도 생성될 수 있는 ignored 경로이므로 구현 source의 기준으로 사용하지 않는다. 유지 대상은 route의 `app/`, 공용 TypeScript의 `src/`, 직접 작성한 native source의 `modules/proximity-sensor/android/src/`·`ios/`·`src/`, 그리고 `app.json` 같은 선언적 config다.
+
+### 2.2 계층별 책임과 공용 코드 분리 기준
+
 | 위치 | 책임 | 대표 source |
 | --- | --- | --- |
 | route와 화면 조합 | Expo Router URL, 화면 상태와 사용자 event 연결 | [`app/_layout.tsx`](../app/_layout.tsx), [`app/(tabs)/index.tsx`](<../app/(tabs)/index.tsx>) |
@@ -112,9 +128,7 @@ tsconfig.json
 
 `SnapshotSummary`는 생성 화면과 상세 화면에서 실제로 두 번 사용되므로 공통 component로 분리했다. 그 외 화면 style과 작은 표시 함수는 한 번만 사용하므로 각 route에 남겨 두었다.
 
-root의 `android/`는 `expo prebuild`가 만든 CNG 산출물이고 `.gitignore` 대상이므로 수정 기준이 아니다. root `ios/`는 현재 workspace에 없다. Android와 iOS의 유지 대상 native source는 [`modules/proximity-sensor/`](../modules/proximity-sensor/)이고, app 수준 native 설정의 유지 대상은 [`app.json`](../app.json)이다.
-
-### 초보자에게 권하는 읽기 순서
+### 2.3 하나의 기록을 따라가는 source 읽기 순서
 
 처음부터 모든 파일을 위에서 아래로 읽기보다 data 하나가 지나가는 길을 따라가면 이해하기 쉽다.
 
@@ -126,6 +140,8 @@ root의 `android/`는 `expo prebuild`가 만든 CNG 산출물이고 `.gitignore`
 6. 마지막에 [`src/hooks/use-proximity.ts`](../src/hooks/use-proximity.ts)와 Kotlin·Swift 구현을 비교한다.
 
 ## 3. Expo Router 화면 흐름
+
+### 3.1 Root Stack, Tabs와 파일 기반 route
 
 Expo Router는 [`app/`](../app/)의 파일을 route로 바꾼다. [`app/_layout.tsx`](../app/_layout.tsx)의 root `Stack` 아래에 tab group과 observation route가 놓인다.
 
@@ -159,11 +175,15 @@ root layout의 핵심은 다음과 같다.
 
 tab group의 header를 root Stack에서도 표시하면 tab header와 겹칠 수 있으므로 root 쪽 header를 숨긴다. [`app/(tabs)/_layout.tsx`](<../app/(tabs)/_layout.tsx>)는 `Tabs`와 기존 `Ionicons`만 사용한다. 별도 UI framework나 segmented control package는 없다.
 
+### 3.2 현재 상태에서 새 기록 화면으로
+
 현재 상태 화면에서 기록 만들기를 누르면 다음 순서로 이동한다.
 
 1. 센서·위치·날씨 값을 `CaptureContext`로 복사한다.
 2. Zustand에 `captureContext`를 넣는다.
 3. `router.push("/observations/new")`으로 이동한다.
+
+### 3.3 기록 목록에서 동적 상세 화면으로
 
 기록 row를 누르면 `/observations/[id]`로 이동한다. `[id].tsx`는 route parameter를 양의 정수로 검사한 뒤 SQLite detail query를 실행한다.
 
@@ -174,11 +194,15 @@ router.push({
 });
 ```
 
-### route 전환과 임시 상태를 분리한 이유
+### 3.4 URL·memory state, navigation history와 platform header 경계
+
+#### route 전환과 임시 상태를 분리한 이유
 
 URL에는 record ID처럼 다시 찾아도 되는 식별자를 넣는다. 반면 방금 읽은 센서·위치·날씨 전체를 URL parameter로 직렬화하지 않고 Zustand의 임시 `CaptureContext`에 넣는다. 그래서 새 기록 화면을 직접 열거나 앱을 재실행해 임시 context가 사라졌다면 저장 form을 억지로 만들지 않고 현재 상태 화면으로 돌아가도록 안내한다.
 
-### iOS 뒤로가기 제목에서 배운 점
+현재 source에서 `push`는 이전 route를 history에 남겨 새 기록이나 상세를 열고, 취소의 `back`은 실제 이전 route로 돌아간다. 저장·삭제 성공이나 잘못된 직접 접근의 `replace`는 현재 route를 history에서 제거하고 명시한 tab으로 교체한다. 새 기록 route의 `useFocusEffect` cleanup은 system back·gesture back을 포함한 이탈에서도 일회용 `CaptureContext`가 남지 않게 한다. 여기서는 이 상태의 navigation 수명만 다루며 snapshot 생성·form·저장 구현은 6단원 범위다.
+
+#### iOS 뒤로가기 제목에서 배운 점
 
 Expo Router의 내부 group 이름이 기본 back title로 노출되어 iPhone에서 `(tabs)`가 보였고, 실제 source에서 다음처럼 명시했다.
 
@@ -197,6 +221,8 @@ Expo Router의 내부 group 이름이 기본 back title로 노출되어 iPhone�
 `headerBackTitle`은 이 구성에서 iOS native-stack의 back button 문구를 정하는 option이다. 2026-07-23에는 iPhone에서 새 기록 화면의 `현재 상태`와 조회된 상세 화면의 `기록`을 확인했다. 2026-07-28 source 대조에서는 상세 route의 invalid·pending·error·success 분기와 달리 not-found 분기만 이 option을 빠뜨린 것을 발견해 현재는 다섯 분기 모두 `기록`을 직접 선언한다. 이 후속 보완은 상세 화면 전용 자동화 test나 iPhone runtime으로 다시 확인하지 않았으며, source·type·기존 자동화 회귀 근거로 한정한다.
 
 ## 4. 앱 시작, SQLite migration, Zustand hydration
+
+### 4.1 Import 시점과 Root 초기화 tree
 
 초기화 시작점은 `app/_layout.tsx`다.
 
@@ -241,6 +267,8 @@ Expo Router의 내부 group 이름이 기본 back title로 노출되어 iPhone�
 
 `SQLiteProvider`의 `onInit`이 끝나기 전에 자식이 DB를 사용하지 못하게 하고, `useSuspense`로 준비 중 UI를 한 곳에 둔다. 그 안에서 다시 Zustand hydration을 기다리는 이유는 DB schema 준비와 key-value 설정 복원이 서로 다른 비동기 작업이기 때문이다.
 
+### 4.2 SQLite migration과 schema version
+
 `src/db/migrate.ts`는 먼저 WAL을 설정하고 `PRAGMA user_version`을 읽는다. version 0이면 exclusive transaction 안에서 `observations` table, 최신순 index, `user_version = 1`을 함께 만든다. 현재 앱보다 높은 DB version은 조용히 열지 않고 오류로 중단한다.
 
 ```ts
@@ -254,6 +282,10 @@ if (currentVersion > DATABASE_VERSION) {
 ```
 
 이 pattern의 핵심은 “table이 있는가”만 매번 묻지 않고 schema version을 명시적으로 올리는 것이다. 새 migration이 생기면 현재 version별 block을 순서대로 추가해야 하며, `user_version`만 먼저 올리면 안 된다.
+
+`withExclusiveTransactionAsync` callback 안의 SQL은 바깥 `db`가 아니라 전달받은 `transaction`으로 실행한다. 설치된 Expo SQLite 구현은 exclusive transaction용 connection에서 `BEGIN`하고 그 connection을 callback 인자로 넘기므로, table·index·`user_version` 갱신을 같은 `COMMIT`·`ROLLBACK` 경계에 두려면 그 인자를 사용해야 한다.
+
+### 4.3 Zustand persist와 hydration 성공·실패 경계
 
 Zustand store에는 세 종류의 상태가 있다.
 
@@ -275,17 +307,23 @@ onRehydrateStorage: () => (state) => {
 }
 ```
 
+현재 callback은 hydration 성공 여부를 별도 UI 상태로 분리하지 않는다. 저장소 읽기나 JSON parsing이 실패해 `state`를 받지 못하면 optional chaining이 action을 건너뛰어 `hasHydrated`가 `false`로 남고, `HydratedRoutes`는 설정을 불러오는 loading 화면에 계속 머물 수 있다. 다시 시도·오류 안내·기본값으로 계속하기 UI가 없는 것은 사용자가 학습용 sample 범위에서 유지하기로 결정한 현재 한계다.
+
 `createJSONStorage(() => SQLiteStorage)`의 `SQLiteStorage`는 `expo-sqlite/kv-store`가 제공하는 key-value API다. 기록용 `observations` table과 같은 library를 쓰지만 책임은 다르다.
 
 - 기록은 명시적인 SQL schema와 CRUD로 관리한다.
 - 온도 단위는 Zustand persist가 JSON key-value로 관리한다.
 - `CaptureContext`는 저장하지 않고 화면 이동 동안만 유지한다.
 
+### 4.4 두 준비 경로의 합류와 QueryClient 노출 정책
+
 마지막으로 [`src/query-client.ts`](../src/query-client.ts)는 query와 mutation의 기본 자동 재시도를 끄고, reconnect·window focus 자동 refetch도 끈다. 이 앱은 사용자가 명시적으로 재시도하는 작고 예측 가능한 학습 흐름을 택했으며, 날씨 query만 자체 retry 함수를 둔다.
+
+`queryClient` singleton은 import 평가 때 이미 생성되지만 `QueryClientProvider`는 DB migration과 설정 hydration gate 뒤에 둔다. 생성 시점과 사용 가능 시점을 분리하면 route와 그 아래 query·mutation hook이 두 준비 작업보다 먼저 mount되어 DB나 설정을 읽지 않는다. Provider가 client를 새로 만드는 것이 아니라 준비가 끝난 descendant에 기존 singleton을 노출하는 구조다.
 
 ## 5. 근접 센서와 native lifecycle
 
-### 5.1 공통 TypeScript 계약
+### 5.1 공통 TypeScript bridge와 native registry 계약
 
 [`modules/proximity-sensor/src/ProximitySensorModule.ts`](../modules/proximity-sensor/src/ProximitySensorModule.ts)는 `requireNativeModule("ProximitySensor")`로 module을 가져온다.
 
@@ -691,7 +729,7 @@ useProximity.addListener("onProximityChange")
 > `requireNativeModule`이 같은 이름으로 native 객체를 찾으며, 함수는
 > JS→native→JS로 왕복하고 event는 native→JS 방향으로 전달된다.
 
-### 5.2 Android
+### 5.2 Android `SensorManager`와 Activity lifecycle
 
 [`ProximitySensorModule.kt`](../modules/proximity-sensor/android/src/main/java/expo/modules/proximitysensor/ProximitySensorModule.kt)는 `SensorManager.TYPE_PROXIMITY`를 사용한다.
 
@@ -712,7 +750,7 @@ Android local build와 EAS build에서 Kotlin compile·autolinking·packaging을
 
 센서가 없는 Android 기기의 실제 `unavailable` path는 별도다. 해당 실물 기기가 없고 emulator 검증을 진행하지 않기로 했으므로 `스킵` 상태다.
 
-### 5.3 iOS
+### 5.3 iOS `UIDevice`와 App lifecycle
 
 [`ProximitySensorModule.swift`](../modules/proximity-sensor/ios/ProximitySensorModule.swift)는 `UIDevice.current.isProximityMonitoringEnabled`와 `UIDevice.proximityStateDidChangeNotification`을 사용한다.
 
@@ -736,7 +774,7 @@ sendEvent(proximityEventName, [
 
 iOS EAS build에서 Swift arm64 compile과 pod autolink를 확인했다. iPhone 11에서 초기 `far`, 센서 가림에 따른 화면 꺼짐, 해제 후 화면 복귀, 마지막 `near` 시각, 거리·최대 범위의 `없음` 표시를 확인했다. background, 다른 tab, 수동 중지에서는 monitoring이 해제되어 화면이 유지됐고 foreground 복귀 후 다시 동작했다.
 
-### 5.4 React hook
+### 5.4 `useProximity` 상태 전이와 비동기 구독 제어
 
 `useProximity`는 native 상태를 다음 UI 상태로 바꾼다.
 
@@ -882,7 +920,7 @@ effect cleanup 뒤 focus cleanup의 `stopMonitoring`이 불필요한 `setState`�
 중복 native cleanup이나 표시 UI 영향은 없다. FieldLog는 학습용 sample이라는
 범위에서 이 저영향 cleanup 한계를 인정하고 현행 source를 유지한다.
 
-### 5.6 platform 차이 요약
+### 5.6 Android·iOS 차이와 공통 상태 정규화
 
 | 항목 | Android | iOS | 공통 JS 결과 |
 | --- | --- | --- | --- |
@@ -911,7 +949,7 @@ effect cleanup 뒤 focus cleanup의 `stopMonitoring`이 불필요한 `setState`�
   → 기록 목록
 ```
 
-### 6.1 위치
+### 6.1 Foreground 위치 요청과 `LocationSnapshot`
 
 [`app/(tabs)/index.tsx`](<../app/(tabs)/index.tsx>)는 사용자가 `위치 및 날씨 조회`를 눌렀을 때만 다음 API를 호출한다.
 
@@ -949,7 +987,7 @@ if (permission.status !== Location.PermissionStatus.GRANTED) {
 
 iPhone 11에서는 최초 거부 직후 `canAskAgain: false`에 해당하는 설정 안내가 표시됐고, 두 번째 button press에서도 system dialog가 다시 나타나지 않았다. 이는 “버튼이 고장남”이 아니라 이미 결정된 iOS 권한을 앱이 다시 prompt할 수 없는 상태다. 설정에서 허용하면 위치·날씨 조회가 복구됐다. 위치 서비스를 끈 경우에는 권한 거부와 다른 문구가 표시됐고 다시 켠 뒤 정상 조회됐다.
 
-### 6.2 날씨
+### 6.2 좌표 기반 날씨 Query와 실패·재시도 경계
 
 [`src/api/weather.ts`](../src/api/weather.ts)는 Open-Meteo `/v1/forecast`에 다음 현재값만 요청한다.
 
@@ -991,7 +1029,7 @@ retry 정책은 오류 종류를 읽고 결정한다.
 
 iPhone offline 검증에서는 기기 위치를 얻었지만 날씨만 오류가 됐다. `날씨 다시 시도`는 같은 위치를 유지한 채 `weatherQuery.refetch()`만 호출하고, online 복원 후 날씨가 성공했다. 이 흐름 때문에 위치 성공을 날씨 실패와 함께 버리지 않는다.
 
-### 6.3 CaptureContext
+### 6.3 현재 runtime 값의 `CaptureContext` 고정
 
 기록 만들기 버튼은 센서 상태가 `near`, `far`, `unavailable` 중 하나이고 위치·날씨 요청이 끝났을 때만 활성화된다.
 
@@ -1018,7 +1056,7 @@ type CaptureContext = {
 뒤 이전 route로 `back`한다. focus cleanup은 이 두 명시적 경로 외의 이탈까지
 정리하는 안전망이다.
 
-### 6.4 form과 Zod
+### 6.4 Form state, Zod와 저장 command 결합
 
 [`app/observations/new.tsx`](../app/observations/new.tsx)는 React Hook Form이 field 상태를 맡고, `zodResolver`가 [`observationFormSchema`](../src/schemas/observation.ts)를 runtime validation으로 연결한다.
 
@@ -1046,21 +1084,9 @@ schema는 제목을 trim한 뒤 1~60자로 제한하고, 메모는 500자 이하
 표시하고 `submit`을 호출하지 않으며, 성공한 값만 `CaptureContext`와 합쳐
 mutation으로 전달한다.
 
-### 6.5 SQLite 저장과 TanStack Query cache
+### 6.5 SQLite binding, nullable row 정규화와 저장 단위
 
-submit이 성공하면 다음 단계가 이어진다.
-
-```text
-handleSubmit
-  → createMutation.mutateAsync
-  → pending UI
-  → observationFormSchema.parse
-  → db.runAsync(INSERT, parameters)
-  ├─ 실패 → 입력과 snapshot을 유지한 error UI
-  └─ 성공 → observations query invalidate
-             → CaptureContext 제거
-             → 기록 tab으로 replace
-```
+`createObservation`은 중첩된 `CreateObservationInput`을 다시 검증한 뒤 SQLite가 받을 수 있는 scalar·`null`·UTC ISO 문자열로 펼쳐 한 행에 저장한다. 읽을 때는 flat row를 다시 `Observation`의 중첩 snapshot으로 조립한다.
 
 [`src/db/observations.ts`](../src/db/observations.ts)는 사용자 문자열을 SQL text에 이어 붙이지 않고 named parameter를 binding한다. 핵심 구조만 줄이면 다음과 같다.
 
@@ -1081,7 +1107,104 @@ const result = await db.runAsync(
 
 목록 query는 `ORDER BY captured_at DESC, id DESC`로 최신순을 보장한다. 같은 캡처 시각이면 auto-increment ID가 큰 기록을 먼저 두므로 순서가 안정적이다. DB의 ISO 문자열은 읽을 때 epoch milliseconds로 되돌리고, 위치나 날씨에 필요한 column 묶음이 불완전하면 해당 snapshot 전체를 `null`로 정규화한다.
 
-TanStack Query는 DB가 아니다. 생성 성공 후 `["observations"]` 아래 query를 invalidate해 목록·상세가 다시 읽을 시점을 알리고, 삭제 성공 후에는 목록을 invalidate하면서 삭제한 상세 cache를 제거한다.
+#### 섭씨 원본 저장과 표시 단위
+
+날씨는 DB에 항상 `temperature_c`와 `apparent_temperature_c`로 저장한다. 설정에서 화씨를 선택해도 과거 row를 수정하지 않고 [`convertTemperature`](../src/types/weather.ts)가 render 시점에 변환한다.
+
+```ts
+return unit === "celsius"
+  ? temperatureC
+  : (temperatureC * 9) / 5 + 32;
+```
+
+이렇게 하면 단위를 여러 번 바꿔도 원본 값을 반복 변환하며 생기는 오차가 없다. Android와 iPhone 모두 섭씨→화씨→재실행, 다시 섭씨→재실행에서 설정과 기존 상세 표시가 함께 복원됨을 확인했다. 단위 선택의 SQLite key-value 저장과 앱 재시작 hydration은 4.3절의 설정 흐름이고, 이 절에서는 기록 row의 섭씨 원본과 render 시점 표시 변환 경계만 다룬다.
+
+### 6.6 Mutation 결과, Query cache와 목록·상세 정합성
+
+submit이 성공하면 다음 단계가 이어진다.
+
+```text
+handleSubmit
+  → createMutation.mutateAsync
+  → pending UI
+  → observationFormSchema.parse
+  → db.runAsync(INSERT, parameters)
+  ├─ 실패 → 입력과 snapshot을 유지한 error UI
+  └─ 성공 → observations query invalidate
+             → CaptureContext 제거
+             → 기록 tab으로 replace
+```
+
+TanStack Query는 DB가 아니다. 생성 성공 후 `["observations"]` 아래 query를 invalidate해 목록·상세가 다시 읽을 시점을 알리고, 삭제 성공 후에는 삭제한 상세 cache를 먼저 제거한 뒤 목록을 포함한 나머지 observations query를 invalidate한다.
+
+#### `invalidateQueries`가 다시 실행하는 대상
+
+`invalidateQueries`를 이해하려면 먼저 쓰기 Mutation과 읽기 Query를 분리해야 한다.
+
+| 구분 | 현재 FieldLog 함수 | SQLite 작업 |
+| --- | --- | --- |
+| 쓰기 Mutation | `createObservation` | 기록 한 건을 `INSERT` |
+| 쓰기 Mutation | `deleteObservation` | 기록 한 건을 `DELETE` |
+| 읽기 Query | `listObservations` | 기록 목록을 `SELECT` |
+| 읽기 Query | `getObservation` | ID에 해당하는 기록을 `SELECT` |
+
+`mutate` 또는 `mutateAsync`를 호출하면 `useMutation`의 `mutationFn`이 실행된다. 생성 Mutation의 `mutationFn`은 `createObservation`, 삭제 Mutation의 `mutationFn`은 `deleteObservation`을 각각 호출한다. 쓰기가 성공한 뒤에만 `onSuccess`가 실행되고, 그 안에서 `invalidateQueries`가 Query cache를 갱신 대상으로 표시한다.
+
+```text
+생성 버튼
+  → mutateAsync(input)
+  → mutationFn: createObservation(db, input)
+  → SQLite INSERT 1회
+  → onSuccess
+  → invalidateQueries(["observations"])
+  → 조건에 맞는 활성 Query의 queryFn만 다시 실행
+```
+
+```text
+삭제 확인
+  → mutateAsync(id)
+  → mutationFn: deleteObservation(db, id)
+  → SQLite DELETE 1회
+  → onSuccess
+  → 삭제한 detail cache 제거
+  → invalidateQueries(["observations"])
+  → 조건에 맞는 나머지 활성 Query의 queryFn만 다시 실행
+```
+
+따라서 `invalidateQueries`는 `createObservation`이나 `deleteObservation`을 다시 실행하지 않는다. 다시 실행할 수 있는 것은 `useQuery`에 등록된 `queryFn`, 즉 `listObservations`와 `getObservation`이다. 현재 Mutation은 `retry: false`이므로 라이브러리가 실패한 `INSERT`나 `DELETE`를 자동으로 반복하지도 않는다.
+
+`observationKeys`는 다음과 같이 같은 prefix 아래에서 목록과 상세 cache를 구분한다.
+
+```ts
+const observationKeys = {
+  all: ["observations"],
+  list: () => ["observations", "list"],
+  detail: (id: number) => ["observations", "detail", id],
+};
+```
+
+여기서 `all`은 모든 함수를 실행한다는 뜻이 아니다. `queryKey`가 `["observations"]`로 시작하는 목록·상세 Query cache를 모두 찾기 위한 prefix다. Mutation 함수는 이 Query key의 대상이 아니다.
+
+Query의 활성·비활성 기준은 화면에 보이는지가 아니라, 해당 Query를 구독하는 활성화된 `useQuery` observer가 mounted되어 있는지다.
+
+| Query 상태 | 현재 상태의 의미 | `invalidateQueries` 실행 결과 |
+| --- | --- | --- |
+| 활성 | mounted된 컴포넌트가 `enabled !== false`인 `useQuery`로 구독 중 | 기존 data를 유지한 채 stale로 표시하고 `queryFn`을 즉시 다시 실행한다. |
+| 비활성 | cache는 있지만 활성 observer가 없음 | cache를 stale로만 표시하고, 이후 다시 구독될 때 필요한 `queryFn`을 실행한다. |
+| cache 없음 | 아직 생성되지 않았거나 제거된 Query | 표시할 Query가 없으므로 아무것도 하지 않는다. 이후 화면이 처음 구독할 때 정상 조회한다. |
+
+예를 들어 `RecordsScreen`이 mounted되어 `useObservationsQuery()`를 호출하면 `["observations", "list"]` Query를 구독하므로 목록 Query가 활성 상태가 된다. 정상 ID의 상세 화면이 `useObservationQuery(id)`를 호출하면 해당 `["observations", "detail", id]` Query가 활성 상태가 된다. 상세 화면을 Stack에서 제거해 unmount하면 observer는 사라지지만 cache가 남아 있는 동안에는 비활성 Query가 된다. 잘못된 ID처럼 `enabled: false`인 Query도 `queryFn`을 실행하는 활성 Query로 계산하지 않는다.
+
+Navigator는 보이지 않는 화면을 mounted 상태로 보존할 수 있다. 따라서 화면에 보이지 않더라도 observer가 남아 있으면 활성 Query이고, `invalidateQueries` 시점에 다시 조회할 수 있다. 반대로 실제로 unmount되어 observer가 없다면 즉시 SQLite `SELECT`를 실행하지 않는다. Query가 활성이라는 사실은 현재 조회 중이라는 뜻도 아니다. 활성은 구독자 유무이고, `isFetching`은 `queryFn`이 실행 중인지 나타내는 별도 상태다.
+
+삭제 버튼을 누른 상세 화면은 `DELETE`가 성공하는 시점에도 mounted되어 있으므로 그 detail Query가 활성 상태다. 현재 코드는 해당 detail cache를 `removeQueries`로 먼저 제거하고 나서 `["observations"]` prefix를 invalidate한다. 따라서 삭제된 detail은 다시 조회할 cache 대상에서 빠지고, 목록을 포함한 나머지 활성 observations Query만 최신 SQLite 값을 읽는다. 이 순서는 `deleteObservation`을 다시 실행하는 것이 아니라, 한 번의 `DELETE` 뒤에 필요한 `SELECT`만 실행되게 한다.
+
+마지막으로 두 cache API의 역할도 다르다.
+
+| API | 기존 cache data | 이후 동작 |
+| --- | --- | --- |
+| `invalidateQueries` | 유지 | stale로 표시하고 활성 Query를 다시 조회한다. |
+| `removeQueries` | Query 항목과 함께 즉시 제거 | 나중에 다시 사용하면 cache가 없는 상태에서 처음부터 조회한다. |
 
 목록에서 상세와 삭제까지의 사용자 흐름은 다음과 같다.
 
@@ -1096,50 +1219,21 @@ TanStack Query는 DB가 아니다. 생성 성공 후 `["observations"]` 아래 q
      ├─ 취소 → 종료
      └─ 확인 → delete mutation pending
                 ├─ 실패 → 상세 유지, 다시 시도 가능
-                └─ 성공 → list invalidate + detail cache 제거
+                └─ 성공 → detail cache 제거 + 나머지 observations invalidate
                            → 기록 tab으로 replace
 ```
 
 ```ts
 onSuccess: async (_, id) => {
-  await queryClient.invalidateQueries({ queryKey: observationKeys.all });
   queryClient.removeQueries({
     queryKey: observationKeys.detail(id),
     exact: true,
   });
+  await queryClient.invalidateQueries({ queryKey: observationKeys.all });
 }
 ```
 
 실기기에서는 전체 snapshot과 위치·날씨가 없는 최소 snapshot의 생성, 빈 제목 차단, 최신순 목록, 상세, 빈 메모, 삭제 취소·확정, 앱 재실행 후 생성·삭제 상태 유지를 Android와 iPhone에서 확인했다.
-
-### 6.6 저장값과 표시 설정을 분리하기
-
-날씨는 DB에 항상 `temperature_c`와 `apparent_temperature_c`로 저장한다. 설정에서 화씨를 선택해도 과거 row를 수정하지 않고 [`convertTemperature`](../src/types/weather.ts)가 render 시점에 변환한다.
-
-```ts
-return unit === "celsius"
-  ? temperatureC
-  : (temperatureC * 9) / 5 + 32;
-```
-
-이렇게 하면 단위를 여러 번 바꿔도 원본 값을 반복 변환하며 생기는 오차가 없다. Android와 iPhone 모두 섭씨→화씨→재실행, 다시 섭씨→재실행에서 설정과 기존 상세 표시가 함께 복원됨을 확인했다.
-
-현재 실행과 앱 재시작은 다음처럼 나눠 읽는다.
-
-```text
-현재 실행
-  설정 tab → selector → 사용자가 단위 선택 → store action
-    ├─ 설정 radio UI 다시 render
-    └─ partialize → SQLite key-value 저장
-
-앱 재시작
-  SQLite key-value 읽기 → persisted state 병합 → hydration 완료
-
-표시 consumer
-  ├─ 현재 상태 화면
-  └─ SnapshotSummary(작성 미리보기·상세)
-       → convertTemperature → 변환 숫자와 단위 문자 표시
-```
 
 ## 7. 각 library의 실제 역할
 
@@ -1234,7 +1328,7 @@ JS / TS / style만 변경
 
 preview/production build, App Store·Play Store 제출, OTA update는 계획상 제외다.
 
-## 9. 코드에서 볼 수 있는 주요 문법
+## 9. 주요 TypeScript·React·Kotlin·Swift 문법
 
 ### TypeScript discriminated union
 
@@ -1348,7 +1442,7 @@ proximityObserver = NotificationCenter.default.addObserver(
 
 Swift는 `Thread.isMainThread`를 확인하고, 아니면 main queue에서 실행해 `UIDevice` monitoring과 observer 수명을 한 thread에 둔다.
 
-## 10. 자동화와 실기기 검증을 구분하는 법
+## 10. 자동화와 실기기 검증 구분
 
 같은 기능도 질문에 따라 필요한 증거가 다르다.
 
@@ -1367,16 +1461,16 @@ Swift는 `Thread.isMainThread`를 확인하고, 아니면 main queue에서 실�
 
 ### 자동화가 확인한 좁은 계약
 
-Jest 9 suites·33 tests는 다음을 확인한다.
+Jest 9 suites·35 tests는 다음을 확인한다.
 
 - [`src/schemas/observation.test.ts`](../src/schemas/observation.test.ts): trim, 빈 제목과 길이 경계
 - [`src/schemas/weather.test.ts`](../src/schemas/weather.test.ts): Open-Meteo shape와 GMT 시각 변환, 잘못된 응답 거부
 - [`src/types/weather.test.ts`](../src/types/weather.test.ts): 섭씨·화씨 변환
-- [`src/hooks/use-proximity.test.tsx`](../src/hooks/use-proximity.test.tsx): availability, `near/far`, 마지막 `near`, 등록 실패, unmount cleanup
+- [`src/hooks/use-proximity.test.tsx`](../src/hooks/use-proximity.test.tsx): availability, `near/far`, 마지막 `near`, 등록 실패, 지연된 start의 subscription 소유권, unmount cleanup
 - [`src/db/observations.test.tsx`](../src/db/observations.test.tsx): nullable row mapping과 bound INSERT
-- [`src/db/observation-mutations.test.ts`](../src/db/observation-mutations.test.ts): 생성·삭제 후 query cache 정리
+- [`src/db/observation-mutations.test.ts`](../src/db/observation-mutations.test.ts): 생성·삭제 후 query cache 정리와 삭제 detail 우선 제거 순서
 - [`src/store/app-store.test.ts`](../src/store/app-store.test.ts): `partialize`, hydration, 임시 capture 제거
-- [`app-tests/current-status-screen.test.tsx`](../app-tests/current-status-screen.test.tsx): proximity UI 상태와 기록 button gate
+- [`app-tests/current-status-screen.test.tsx`](../app-tests/current-status-screen.test.tsx): proximity UI 상태, 기록 button gate와 cached 날씨 오류 시 저장 경계
 - [`app-tests/new-observation-screen.test.tsx`](../app-tests/new-observation-screen.test.tsx): form 오류, 고정 snapshot submit, context 없는 직접 접근
 
 local native module은 [`jest.setup.ts`](../jest.setup.ts)에서 mock한다. 따라서 이 test들은 `SensorManager`나 `UIDevice` 자체를 실행하지 않는다.

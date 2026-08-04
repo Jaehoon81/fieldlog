@@ -448,20 +448,21 @@ Jest에서는 local native module을 명시적으로 mock하고 TypeScript contr
 
 학습서는 다음 순서로 구성한다.
 
-1. 전체 프로젝트 구조와 각 계층의 책임
-2. Expo Router의 tab, 생성 route, 동적 상세 route 흐름
-3. 앱 시작부터 SQLite migration과 Zustand hydration 완료까지의 흐름
-4. 근접 센서 모니터링과 native event의 Android/iOS lifecycle
-5. 위치 요청, 날씨 조회, `CaptureContext`, 기록 저장의 end-to-end 흐름
-6. TanStack Query, Axios, Expo SQLite, Zustand, React Hook Form, Zod의 실제 사용 위치와 역할
-7. Expo 제공 `expo-location`과 직접 작성한 Kotlin/Swift module의 경계
-8. config plugin, custom development client, prebuild, CNG, EAS development build의 관계
-9. 주요 TypeScript, React, Kotlin, Swift 문법과 platform 차이
-10. 자동화 test와 실기기 검증을 서로 구분하는 방법
-11. 작은 변경을 직접 적용해 보는 학습 실습
+1. 먼저 알아둘 검증 경계
+2. 프로젝트 구조와 책임
+3. Expo Router 화면 흐름
+4. 앱 시작, SQLite migration, Zustand hydration
+5. 근접 센서와 native lifecycle
+6. 위치, 날씨, `CaptureContext`, 저장 흐름
+7. 각 library의 실제 역할
+8. Expo 제공 기능과 직접 작성한 native 기능
+9. 주요 TypeScript·React·Kotlin·Swift 문법
+10. 자동화와 실기기 검증 구분
+11. 복습 실습
 
 학습서에는 구현되지 않은 기능이나 검증하지 않은 결과를 포함하지 않는다. 실제 코드 flow와 다른 프로젝트에 재사용할 핵심 패턴을 중심으로 설명하고, API 전체 목록이나 범용 이론을 길게 나열하지 않는다.
 학습서 문서 자체는 최신 source·검증 결과를 반영한 기준 자료로 유지한다. 실제 학습은 Codex가 각 대단원을 적정 크기의 서브 스탭으로 나누어 한 번에 하나씩 대화창에 제시하고, 학습 목표·충분한 설명·실제 source 경로와 코드·동작 예시·서브 스탭 핵심 요약을 제공하는 방식으로 진행한다. 사용자는 실제 source를 직접 찾아 읽고 질문하며, 오류·누락이 없다는 사용자 확인 후에만 해당 서브 스탭을 완료한다.
+현재 1~6단원의 확정 서브 스탭과 완료 결론, 7~11단원의 비확정 예정안은 [학습 진행표](./2026-07-23-step-7-learning-progress.md)에서 관리한다. 미시작 단원의 제목·개수·순서는 실제 학습 직전 최신 source와 설치 계약을 다시 대조한 뒤 확정한다.
 
 8번 `AGENTS.md` 정비, 9번 GitHub repository 연결과 10번 현재 기준 source·문서의 1차 commit/push를 완료했다. 현재는 [대화형 학습 진행표](./2026-07-23-step-7-learning-progress.md)를 기준으로 실제 대화형 학습과 source 검증을 진행하며, 현재 서브 스탭과 완료 결론은 진행표에서 관리한다. 학습 중 오류·보완점이 발견되면 학습서를 수정하고 검증한 뒤 1차 push와 구분되는 별도의 추가 commit/push로 반영한다.
 
@@ -492,7 +493,7 @@ Jest에서는 local native module을 명시적으로 mock하고 TypeScript contr
 | --- | --- | --- |
 | 학습 목표와 구현 범위 | 확정 | 이 문서를 최종 구현 기준으로 사용 |
 | source 및 app config 구현 | 완료 | 변경 전 `[Impact Review]` 작성, 계획 범위의 화면·data flow·local module과 iOS observation header back title 후속 수정 완료 |
-| 자동화 검사 | 통과 | lint, typecheck, `.expo/` 복제본을 제외한 기본 Jest 9 suites/33 tests, Expo Doctor 18/18, dependency 호환 검사와 Android bundle 통과 |
+| 자동화 검사 | 통과 | lint, typecheck, `.expo/` 복제본을 제외한 기본 Jest 9 suites/35 tests, Expo Doctor 18/18, dependency 호환 검사와 Android bundle 통과 |
 | Android local build | 통과 | clean prebuild, autolinking, local module Kotlin compile, debug APK 생성 |
 | Android EAS build | 통과 | `development` / `internal` build `f9f2f11a-d340-4c40-b64d-e087e105ee02` 완료 및 artifact 독립 검사 |
 | iOS EAS build | 통과 | `development` / `internal` build `5585528e-f84a-4da1-9796-bcdf774afe16` 완료, Swift local module compile·autolink와 IPA 독립 검사 |
