@@ -259,7 +259,7 @@ export default function CurrentStatusScreen() {
       proximity: proximitySnapshot,
       location,
       // 날씨 요청이 실패했거나 없으면 undefined 대신 도메인 계약의 null로 통일합니다.
-      weather: weatherQuery.data ?? null,
+      weather: weatherQuery.isSuccess ? weatherQuery.data : null,
       // Platform.OS는 더 많은 값일 수 있으므로 이 앱의 지원 union인 ios/android로 좁힙니다.
       platform: Platform.OS === "ios" ? "ios" : "android",
       capturedAt: Date.now(),
@@ -275,6 +275,7 @@ export default function CurrentStatusScreen() {
     router,
     setCaptureContext,
     weatherQuery.data,
+    weatherQuery.isSuccess,
   ]);
 
   return (

@@ -205,4 +205,31 @@ describe("CurrentStatusScreen proximity UI", () => {
       screen.queryByText("위치·날씨 요청이 끝나면 기록할 수 있습니다."),
     ).toBeNull();
   });
+
+  it("오류 상태에 cached 날씨가 남아 있어도 snapshot에는 저장하지 않는다", async () => {
+    useProximityMock.mockReturnValue(proximityResult("far"));
+    // 실패한 refetch가 이전 data를 보존한 Query 상태를 재현합니다.
+    useWeatherQueryMock.mockReturnValue({
+      data: {
+        temperatureC: 20,
+        apparentTemperatureC: 19.5,
+        weatherCode: 2,
+        observedAt: 1_753_000_100_000,
+      },
+      isPending: false,
+      isFetching: false,
+      isError: true,
+      isSuccess: false,
+      refetch: jest.fn(),
+    } as unknown as ReturnType<typeof useWeatherQuery>);
+
+    await render(<CurrentStatusScreen />);
+
+    expect(screen.getByText(/날씨를 가져오지 못했습니다/)).toBeTruthy();
+    fireEvent.press(screen.getByRole("button", { name: "기록 만들기" }));
+
+    // 화면이 오류로 판정한 cached data는 CaptureContext에도 포함하지 않습니다.
+    expect(useAppStore.getState().captureContext?.weather).toBeNull();
+    expect(mockPush).toHaveBeenCalledWith("/observations/new");
+  });
 });
