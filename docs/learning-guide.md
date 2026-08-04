@@ -312,6 +312,385 @@ JavaScript: requireNativeModule("ProximitySensor")
 
 이 metadata를 Expo autolinking이 읽으므로 `app.json`의 `plugins` 배열에 local module 이름을 별도로 넣지 않는다.
 
+#### 5.1.1 공통 bridge와 native registry의 전체 연결 흐름
+
+각 파일을 따로 보는 것보다 먼저 **누가 누구를 호출하고, 결과가 어디로
+돌아오는지**를 하나의 흐름으로 연결해야 한다.
+
+##### 먼저 두 시점을 구분해야 한다
+
+근접 센서 연결에는 서로 다른 두 시점이 있다.
+
+```text
+1. Native build·등록 시점
+   어떤 Kotlin·Swift class를 앱에 포함하고 무슨 이름으로 등록할지 결정
+
+2. 앱 실행 시점
+   TypeScript가 등록된 module을 찾아 함수 호출과 event 수신
+```
+
+`expo-module.config.json`과 `requireNativeModule`은 같은 순간에 동작하지
+않는다.
+
+##### 1. Native build·등록 흐름
+
+출발점은
+[`expo-module.config.json`](../modules/proximity-sensor/expo-module.config.json)이다.
+
+```text
+expo-module.config.json
+        │
+        ├─ Android build
+        │    └─ expo.modules.proximitysensor.ProximitySensorModule 로드
+        │
+        └─ iOS build
+             └─ ProximitySensorModule 로드
+```
+
+이 파일이 하는 일은 platform별 native class를 Expo autolinking에 알려주는
+것이다.
+
+로드된 각 class는 자신을 JS registry에 등록한다.
+
+Android:
+
+```kotlin
+class ProximitySensorModule : Module() {
+  override fun definition() = ModuleDefinition {
+    Name("ProximitySensor")
+  }
+}
+```
+
+iOS:
+
+```swift
+public final class ProximitySensorModule: Module {
+  public func definition() -> ModuleDefinition {
+    Name("ProximitySensor")
+  }
+}
+```
+
+따라서 native 앱이 준비되면 registry에는 다음 관계가 만들어진다.
+
+```text
+Native registry
+
+"ProximitySensor"
+        │
+        ├─ Android에서는 Kotlin ProximitySensorModule
+        └─ iOS에서는 Swift ProximitySensorModule
+```
+
+여기까지는 앱을 build할 때 준비되는 native 연결이다. 사용자가 모니터링 버튼을
+누를 때마다 `expo-module.config.json`을 다시 읽는 것은 아니다.
+
+##### 2. JavaScript가 등록된 module을 찾는 흐름
+
+앱 source는 다음 경로로 module을 가져온다.
+
+```ts
+import ProximitySensor from "@/modules/proximity-sensor";
+```
+
+이 import를 따라가면 다음 순서다.
+
+```text
+use-proximity.ts
+      │
+      │ import ProximitySensor
+      ▼
+modules/proximity-sensor/index.ts
+      │
+      │ default export 재전달
+      ▼
+src/ProximitySensorModule.ts
+      │
+      │ requireNativeModule("ProximitySensor")
+      ▼
+Native registry
+      │
+      ├─ Android → Kotlin module 반환
+      └─ iOS     → Swift module 반환
+```
+
+[`index.ts`](../modules/proximity-sensor/index.ts)는 연결을 직접 수행하지 않는다.
+
+```ts
+export { default } from "./src/ProximitySensorModule";
+```
+
+내부 파일을 앱에 다시 내보내는 입구 역할만 한다.
+
+실제 runtime 연결은
+[`ProximitySensorModule.ts`](../modules/proximity-sensor/src/ProximitySensorModule.ts)의
+다음 코드다.
+
+```ts
+requireNativeModule("ProximitySensor");
+```
+
+이 함수가 native registry에서 이름이 같은 module을 찾는다.
+
+```text
+TypeScript 요청 이름
+requireNativeModule("ProximitySensor")
+                         │
+                         │ 이름으로 검색
+                         ▼
+Native 등록 이름
+Name("ProximitySensor")
+```
+
+그래서 class 이름과 registry 이름은 역할이 다르다.
+
+- `ProximitySensorModule`: Kotlin·Swift class 이름
+- `ProximitySensor`: JavaScript가 찾는 runtime 공개 이름
+
+##### 3. 함수 호출은 JS에서 native로 갔다가 돌아온다
+
+화면이 focus되면 다음 흐름이 시작된다.
+
+```text
+CurrentStatusScreen
+  → useProximity.checkAvailability()
+  → ProximitySensor.isAvailableAsync()
+  → 현재 platform native module
+  → boolean 반환
+  → Promise<boolean> 완료
+  → Hook 상태 변경
+  → 화면 재render
+```
+
+실제 호출자는 [`use-proximity.ts`](../src/hooks/use-proximity.ts)다.
+
+```ts
+const isAvailable = await ProximitySensor.isAvailableAsync();
+```
+
+TypeScript에는 함수 모양이 다음처럼 선언돼 있다.
+
+```ts
+declare class ProximitySensorNativeModule extends NativeModule {
+  isAvailableAsync(): Promise<boolean>;
+}
+```
+
+이 선언은 구현이 아니다. 실제 구현은 현재 platform native source에 있다.
+
+Android:
+
+```kotlin
+AsyncFunction<Boolean>("isAvailableAsync") {
+  // Android 센서 지원 여부 계산
+}
+```
+
+iOS:
+
+```swift
+AsyncFunction("isAvailableAsync") { () -> Bool in
+  // iOS monitoring 지원 여부 계산
+}
+```
+
+이름 관계를 연결하면 다음과 같다.
+
+```text
+TypeScript
+isAvailableAsync()
+        │
+        ▼
+Expo native module proxy
+        │
+        ├─ Android AsyncFunction<Boolean>("isAvailableAsync")
+        └─ iOS     AsyncFunction("isAvailableAsync")
+        │
+        ▼
+boolean이 JS로 돌아와 Promise<boolean> 완료
+```
+
+Hook은 그 결과를 UI 상태로 변환한다.
+
+```ts
+status: isAvailable ? "idle" : "unavailable";
+```
+
+즉, native는 `true`나 `false`를 반환하고, React Hook이 그것을 `idle`이나
+`unavailable`이라는 화면 상태로 해석한다.
+
+##### 4. Event는 반대 방향으로 흐른다
+
+`isAvailableAsync`는 JS가 질문하고 native가 답하는 요청·응답이다.
+
+센서 event는 반대로 native가 먼저 JS에 값을 보낸다.
+
+```text
+JS가 listener 등록
+  → native monitoring 시작
+
+실제 센서 값 변경
+  → native가 sendEvent
+  → JS listener callback 실행
+  → Hook state 변경
+  → 화면 재render
+```
+
+시작 시 Hook이 다음 코드를 호출한다.
+
+```ts
+ProximitySensor.addListener("onProximityChange", (event) => {
+  // native event 수신
+});
+```
+
+첫 listener가 추가되면 Expo Modules API가 활성 platform의
+`OnStartObserving`을 호출한다.
+
+```text
+addListener("onProximityChange")
+        │
+        ├─ Android OnStartObserving
+        └─ iOS     OnStartObserving
+                 → 실제 native monitoring 시작
+```
+
+그 후 native module이 같은 이름으로 event를 보낸다.
+
+Android:
+
+```kotlin
+sendEvent(
+  "onProximityChange",
+  mapOf(
+    "status" to status,
+    "distanceCm" to distanceCm,
+    "maxRangeCm" to maxRangeCm,
+    "observedAt" to System.currentTimeMillis()
+  )
+)
+```
+
+iOS:
+
+```swift
+sendEvent("onProximityChange", [
+  "status": UIDevice.current.proximityState ? "near" : "far",
+  "distanceCm": NSNull(),
+  "maxRangeCm": NSNull(),
+  "observedAt": Date().timeIntervalSince1970 * 1_000
+])
+```
+
+이 event가 JS callback의 `event`로 들어온다.
+
+```text
+Native sendEvent payload
+             │
+             ▼
+(event: ProximityEvent)
+             │
+             ▼
+useProximity state
+             │
+             ▼
+CurrentStatusScreen
+```
+
+##### 5. TypeScript event type은 이 흐름의 검사표다
+
+[`ProximitySensor.types.ts`](../modules/proximity-sensor/src/ProximitySensor.types.ts)는
+event가 이동하는 통로를 만들지 않는다.
+
+```ts
+export type ProximitySensorModuleEvents = {
+  onProximityChange(event: ProximityEvent): void;
+};
+```
+
+실제 통로는 Expo native module과 event infrastructure가 만든다. TypeScript
+type은 JS 코드를 작성할 때 다음 관계가 맞는지 검사한다.
+
+```text
+event 이름             payload type
+onProximityChange  →   ProximityEvent
+```
+
+따라서 두 층은 다음처럼 구분된다.
+
+```text
+실제 runtime 전달
+Native sendEvent → Expo Modules API → JS callback
+
+compile-time 검사
+ProximitySensorModuleEvents → event 이름과 callback type 확인
+```
+
+Native가 실수로 다음 payload를 보낸다고 가정해 보자.
+
+```json
+{
+  "status": "unknown"
+}
+```
+
+TypeScript는 Kotlin·Swift가 만든 runtime 객체를 직접 검사하지 않으므로 이것을
+자동으로 막지 못한다. Native 구현이 공통 계약을 정확히 지켜야 한다.
+
+##### 전체 관계를 한 번에 정리하면
+
+```text
+[Build·등록]
+
+expo-module.config.json
+  → platform native class 로드
+  → Name("ProximitySensor")
+  → native registry 등록
+
+
+[JS 함수 호출]
+
+CurrentStatusScreen
+  → useProximity
+  → barrel index.ts
+  → requireNativeModule("ProximitySensor")
+  → active native module
+  → isAvailableAsync 실행
+  → boolean 반환
+  → Hook 상태
+  → 화면
+
+
+[Native event]
+
+useProximity.addListener("onProximityChange")
+  → OnStartObserving
+  → native monitoring
+  → sensor 값 변경
+  → sendEvent("onProximityChange", payload)
+  → JS listener
+  → ProximityEvent
+  → Hook 상태
+  → 화면
+```
+
+핵심 식별자 관계는 다음과 같다.
+
+| 연결 대상 | TypeScript | Native |
+| --- | --- | --- |
+| module | `requireNativeModule("ProximitySensor")` | `Name("ProximitySensor")` |
+| 함수 | `isAvailableAsync()` | `AsyncFunction("isAvailableAsync")` |
+| event | `addListener("onProximityChange")` | `Events`·`sendEvent("onProximityChange")` |
+| payload | `ProximityEvent` | Kotlin `Map` / Swift `Dictionary` |
+| class 발견 | 해당 없음 | `expo-module.config.json` |
+
+5.1의 중심은 결국 다음 한 문장으로 정리할 수 있다.
+
+> `expo-module.config.json`이 native class를 앱에 연결하고, `Name`과
+> `requireNativeModule`이 같은 이름으로 native 객체를 찾으며, 함수는
+> JS→native→JS로 왕복하고 event는 native→JS 방향으로 전달된다.
+
 ### 5.2 Android
 
 [`ProximitySensorModule.kt`](../modules/proximity-sensor/android/src/main/java/expo/modules/proximitysensor/ProximitySensorModule.kt)는 `SensorManager.TYPE_PROXIMITY`를 사용한다.
@@ -361,6 +740,19 @@ iOS EAS build에서 Swift arm64 compile과 pod autolink를 확인했다. iPhone 
 
 `useProximity`는 native 상태를 다음 UI 상태로 바꾼다.
 
+Hook 안의 React state와 ref는 서로 다른 역할을 맡는다.
+
+| 값 | 역할 | 변경 시 render |
+| --- | --- | --- |
+| `state` | `status`, 최근 event와 `lastNearAt`을 화면에 제공 | O |
+| `isMonitoring` | 시작·중지 button에 listener 활성 여부를 제공 | O |
+| `subscriptionRef` | 현재 JS event subscription을 보관 | X |
+| `operationRef` | 비동기 작업의 최신 번호를 보관 | X |
+| `mountedRef` | unmount 뒤 state update를 막는 생존 상태를 보관 | X |
+
+`subscriptionRef.current`가 바뀌어도 React는 다시 render하지 않는다. 따라서
+화면의 button 활성 상태에는 별도의 `isMonitoring` state가 필요하다.
+
 ```text
 화면 진입
   → pending
@@ -404,9 +796,52 @@ if (!mountedRef.current || operation !== operationRef.current) {
 }
 ```
 
-여기서 `operation`은 요청을 시작한 시점의 번호다. 사용자가 기다리는 동안 화면을 떠나거나 중지를 누르면 `operationRef.current`가 증가하므로 오래된 응답은 무시된다. `mountedRef`는 unmount된 component에 state update가 일어나는 것을 막는다.
+여기서 `operation`은 요청을 시작한 시점의 번호다. 사용자가 기다리는 동안 화면을 떠나거나 중지를 누르면 `operationRef.current`가 증가하므로 오래된 응답은 무시된다. `operationRef`는 Promise를 취소하지 않고, 응답이 돌아온 뒤 최신 작업인지 판별하는 번호표다. `mountedRef`는 unmount된 component에 state update가 일어나는 것을 막는다.
 
-현재 상태 route에서도 화면 focus와 native resource 수명을 연결한다.
+비동기 결과를 화면에 반영하지 않는 것과 subscription을 정리하는 것은 별도
+문제다. 이전 start A가 listener 등록 뒤 두 번째 `isAvailableAsync()`를 기다리는
+동안 Stop과 새 start B가 실행되면, A의 늦은 cleanup이 공유 ref의 B를 제거해서는
+안 된다. 각 start는 자신이 만든 subscription을 지역 변수에도 보관한다.
+
+```ts
+let createdSubscription: ProximitySubscription | null = null;
+
+createdSubscription = ProximitySensor.addListener(
+  "onProximityChange",
+  (event) => {
+    if (mountedRef.current) {
+      setState((current) => applyProximityEvent(current, event));
+    }
+  },
+);
+subscriptionRef.current = createdSubscription;
+```
+
+정리할 때는 해당 start가 만든 값과 현재 ref가 같은지 먼저 확인한다.
+
+```ts
+if (subscriptionRef.current !== expectedSubscription) {
+  return;
+}
+
+expectedSubscription?.remove();
+subscriptionRef.current = null;
+
+if (mountedRef.current) {
+  setIsMonitoring(false);
+}
+```
+
+따라서 A의 subscription과 현재 B subscription이 다르면 A의 cleanup은 아무것도
+제거하지 않는다. [`use-proximity.test.tsx`](../src/hooks/use-proximity.test.tsx)는
+A의 두 번째 availability Promise를 의도적으로 대기시킨 뒤
+Stop→B 시작→A 완료 순서를 만들어 B가 유지되는지 검증한다. 이 소유권 검사는
+FLOW-02의 단계 순서를 바꾸지 않고, 실제로 제거된 마지막 listener만 기존
+15→16단계의 native cleanup으로 이어지게 한다.
+
+### 5.5 화면 focus부터 계층별 cleanup까지
+
+현재 상태 route에서는 화면 focus와 native resource 수명을 연결한다.
 
 ```ts
 useFocusEffect(
@@ -425,7 +860,29 @@ useFocusEffect(
 안전하게 정리한다. 앞선 경로에서 subscription ref를 이미 `null`로 바꾸므로
 두 cleanup이 연달아 실행되어도 native listener를 중복 제거하지 않는다.
 
-### 5.5 platform 차이 요약
+화면 lifecycle과 app lifecycle은 다음처럼 역할이 다르다.
+
+| 상황 | JS subscription | native listener 수요 | 실제 native resource |
+| --- | --- | --- | --- |
+| focus + monitoring + foreground | 유지 | 유지 | 동작 |
+| app background | 유지 | 유지 | 잠시 중지 |
+| app foreground 복귀 | 유지 | 유지 | 다시 시작 |
+| 수동 Stop 또는 화면 blur | 제거 | 제거 | 중지 |
+| hook owner unmount | 남은 구독 제거 | 제거 | 중지 |
+
+수동 Stop과 blur는 `stopMonitoring`으로 합류해 화면 상태도 정리한다. Hook
+unmount cleanup은 화면을 다시 보여줄 필요가 없으므로 비동기 응답을 무효화하고
+남은 subscription을 직접 제거하는 최종 안전망이다. Expo event emitter는 실제
+마지막 listener가 제거될 때만 `OnStopObserving`을 호출하고, Android와 iOS도
+실제 등록 상태를 확인한 뒤 resource를 해제한다.
+
+현재 React 19 cleanup 순서에서 focus된 화면이 blur 없이 직접 unmount되면 hook
+effect cleanup 뒤 focus cleanup의 `stopMonitoring`이 불필요한 `setState`를 한 번
+요청할 수 있다. 이때 subscription ref는 이미 `null`이고 화면도 제거 중이므로
+중복 native cleanup이나 표시 UI 영향은 없다. FieldLog는 학습용 sample이라는
+범위에서 이 저영향 cleanup 한계를 인정하고 현행 source를 유지한다.
+
+### 5.6 platform 차이 요약
 
 | 항목 | Android | iOS | 공통 JS 결과 |
 | --- | --- | --- | --- |

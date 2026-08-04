@@ -128,6 +128,10 @@ import 시점에 만들어진 `queryClient`를 prop으로 전달받는다.
 수동 중지가 unmount를 일으키는 것은 아니다. 화면이 unmount될 때는
 14-A의 focus cleanup과 14-B의 hook cleanup이 남은 subscription을 정리하며,
 마지막 listener가 제거된 platform에서 15-A→16-A 또는 15-B→16-B로 이어진다.
+listener 등록 뒤 availability 응답을 기다리던 이전 start가 늦게 끝나는 경우에는
+그 start가 만든 subscription과 현재 ref의 identity를 먼저 비교한다. 이미 새
+start의 subscription으로 교체됐다면 이전 cleanup은 현재 listener를 제거하지
+않고 끝나므로, 실제 현재 listener가 제거될 때만 15→16단계로 이어진다.
 
 ### FLOW-03: 위치와 날씨 조회
 
