@@ -228,8 +228,8 @@ start의 subscription으로 교체됐다면 이전 cleanup은 현재 listener를
 18. repository가 id를 binding해 해당 row를 삭제한다.
 19. mutation 결과 경로를 구분한다.
     - `19-A`: 실패하면 상세 정보와 다시 누를 수 있는 삭제 버튼을 유지한다.
-    - `19-B`: 성공 callback이 list query를 invalidate하고 삭제된 detail
-      cache를 제거한다.
+    - `19-B`: 성공 callback이 삭제된 detail cache를 먼저 제거하고 list를
+      포함한 나머지 observations query를 invalidate한다.
 20. cache 정리가 끝나면 상세 route를 기록 tab으로 교체한다.
 
 취소 경로는 15-A에서 끝난다. 실패 경로는 19-A에서 13단계로 다시 시도할 수

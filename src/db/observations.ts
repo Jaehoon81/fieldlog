@@ -346,15 +346,15 @@ export function useDeleteObservationMutation(): UseMutationResult<
     mutationFn: (id) => deleteObservation(db, id),
     retry: false,
     // 첫 매개변수 `_`는 사용하지 않는 성공값(void), id는 mutation에 전달했던 변수입니다.
-    // [FLOW-05 / 19-B단계] 삭제 뒤 목록을 invalidate하고 해당 detail cache를 제거합니다.
+    // [FLOW-05 / 19-B단계] 삭제한 detail cache를 제거한 뒤 나머지 observations cache를 invalidate합니다.
     onSuccess: async (_, id) => {
-      // 목록 등 observations 계열 캐시는 다시 조회하도록 무효화합니다.
-      await queryClient.invalidateQueries({ queryKey: observationKeys.all });
-      // 이미 삭제된 한 id의 상세 캐시는 정확히 그 항목만 즉시 제거합니다.
+      // 이미 삭제된 detail이 불필요한 SELECT를 다시 시작하지 않도록 정확히 그 cache를 먼저 제거합니다.
       queryClient.removeQueries({
         queryKey: observationKeys.detail(id),
         exact: true,
       });
+      // 목록 등 남은 observations 계열 캐시는 다시 조회하도록 무효화합니다.
+      await queryClient.invalidateQueries({ queryKey: observationKeys.all });
     },
   });
 }

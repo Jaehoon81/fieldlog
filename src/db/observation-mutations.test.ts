@@ -68,7 +68,7 @@ describe("observation mutation cache 처리", () => {
     });
   });
 
-  it("삭제 성공 후 목록을 invalidate하고 상세 query를 제거한다", async () => {
+  it("삭제 성공 후 상세 query를 먼저 제거하고 observations query를 invalidate한다", async () => {
     useDeleteObservationMutation();
     // 삭제 callback은 사용하지 않는 성공값과 삭제했던 id 두 인자를 받습니다.
     const options = useMutationMock.mock.calls[0][0] as {
@@ -77,13 +77,16 @@ describe("observation mutation cache 처리", () => {
 
     await options.onSuccess(undefined, 9);
 
-    // 전체 observations 계열을 stale로 만들고, 삭제한 id의 상세 cache만 정확히 제거해야 합니다.
-    expect(invalidateQueries).toHaveBeenCalledWith({
-      queryKey: observationKeys.all,
-    });
+    // 삭제된 활성 상세가 refetch되지 않도록 해당 cache를 먼저 정확히 제거해야 합니다.
     expect(removeQueries).toHaveBeenCalledWith({
       queryKey: observationKeys.detail(9),
       exact: true,
     });
+    expect(invalidateQueries).toHaveBeenCalledWith({
+      queryKey: observationKeys.all,
+    });
+    expect(removeQueries.mock.invocationCallOrder[0]).toBeLessThan(
+      invalidateQueries.mock.invocationCallOrder[0],
+    );
   });
 });
