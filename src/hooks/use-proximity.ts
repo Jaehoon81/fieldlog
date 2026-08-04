@@ -63,12 +63,28 @@ export function useProximity(): UseProximityResult {
   const mountedRef = useRef(true);
 
   // [라이브러리] useCallback은 의존성이 같으면 같은 함수 참조를 재사용합니다.
-  const removeSubscription = useCallback(() => {
-    // [문법] `?.`는 구독 객체가 있을 때만 remove()를 호출합니다.
-    subscriptionRef.current?.remove();
-    subscriptionRef.current = null;
-    setIsMonitoring(false);
-  }, []);
+  // [FLOW-02 / 관련 코드] stop 또는 시작 실패가 요청한 JS subscription 제거를 한곳에서 처리합니다.
+  const removeSubscription = useCallback(
+    (
+      expectedSubscription: ProximitySubscription | null =
+        subscriptionRef.current,
+    ) => {
+      // [이유] 늦게 끝난 이전 시작 작업은 자신이 만든 구독만 제거해야 최신 구독을 침범하지 않습니다.
+      if (subscriptionRef.current !== expectedSubscription) {
+        return;
+      }
+
+      // [문법] `?.`는 구독 객체가 있을 때만 remove()를 호출합니다.
+      expectedSubscription?.remove();
+      subscriptionRef.current = null;
+
+      // unmount 뒤 늦게 도착한 비동기 정리는 isMonitoring state를 갱신하지 않습니다.
+      if (mountedRef.current) {
+        setIsMonitoring(false);
+      }
+    },
+    [],
+  );
 
   // [FLOW-02 / 관련 코드] 화면 focus 시 기기에 지원되는 센서인지 네이티브 모듈에 묻습니다.
   const checkAvailability = useCallback(async () => {
@@ -136,6 +152,9 @@ export function useProximity(): UseProximityResult {
     }
 
     const operation = ++operationRef.current;
+    // [이유] 이 시작 작업이 만든 구독을 지역 변수에도 보관해 이후 정리 대상의 소유권을 확인합니다.
+    let createdSubscription: ProximitySubscription | null = null;
+
     setState((current) => ({
       ...current,
       status: "pending",
@@ -161,7 +180,7 @@ export function useProximity(): UseProximityResult {
 
       // [FLOW-02 / 6단계] 첫 JS listener를 등록해 활성 platform의 native observation을 시작합니다.
       // [FLOW-02 / 관련 코드] 네이티브 event를 받아 함수형 state update로 화면 상태에 반영합니다.
-      subscriptionRef.current = ProximitySensor.addListener(
+      createdSubscription = ProximitySensor.addListener(
         "onProximityChange",
         (event) => {
           // [FLOW-02 / 10단계] Android 또는 iOS가 보낸 공통 ProximityEvent를 받습니다.
@@ -172,18 +191,20 @@ export function useProximity(): UseProximityResult {
           }
         },
       );
+      // [FLOW-02 / 6단계] 공유 ref는 현재 활성 구독을, 지역 변수는 이 시작 작업의 구독을 가리킵니다.
+      subscriptionRef.current = createdSubscription;
       setIsMonitoring(true);
 
       // [주의] listener 추가 과정의 실제 센서 등록 실패까지 감지하려고 상태를 한 번 더 확인합니다.
       const didRegister = await ProximitySensor.isAvailableAsync();
 
-      // unmount, 최신 작업 교체, 등록 실패 중 하나라도 발생하면 방금 만든 구독을 제거합니다.
+      // unmount, 최신 작업 교체, 등록 실패 시 방금 만든 구독이 여전히 현재 구독일 때만 제거합니다.
       if (
         !mountedRef.current ||
         operation !== operationRef.current ||
         !didRegister
       ) {
-        removeSubscription();
+        removeSubscription(createdSubscription);
 
         // 여전히 현재 화면의 최신 작업일 때만 실패 UI를 반영합니다.
         if (mountedRef.current && operation === operationRef.current) {
@@ -195,8 +216,8 @@ export function useProximity(): UseProximityResult {
         }
       }
     } catch {
-      // 확인 도중 예외가 나면 부분적으로 생성됐을 수 있는 구독도 함께 정리합니다.
-      removeSubscription();
+      // 확인 도중 예외가 나면 이 작업이 생성했고 아직 현재인 구독도 함께 정리합니다.
+      removeSubscription(createdSubscription);
 
       if (mountedRef.current && operation === operationRef.current) {
         setState((current) => ({

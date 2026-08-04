@@ -179,6 +179,72 @@ describe("useProximity", () => {
     expect(result.current.isMonitoring).toBe(false);
   });
 
+  it("늦게 끝난 이전 start가 새 listener를 제거하지 않는다", async () => {
+    const firstRemove = jest.fn();
+    const secondRemove = jest.fn();
+
+    // 첫 start의 listener 등록 후 확인만 대기 상태로 만들어 경쟁 조건을 재현합니다.
+    let resolveFirstRegistration!: (value: boolean) => void;
+    const firstRegistration = new Promise<boolean>((resolve) => {
+      resolveFirstRegistration = resolve;
+    });
+
+    // 첫 listener가 실제로 만들어진 시점까지 기다리기 위한 test 신호입니다.
+    let markFirstListenerAdded!: () => void;
+    const firstListenerAdded = new Promise<void>((resolve) => {
+      markFirstListenerAdded = resolve;
+    });
+
+    // 첫 두 응답은 이전 start, 다음 두 응답은 새 start의 사전·사후 확인입니다.
+    isAvailableAsyncMock
+      .mockResolvedValueOnce(true)
+      .mockReturnValueOnce(firstRegistration)
+      .mockResolvedValueOnce(true)
+      .mockResolvedValueOnce(true);
+    addListenerMock
+      .mockImplementationOnce(() => {
+        markFirstListenerAdded();
+        return { remove: firstRemove };
+      })
+      .mockReturnValueOnce({ remove: secondRemove });
+
+    const { result } = await renderHook(() => useProximity());
+    let firstStart!: Promise<void>;
+
+    await act(async () => {
+      firstStart = result.current.startMonitoring();
+      await firstListenerAdded;
+    });
+
+    expect(result.current.isMonitoring).toBe(true);
+
+    // [FLOW-02 / 14-A단계] 첫 구독을 중지한 뒤 두 번째 monitoring을 시작합니다.
+    await act(() => {
+      result.current.stopMonitoring();
+    });
+    expect(firstRemove).toHaveBeenCalledTimes(1);
+
+    await act(async () => {
+      await result.current.startMonitoring();
+    });
+    expect(result.current.isMonitoring).toBe(true);
+
+    // 이전 start의 응답이 늦게 도착해도 현재 두 번째 구독을 제거하면 안 됩니다.
+    await act(async () => {
+      resolveFirstRegistration(true);
+      await firstStart;
+    });
+
+    expect(secondRemove).not.toHaveBeenCalled();
+    expect(result.current.isMonitoring).toBe(true);
+
+    // 현재 구독은 정상적인 stop에서 FLOW-02의 마지막 listener 제거 경로로 들어갑니다.
+    await act(() => {
+      result.current.stopMonitoring();
+    });
+    expect(secondRemove).toHaveBeenCalledTimes(1);
+  });
+
   it("unmount 시 활성 listener를 제거한다", async () => {
     const remove = jest.fn();
     isAvailableAsyncMock.mockResolvedValue(true);
