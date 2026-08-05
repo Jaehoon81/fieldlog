@@ -1293,6 +1293,63 @@ TanStack Query는 SQLite를 대체하지 않는다. SQLite가 영속 data source
 
 Android debug APK에는 React Native development tooling이 `SYSTEM_ALERT_WINDOW`를 별도 debug manifest에서 추가한다. release merged manifest에는 이 권한이 없음을 확인했다.
 
+### Android 위치 권한 선언 위치와 소유 기준
+
+Android permission을 적을 수 있는 위치가 여러 곳이라고 해서 같은 permission을
+모두 반복해서 선언해야 하는 것은 아니다. 선언 위치는 그 native 요구사항을 누가
+소유하고, 모든 사용 앱에 고정으로 필요한지 또는 앱마다 선택할 수 있는지에 따라
+정한다.
+
+| 위치 | 선언 기준 | FieldLog의 현재 상태 |
+| --- | --- | --- |
+| `node_modules/expo-location/android/src/main/AndroidManifest.xml` | package가 모든 사용 앱에서 항상 요구하는 고정 native permission | 설치된 `expo-location` package가 `ACCESS_COARSE_LOCATION`과 `ACCESS_FINE_LOCATION`을 선언한다. `node_modules/`는 설치 결과이므로 FieldLog가 직접 수정하지 않는다. |
+| [`app.json`](../app.json)의 `plugins` 안 `expo-location` option | iOS permission 설명, background location과 foreground service처럼 앱마다 달라지는 조건부 native 설정 | foreground 설명만 설정하고 iOS·Android background location과 Android foreground service를 모두 비활성화한다. 설치된 plugin은 coarse/fine도 추가하지만, plugin source는 package manifest에 이미 있어 필수 추가가 아니라고 명시한다. |
+| [`app.json`](../app.json)의 `android.permissions` | 사용 package가 제공하지 않지만 app 자체가 추가로 요구하는 Android permission | coarse/fine을 다시 명시한다. `expo-location` package manifest가 이미 제공하므로 현재 두 항목은 기술적으로 중복이지만 최종 manifest에서는 같은 permission으로 병합되어 기능 오류를 만들지 않는다. |
+| [`modules/proximity-sensor/android/src/main/AndroidManifest.xml`](../modules/proximity-sensor/android/src/main/AndroidManifest.xml) | local module 자체가 모든 사용처에서 요구하는 permission이나 Android component | 근접 센서는 별도 permission이나 component 등록이 필요하지 않아 `<manifest />`만 유지한다. 위치 permission은 이 module의 책임이 아니므로 여기에 선언하지 않는다. |
+
+현재 `app.json`의 coarse/fine 두 항목을 처음 추가한 의도는 source만으로 확정할 수
+없다. 기술적으로는 제거해도 `expo-location` package manifest를 통해 같은
+permission이 포함되며, 현재 선언은 FieldLog가 foreground 위치 범위를 사용한다는
+사실을 app config에서 명시적으로 보여 주는 효과가 있다. 따라서 중복은 동작
+오류가 아니며 이 학습에서는 source를 변경하지 않는다.
+
+선언 위치를 선택하는 기준은 다음과 같다.
+
+- package나 local module이 항상 요구하는 고정 permission은 해당 module의
+  `AndroidManifest.xml`이 소유한다.
+- 앱마다 선택하는 permission 설명·background 기능·service 설정은 config
+  plugin option이 소유한다.
+- 어느 package도 제공하지 않는 app 자체의 추가 permission은
+  `app.json.android.permissions`에 둔다.
+- manifest와 plugin은 build-time 선언일 뿐 사용자에게 permission을 허용받지
+  않는다. 실제 요청은
+  [`app/(tabs)/index.tsx`](<../app/(tabs)/index.tsx>)의
+  `Location.requestForegroundPermissionsAsync()`가 수행하고, 허용·거부 상태는
+  Android/iOS 운영체제가 소유한다.
+
+### Autolinking 핵심 요약
+
+Autolinking은 native code를 직접 실행하거나 compile하지 않고, 앱의 native
+build에 연결할 대상을 찾아 주는 배선 담당이다.
+
+```text
+1. ./modules에서 ProximitySensor 발견
+2. expo-module.config.json에서 platform과 class 확인
+3. Android는 build.gradle, iOS는 podspec에 연결
+4. Gradle/CocoaPods가 실제 Kotlin·Swift compile
+```
+
+| 대상 | 핵심 역할 |
+| --- | --- |
+| Autolinking | 무엇을 native build에 연결할지 찾는다. |
+| `expo-module.config.json` | 연결할 platform·class·podspec 위치를 알려 준다. |
+| `build.gradle` | Android module을 어떻게 build할지 정의한다. |
+| podspec | iOS module을 어떻게 연결·build할지 정의한다. |
+| `Name("ProximitySensor")` | compile된 module을 JS가 찾을 runtime 이름을 정한다. |
+
+Autolinking의 `resolve` 결과는 metadata를 해석한 연결 계획이다. 실제 native
+compile 성공, binary 포함 또는 runtime 동작까지 증명하지 않는다.
+
 `expo prebuild --clean --platform android`는 app config, SDK version의 template와 local module metadata를 읽어 `android/`를 다시 만든다. 따라서 수정 기준은 `app.json`과 `modules/proximity-sensor/`이며, 생성된 Gradle·manifest 파일을 직접 고치지 않는다. `--clean`은 native directory를 삭제하고 다시 만들므로 사용자가 만든 변경이 generated directory에만 있다면 사라진다.
 
 이 프로젝트에서 Expo Go를 최종 runtime으로 사용할 수 없는 이유는 Expo Go binary 안에 `ProximitySensor`라는 사용자 정의 module이 없기 때문이다. development build는 이 native module을 포함해 만든 앱 전용 binary이므로 JS에서 `requireNativeModule("ProximitySensor")`가 성공한다.
