@@ -6,7 +6,7 @@
 - authoritative 계획서: [implementation-plan.md](./implementation-plan.md)
 - 7번 완료 기록: [2026-07-23-step-7-handoff.md](./2026-07-23-step-7-handoff.md)
 - 저장소 선행 작업 완료 기록: [2026-07-24-step-9-10-handoff.md](./2026-07-24-step-9-10-handoff.md)
-- 현재 상태: **대화형 학습 진행 중, 1단원 1-1~1-4·2단원 2-1~2-3·3단원 3-1~3-4·4단원 4-1~4-4·5단원 5-1~5-6·6단원 6-1~6-6 사용자 검증 완료, 7단원 시작 대기**
+- 현재 상태: **대화형 학습 진행 중, 1단원 1-1~1-4·2단원 2-1~2-3·3단원 3-1~3-4·4단원 4-1~4-4·5단원 5-1~5-6·6단원 6-1~6-6·7단원 7-1~7-5 사용자 검증 완료, 8단원 시작 대기**
 
 이 문서는 대화 내용을 복제하지 않고 대화형 학습의 현재 위치, 사용자 source 확인 결과, 질문의 결론과 학습서 수정 필요 사항을 새 세션에서도 복원할 수 있게 기록한다.
 
@@ -15,7 +15,7 @@
 1. `[완료]` 8번 `AGENTS.md Improver` 조사·수정안 검토와 승인된 반영을 마쳤다.
 2. `[완료]` 9번 GitHub repository 조건 확정·생성·연결을 마쳤다.
 3. `[완료]` 10번 현재 기준 source·문서의 의미·기능·작업별 commit과 1차 push를 마쳤다.
-4. `[진행 중]` 이 진행표를 기준으로 대화형 학습과 실제 source 확인을 진행한다. 현재 1단원 1-1~1-4, 2단원 2-1~2-3, 3단원 3-1~3-4, 4단원 4-1~4-4, 5단원 5-1~5-6과 6단원 6-1~6-6을 완료했고 7단원 시작을 기다린다.
+4. `[진행 중]` 이 진행표를 기준으로 대화형 학습과 실제 source 확인을 진행한다. 현재 1단원 1-1~1-4, 2단원 2-1~2-3, 3단원 3-1~3-4, 4단원 4-1~4-4, 5단원 5-1~5-6, 6단원 6-1~6-6과 7단원 7-1~7-5를 완료했고 8단원 시작을 기다린다.
 5. 학습 중 오류·누락이 발견되면 학습서를 수정하고 필요한 문서 검증을 다시 수행한다.
 6. 학습으로 생긴 수정은 기존 1차 push와 구분해 추가 commit/push한다.
 
@@ -66,13 +66,13 @@
 | 4 | 앱 시작, SQLite migration, Zustand hydration | 사용자 검증 완료 | 4-1~4-4 사용자 검증 완료 |
 | 5 | 근접 센서와 native lifecycle | 사용자 검증 완료 | 5-1~5-6 사용자 검증 완료 |
 | 6 | 위치, 날씨, `CaptureContext`, 저장 흐름 | 사용자 검증 완료 | 6-1~6-6 사용자 검증 완료 |
-| 7 | 각 library의 실제 역할 | 대기 |  |
+| 7 | 각 library의 실제 역할 | 사용자 검증 완료 | 7-1~7-5 사용자 검증 완료 |
 | 8 | Expo 제공 기능과 직접 작성한 native 기능 | 대기 |  |
 | 9 | 주요 TypeScript·React·Kotlin·Swift 문법 | 대기 |  |
 | 10 | 자동화와 실기기 검증 구분 | 대기 |  |
 | 11 | 복습 실습 | 대기 |  |
 
-각 대단원의 서브 스탭 목록은 실제 학습 직전에 제시하고 사용자가 분량을 확인한 뒤 이 표 또는 해당 단원 아래에 추가한다. 2단원은 학습서와 실제 source를 다시 대조해 아래 3개, 3단원은 Expo SDK 54·설치된 Expo Router 계약과 실제 route source를 다시 대조해 아래 4개, 4단원은 Expo SQLite·Zustand·TanStack Query 설치 계약과 실제 초기화 source를 다시 대조해 아래 4개, 5단원은 Expo Modules 계약·설치 source와 실제 bridge·native·hook·화면 source를 다시 대조해 아래 6개, 6단원은 위치·날씨·snapshot·form·SQLite·Query cache 흐름을 다시 대조해 아래 6개 서브 스탭으로 확정했다. 완료를 명시한 서브 스탭만 완료로 기록한다.
+각 대단원의 서브 스탭 목록은 실제 학습 직전에 제시하고 사용자가 분량을 확인한 뒤 이 표 또는 해당 단원 아래에 추가한다. 2단원은 학습서와 실제 source를 다시 대조해 아래 3개, 3단원은 Expo SDK 54·설치된 Expo Router 계약과 실제 route source를 다시 대조해 아래 4개, 4단원은 Expo SQLite·Zustand·TanStack Query 설치 계약과 실제 초기화 source를 다시 대조해 아래 4개, 5단원은 Expo Modules 계약·설치 source와 실제 bridge·native·hook·화면 source를 다시 대조해 아래 6개, 6단원은 위치·날씨·snapshot·form·SQLite·Query cache 흐름을 다시 대조해 아래 6개, 7단원은 package 선언·lockfile·설치 source와 실제 caller·consumer를 다시 대조해 아래 5개 서브 스탭으로 확정했다. 완료를 명시한 서브 스탭만 완료로 기록한다.
 
 ### 1단원 서브 스탭 진행 상태
 
@@ -131,9 +131,19 @@
 | 6-5 | SQLite binding, nullable row 정규화와 저장 단위 | 사용자 검증 완료 | named binding, nullable snapshot column mapping, epoch·ISO 변환과 섭씨 원본 저장 경계 |
 | 6-6 | Mutation 결과, Query cache와 목록·상세 정합성 | 사용자 검증 완료 | create·delete mutation, 활성·비활성 query, query invalidation·detail 우선 제거와 SQLite·memory cache 관계 |
 
+### 7단원 서브 스탭 진행 상태
+
+| 순서 | 서브 스탭 | 상태 | 확인 범위 |
+| --- | --- | --- | --- |
+| 7-1 | Library 책임 지도와 실제 호출 관계 | 사용자 검증 완료 | runtime·routing·UI·위치·HTTP·validation·form·client state·query·SQLite library의 실제 caller, 소유 책임·비책임과 직접·간접 dependency 관계 |
+| 7-2 | Compile-time type·form state·runtime validation | 사용자 검증 완료 | TypeScript type, React Hook Form raw state, resolver와 Zod input·output의 검증 경계 |
+| 7-3 | 위치·HTTP·Query·payload validation 경계 | 사용자 검증 완료 | Expo Location 좌표, Query 실행·재시도·cache, Axios 전송과 Zod 외부 payload 검증 관계 |
+| 7-4 | React local·form·client·query 상태의 원본과 수명 | 사용자 검증 완료 | 화면 local state, form state, Zustand state, Query cache의 owner·원본과 route·runtime 수명 |
+| 7-5 | Expo SQLite table API·kv-store·영속 원본 경계 | 사용자 검증 완료 | `fieldlog.db` domain table, `ExpoSQLiteStorage` key-value data, Zustand persist와 memory Query cache 구분 |
+
 ### 최초 3~11단원 서브 스탭 예정안과 변경 이력
 
-아래 목록은 2026-07-24 기준 전체 학습량과 흐름을 파악하기 위한 최초 비확정 예정안이다. 완료된 3~6단원은 위 확정 목록이 현재 기준이며, 아래 최초 행은 제목·개수·경계가 어떻게 바뀌었는지 보존하는 이력이다. 미시작 7~11단원은 예정안만으로 `대기` 상태를 바꾸거나 학습 완료 증거로 사용하지 않는다.
+아래 목록은 2026-07-24 기준 전체 학습량과 흐름을 파악하기 위한 최초 비확정 예정안이다. 완료된 3~6단원과 학습을 시작한 7단원은 위 확정 목록이 현재 기준이며, 아래 최초 행은 제목·개수·경계가 어떻게 바뀌었는지 보존하는 이력이다. 미시작 8~11단원은 예정안만으로 `대기` 상태를 바꾸거나 학습 완료 증거로 사용하지 않는다.
 
 각 단원을 시작하기 직전에 `docs/learning-guide.md`와 실제 source를 다시 읽고 의존 관계와 분량을 확인한 뒤 사용자와 최종 목록을 확정한다. 이 과정에서 제목·개수·경계가 조정될 수 있으며, 확정된 목록만 해당 단원의 진행 상태로 기록한다.
 
@@ -145,6 +155,8 @@
 
 6단원은 기존 6개 구성과 위치→날씨→snapshot→form→DB→cache의 큰 순서를 유지했다. 다만 기존 6-5는 durable SQLite 저장과 memory Query cache를 한 단계에 섞었고, 기존 6-6의 저장 단위·표시 설정 경계는 DB 표현과 함께 읽는 편이 자연스러웠다. 따라서 `LocationSnapshot`과 날씨 Query의 입력·실패 경계를 먼저 분명히 하고, `CaptureContext`·form command·SQLite 저장을 차례로 연결한 뒤 mutation과 cache 정합성을 마지막 단계로 분리했다. 섭씨 원본 저장과 화면 표시 단위의 관계는 6-5에서 저장 경계로만 확인하며 4단원의 설정 hydration을 반복하지 않는다.
 
+7단원은 기존 2개 예정안 중 `7-1 Library 책임 지도`를 실제 caller·consumer와 직접·간접 dependency 관계까지 드러내는 `Library 책임 지도와 실제 호출 관계`로 보강했다. 기존 `7-2 자주 혼동하는 상태 경계`는 실제 source에서 서로 다른 의존 관계를 가진 form·runtime validation, 위치·HTTP·Query·payload validation, local·client·query state 수명, SQLite table·key-value 영속 경계를 한 단계에 함께 담기에는 범위가 넓었다. 따라서 package 선언·lockfile·설치 source와 `app/`·`src/` caller를 기준으로 이를 7-2~7-5로 나누고, 전체 지도를 먼저 확인한 뒤 form·network·memory state·영속 data 순서로 학습하는 5개 단계로 확정했다.
+
 #### 완료 단원의 최초 예정안
 
 | 단원 | 예상 개수 | 예정 서브 스탭 | 간략 범위 |
@@ -154,9 +166,9 @@
 | 5. 근접 센서와 native lifecycle | 5개 | `5-1` 공통 TypeScript bridge 계약<br>`5-2` Android `SensorManager` lifecycle<br>`5-3` iOS `UIDevice` lifecycle<br>`5-4` `useProximity` 상태와 cleanup<br>`5-5` Android·iOS 차이와 공통 상태 정규화 | JS 계약부터 Kotlin·Swift resource lifecycle, hook 상태와 platform 차이 |
 | 6. 위치, 날씨, `CaptureContext`, 저장 흐름 | 6개 | `6-1` Foreground 위치 권한과 위치 서비스<br>`6-2` 날씨 API, schema와 재시도<br>`6-3` `CaptureContext` snapshot<br>`6-4` React Hook Form과 Zod<br>`6-5` SQLite 저장과 TanStack Query cache<br>`6-6` 저장 단위와 표시 설정 분리 | 사용자 요청부터 위치·날씨 조회, snapshot·form·DB 저장과 섭씨/화씨 표시까지의 end-to-end 흐름 |
 
-#### 미시작 단원의 비확정 예정안
+#### 7단원 시작 전·미시작 단원의 비확정 예정안
 
-2026-08-04 정합성 점검에서는 7~11단원의 대단원 제목·큰 순서와 실제 학습서 내용이 충돌하지 않는지만 확인했다. 아래 개수·서브 스탭 제목·순서는 학습 전에 확정한 것이 아니며, 각 단원 시작 직전에 실제 source·설치 version·앞 단원의 결론을 다시 대조해 조정한다.
+2026-08-04 정합성 점검에서는 당시 미시작 상태였던 7~11단원의 대단원 제목·큰 순서와 실제 학습서 내용이 충돌하지 않는지만 확인했다. 7단원 행은 시작 전 예정안 이력이며 현재 기준은 위의 확정 5개 구성이다. 8~11단원의 개수·서브 스탭 제목·순서는 확정한 것이 아니며, 각 단원 시작 직전에 실제 source·설치 version·앞 단원의 결론을 다시 대조해 조정한다.
 
 | 단원 | 예상 개수 | 예정 서브 스탭 | 간략 범위 |
 | --- | ---: | --- | --- |
@@ -172,6 +184,7 @@
 | --- | --- | --- |
 | 2026-08-04 | 완료된 1~6단원 | 계획서의 학습 순서를 현재 1~11단원과 맞추고, 학습서 1~6장의 확정 서브 스탭 제목·순서를 드러냈다. 2장의 generated 경계, 4장의 hydration 실패 한계, 6-5의 SQLite 저장 단위와 6-6의 Query cache 경계를 보완했으며 현재 자동화 기준을 9 suites·35 tests로 갱신했다. |
 | 2026-08-04 | 미시작 7~11단원 | 대단원 제목·큰 순서와 명백한 오래된 version·수치만 경량 점검했다. 세부 서브 스탭은 확정하지 않았으며 각 단원 시작 직전 다시 대조한다. |
+| 2026-08-05 | 7단원 시작 전 source·package 대조 | 학습서 7장, package 선언·lockfile·실제 설치 version, 주요 `app/`·`src/` caller와 설치 package source·type 계약을 다시 대조했다. 기존 2개 예정안은 책임·상태·영속 경계를 한 단계에 과도하게 묶으므로 7-1 전체 지도 뒤 form·validation, 위치·HTTP·Query, memory state 수명, SQLite table·key-value 영속 경계를 따로 확인하는 5개 구성으로 확정했다. |
 
 ## 질문·결론 기록
 
@@ -206,6 +219,11 @@
 | 6-4 Form state, Zod와 저장 command 결합 | `app/observations/new.tsx`, `src/schemas/observation.ts`, `src/types/observation.ts`, `src/db/observations.ts`, `src/schemas/observation.test.ts`, `app-tests/new-observation-screen.test.tsx`, 설치된 React Hook Form 7.82.0·resolvers 5.4.0·Zod 4.4.3 source, `docs/learning-guide.md` 6.4절, `docs/source-commentary-guide.md` FLOW-04 | React Native 입력이 `Controller`를 통해 React Hook Form의 raw state에 들어가고, 저장 시 `handleSubmit`→`zodResolver`→`observationFormSchema` 검증·변환을 거쳐 성공한 `ObservationFormValues`만 `CaptureContext`와 합쳐지는 흐름을 확인했다. `z.input`·`z.output`, 세 `useForm` generic, 기본 submit validation, `useWatch`, 오류 UI와 `CreateObservationInput` 조립을 대조했다. 사용자는 `TextInput.maxLength`가 있는데도 Zod `.max()`가 필요한 이유를 질문해 짧은 설명을 확인한 뒤 완료를 명시함 | `Controller`는 React Native component와 form state를 연결하고, `maxLength`는 정상 화면 입력을 즉시 제한하는 UX 장치다. Zod `.max()`는 UI를 우회한 값·test·다른 caller까지 실제 제출·repository 경계에서 검사하는 runtime 규칙이므로 둘은 대체 관계가 아니다. 현재 trim은 `string`을 `string`으로 바꿔 input·output의 정적 shape는 같지만, 성공 callback에는 공백이 제거된 output 값이 전달된다. 검증 실패는 field error를 표시하고 `submit`·mutation을 호출하지 않으며, 성공 시 `{ ...values, captureContext }`가 mutation의 `CreateObservationInput`이 된다. Repository의 form 재검증은 모든 caller를 방어하는 연결 지점으로만 확인하고 SQL binding·cache 결과는 뒤 단계에 남겼다. Source·학습서의 새 오류·누락은 발견되지 않아 수정하지 않음 | 사용자 검증 완료 |
 | 6-5 SQLite binding, nullable row 정규화와 저장 단위 | `src/db/migrate.ts`, `src/db/observations.ts`, `src/db/observations.test.tsx`, `src/types/observation.ts`, `src/types/weather.ts`, `src/api/weather.ts`, `src/components/snapshot-summary.tsx`, 설치된 Expo SQLite 16.0.10 source, `docs/implementation-plan.md`, `docs/learning-guide.md` 6.5절, `docs/source-commentary-guide.md` FLOW-04·06, Android·iPhone 실기기 handoff | 중첩 `CreateObservationInput`이 form 재검증 뒤 SQLite scalar·`null`·UTC ISO 문자열의 named parameter로 펼쳐져 한 행에 INSERT되고, flat `ObservationRow`가 다시 중첩 `Observation`으로 조립되는 양방향 변환을 확인했다. Table constraint, `SQLiteBindValue`, SQL과 사용자 data 분리, 선택 column 묶음의 nullable 정책, epoch milliseconds↔ISO 변환, 고정 최신순과 섭씨 원본 저장·표시 시점 변환 및 자동화·실기기 증거 경계를 대조한 뒤 사용자는 추가 질문 없이 완료를 명시함 | Named binding은 작은따옴표를 포함한 사용자 문자열도 SQL 구조와 분리하며 `undefined`를 허용하지 않는 Expo SQLite 계약에 맞춰 선택값을 명시적 `null`로 정규화한다. 위치는 위도·경도·관측 시각이 모두 있으면 nullable 정확도와 함께 객체로 복원하고, 날씨는 네 필수 column이 모두 있을 때만 객체로 복원하며 불완전한 묶음은 전체 `null`이 된다. Domain 시각은 계산용 epoch millisecond, DB는 UTC ISO `TEXT`를 쓰고 앱이 생성한 고정 형식의 `captured_at DESC, id DESC`가 안정된 최신순을 만든다. 날씨는 요청부터 `temperature_c`까지 섭씨를 유지하고 화씨는 렌더 때만 계산한다. `getAllAsync<ObservationRow>` generic은 기대 shape의 compile-time 계약이지 runtime validation이 아니며, repository test는 가짜 DB의 mapping·binding만 증명한다. Android는 DB 직접 조회, iPhone은 UI runtime 영속성 근거로 구분했고 source·학습서의 새 오류·누락은 발견되지 않아 수정하지 않음 | 사용자 검증 완료 |
 | 6-6 Mutation 결과, Query cache와 목록·상세 정합성 | `src/db/observations.ts`, `src/db/observation-mutations.test.ts`, `app/observations/new.tsx`, `app/(tabs)/records.tsx`, `app/observations/[id].tsx`, `src/query-client.ts`, 설치된 TanStack Query 5.101.2 source, `docs/implementation-plan.md`, `docs/learning-guide.md` 6.6절, `docs/source-commentary-guide.md` FLOW-04·05 | 생성·삭제 mutation의 `mutationFn`과 `onSuccess`, query key prefix, 목록·상세 query의 SQLite 읽기와 route 이동 순서를 대조했다. 사용자는 `invalidateQueries`와 `removeQueries`의 cache 처리 차이, 즉시 재조회 시점과 재조회의 정확한 의미, 활성·비활성 query 기준, `RecordsScreen`의 observer 관계, invalidation이 `createObservation`·`deleteObservation`을 다시 실행하는지 질문해 결론을 확인했다. 이 과정에서 삭제된 활성 detail을 prefix invalidation이 다시 SELECT한 뒤 제거할 수 있는 cache 처리 순서 후보를 확인했고, 전체 수정 코드를 검토한 뒤 반영을 승인하고 6-6 완료를 명시함 | Mutation은 `mutate`·`mutateAsync` 호출 때만 `INSERT`·`DELETE`를 실행하고 `invalidateQueries`는 matching Query cache를 stale로 표시한 뒤 활성 query의 `listObservations`·`getObservation` 같은 `queryFn`만 다시 실행한다. 활성 query는 화면 표시 여부가 아니라 mounted된 enabled observer 유무로 판정하며, 비활성 cache는 즉시 읽지 않고 stale 상태만 유지한다. 삭제 성공 callback은 exact detail cache를 먼저 제거한 뒤 남은 observations prefix를 invalidate하도록 수정해 불필요한 상세 SELECT와 not-found 표시 가능성을 줄였다. 기존 주석을 보존·보강하고 호출 순서 회귀 test와 `FLOW-05`, 학습서의 별도 invalidate 설명을 함께 갱신했다. 대상 mutation test 2/2, 전체 Jest 9 suites·35 tests, typecheck, lint, `git diff --check`, 문서 fence·local link 검사가 통과했으며 JS cache 변경이라 native build·실기기 검증은 수행하지 않음 | 사용자 검증 완료 |
+| 7-1 Library 책임 지도와 실제 호출 관계 | `package.json`, `app/_layout.tsx`, `app/(tabs)/_layout.tsx`, `app/(tabs)/index.tsx`, `app/(tabs)/records.tsx`, `app/(tabs)/settings.tsx`, `app/observations/new.tsx`, `app/observations/[id].tsx`, `src/query-client.ts`, `src/api/weather.ts`, `src/schemas/observation.ts`, `src/schemas/weather.ts`, `src/db/migrate.ts`, `src/db/observations.ts`, `src/store/app-store.ts`, `src/hooks/use-proximity.ts`, `src/components/snapshot-summary.tsx`, observation·weather type, 설치된 Expo Router·Location·SQLite·TanStack Query·Axios·Zustand·React Hook Form·resolver·Zod source·type 계약, `docs/learning-guide.md` 7장 | `expo-router/entry`부터 Root provider와 route별 consumer를 따라 runtime·UI·routing·위치·HTTP·validation·form·client state·query·SQLite 책임을 연결하고, 각 library가 하지 않는 일과 직접·간접 dependency를 구분했다. 사용자는 FieldLog source가 직접 import하지 않는 `@react-navigation/native`에도 역할이 있을 수 있는 이유를 짧게 질문한 뒤 완료를 명시함 | FieldLog가 직접 import하지 않아도 상위 library인 Expo Router가 navigation 상태·context·화면 이동 기반으로 사용할 수 있으므로 호출 관계는 `FieldLog source → expo-router → @react-navigation/native`가 된다. 직접 import가 없다는 사실은 역할이 없다는 뜻이 아니다. Query는 Axios HTTP와 SQLite SQL을 대신하지 않고 Promise 상태·cache를 관리하며, Zod는 runtime validation, React Hook Form은 form state, Zustand는 `CaptureContext`·온도 단위·hydration, SQLite는 영속 원본을 각각 소유한다. Source·학습서의 오류·누락은 발견되지 않아 수정하지 않음 | 사용자 검증 완료 |
+| 7-2 Compile-time type·form state·runtime validation | `tsconfig.json`, `src/schemas/observation.ts`, `src/types/observation.ts`, `app/observations/new.tsx`, `src/db/observations.ts`, `src/schemas/weather.ts`, `src/types/weather.ts`, 설치된 React Hook Form 7.82.0 `UseFormProps`·`Controller`·`handleSubmit` 계약, resolvers 5.4.0 Zod 4 처리와 Zod 4.4.3 input·output·parse 계약, `docs/learning-guide.md` 7장 | `Controller`가 React Native 입력을 RHF raw state에 연결하고 `handleSubmit`이 `zodResolver`를 거쳐 Zod output만 `submit`에 전달하는 흐름을 확인했다. `useForm<ObservationFormInput, unknown, ObservationFormValues>`, `z.input`·`z.output`, `.trim()`, `errors`, `useWatch`, `CreateObservationInput`과 repository의 두 번째 parse를 대조했다. 사용자는 raw·trimmed 값, type annotation의 runtime 한계, typed field name과 runtime validation, 두 validation 지점, form 밖 상태의 소유자를 묻는 1~5번 확인 질문에 대한 짧은 답을 확인한 뒤 완료를 명시함 | 공백을 포함한 제목은 RHF raw state에 그대로 있고 Zod output은 trim된 값이다. Type annotation과 `Controller` field path는 compile-time 계약이므로 실제 값이 Zod를 통과했다는 runtime 보장이 아니며, resolver는 현재 화면의 오류 표시·submit 차단, repository parse는 모든 저장 caller의 form 규칙 보장을 맡는다. `captureContext`는 Zustand, `createMutation.isPending`은 TanStack Query가 소유하고 RHF는 form field·오류·submit 절차만 관리한다. `CreateObservationInput` 전체가 아니라 form 세 필드만 repository에서 Zod로 다시 검사하는 현재 경계와 날씨의 `unknown`→Zod→`WeatherSnapshot` 비교를 확인했으며 source·학습서의 오류·누락은 발견되지 않아 수정하지 않음 | 사용자 검증 완료 |
+| 7-3 위치·HTTP·Query·payload validation 경계 | `app/(tabs)/index.tsx`, `src/api/weather.ts`, `src/query-client.ts`, `src/schemas/weather.ts`, `src/types/weather.ts`, 설치된 Expo Location 19.0.8 위치·권한 계약, TanStack Query 5.101.2 query context·상태·retry·cache 계약, Axios 1.18.1 request·response·error·취소 계약, Zod 4.4.3 parse 계약, `docs/learning-guide.md` 7장 | Expo Location 결과에서 화면 `LocationSnapshot`·좌표를 만들고, 좌표가 Query key·`enabled`를 결정한 뒤 `queryFn`의 `AbortSignal`→Axios `get<unknown>`→Zod parse→`WeatherSnapshot`→Query 상태·cache로 이어지는 흐름을 확인했다. `staleTime`과 cache 삭제 시간, `isPending`·`isFetching`, manual refetch, cached refetch 오류를 구분하고 HTTP 200 invalid payload·4xx·5xx·network/timeout·취소별 재시도 표를 대조한 뒤 사용자는 추가 질문 없이 완료를 명시함 | Expo Location은 좌표 획득, Query는 key별 Promise 실행·상태·memory cache·retry loop, Axios는 각 HTTP 요청·timeout·signal·오류 정보, Zod는 외부 payload의 runtime 검증·domain 변환을 맡는다. HTTP 200의 잘못된 payload는 Zod 오류라 재시도하지 않고, 4xx·취소·non-Axios 오류도 재시도하지 않으며 response 있는 5xx와 response 없는 request 오류만 첫 실패 뒤 한 번 Query가 `queryFn`을 다시 호출한다. 같은 좌표의 data는 5분 동안 fresh지만 `staleTime`은 cache 삭제 시간이 아니고, disabled Query의 `isPending`은 실제 I/O를 뜻하지 않는다. Refetch 오류에서는 cached data와 `isError`가 함께 있을 수 있어 화면은 `isSuccess`일 때만 날씨를 캡처한다. Source·학습서의 오류·누락은 발견되지 않아 수정하지 않음 | 사용자 검증 완료 |
+| 7-4 React local·form·client·query 상태의 원본과 수명 | `app/(tabs)/index.tsx`, `app/observations/new.tsx`, `app/_layout.tsx`, `src/hooks/use-proximity.ts`, `src/store/app-store.ts`, `src/query-client.ts`, `src/db/observations.ts`, `src/components/snapshot-summary.tsx`, 설치된 React Hook Form 7.82.0 form control, Zustand 5.0.14 store·selector·persist, TanStack Query 5.101.2 observer·inactive cache·`gcTime` 계약, `docs/learning-guide.md` 7장 | 값의 원천, 현재 runtime 소유자, consumer와 영속 원본을 구분하고 React component·Hook instance, RHF form control, module singleton인 Zustand store와 QueryClient의 수명을 대조했다. 화면 blur와 실제 unmount, Query observer 제거와 cache 보존, runtime 종료와 SQLite 영속성의 차이를 상태별 표로 확인했다. `location`·proximity state, form field·`errors`, `captureContext`·`temperatureUnit`·`hasHydrated`, weather·observation Query data와 표시 전용 `SnapshotSummary` props를 1~5번 확인 질문으로 정리했으며 사용자는 추가 질문 없이 완료를 명시함 | React local state·ref와 RHF form state는 component instance의 재렌더 동안 유지되지만 실제 unmount와 runtime 종료 뒤에는 남지 않는다. Zustand store는 화면과 독립된 runtime singleton이라 `captureContext`를 route 사이에 전달하지만 명시적 cleanup 또는 runtime 종료까지만 유지하고, `temperatureUnit`만 persist가 kv-store에서 복원하며 `hasHydrated`는 runtime flag다. Query hook의 observer가 unmount로 제거돼도 QueryClient cache는 즉시 삭제되지 않고 현재 미설정 기본 `gcTime` 5분 동안 비활성 상태로 남을 수 있으나 앱 재시작을 넘는 persister는 없다. Observation cache는 SQLite 영속 원본의 memory 복사본이고, `SnapshotSummary`는 부모 props의 consumer일 뿐 소유자가 아니다. Blur가 곧 unmount라는 전제와 active가 곧 fetching이라는 전제를 두지 않으며 source·학습서의 오류·누락은 발견되지 않아 수정하지 않음 | 사용자 검증 완료 |
+| 7-5 Expo SQLite table API·kv-store·영속 원본 경계 | `package.json`, `package-lock.json`, `app/_layout.tsx`, `app/(tabs)/settings.tsx`, `src/db/migrate.ts`, `src/db/observations.ts`, `src/store/app-store.ts`, `src/query-client.ts`, `src/store/app-store.test.ts`, 설치된 Expo SQLite 16.0.10 `hooks.tsx`·`Storage.ts`·database path 계약과 Zustand 5.0.14 `createJSONStorage`·persist source, `docs/learning-guide.md` 7장 | 같은 Expo SQLite engine을 쓰는 `fieldlog.db` domain 경로와 `ExpoSQLiteStorage` key-value 경로의 database 이름·file·connection·table·schema owner·migration·API를 나란히 대조했다. `SettingsScreen`→Zustand action→persist `partialize`→JSON serialization→`fieldlog-settings` key의 호출 관계, 재시작 시 반대 hydration 방향, Query cache와 영속 원본의 차이를 확인했다. Database·table·row key 이름, 별도 connection 공유 여부, cache 제거 뒤 복원, persist write trigger와 저장 property, 독립된 `PRAGMA user_version`을 묻는 1~5번 확인 질문을 제시했으며 사용자는 추가 질문 없이 완료를 명시함 | `SQLiteProvider`는 `fieldlog.db`를 열어 FieldLog가 소유한 `observations` schema와 repository SQL connection을 제공하고, Query cache는 이 영속 row를 읽은 runtime 복사본이다. 기본 `expo-sqlite/kv-store` instance는 Provider를 사용하지 않고 `ExpoSQLiteStorage` database를 별도로 열어 library 소유 `storage(key, value)` table을 관리한다. `fieldlog-settings`는 database나 table이 아니라 Zustand JSON envelope 한 건의 row key이고, `partializeAppState` 때문에 그 value에는 `temperatureUnit`만 포함된다. Persist middleware가 다른 store action에서도 write를 요청할 수 있지만 저장 projection은 달라지지 않으며, 두 database의 같은 version 숫자는 파일별로 독립적이다. Query persister는 없고 기존 hydration 실패 한계는 새 수정 대기 항목으로 다시 열지 않는다. Source·학습서의 오류·누락은 발견되지 않아 수정하지 않음 | 사용자 검증 완료 |
 
 ## 학습서 수정 대기 목록
 
