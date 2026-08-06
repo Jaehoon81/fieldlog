@@ -1986,6 +1986,65 @@ build 성공만으로 센서 앞을 손으로 가렸을 때의 runtime behavior�
 
 반대로 UI로 재실행 persistence를 관찰한 것을 sandbox DB 파일 직접 검사로 표현하지 않는다. 검증 결과의 원문과 제한사항은 [implementation-plan.md](./implementation-plan.md)의 검증 기록을 기준으로 본다.
 
+### 증거의 기준 source와 시점
+
+검증 결과에는 무엇을 실행했는지뿐 아니라 어떤 source·binary를 실행했는지도 함께 기록한다. FieldLog development client의 runtime은 설치된 native binary와 Metro가 전달한 JS bundle의 조합이므로 둘을 하나의 최신 source로 뭉뚱그리지 않는다.
+
+```text
+checkout과 dirty diff
+  → build 입력과 profile
+  → build ID·fingerprint
+  → APK·IPA와 SHA-256
+  → 기기에 설치한 binary
+  → Metro가 읽은 checkout
+  → 실행한 시나리오와 관찰 결과
+```
+
+| 증거 층 | 함께 기록할 기준 |
+| --- | --- |
+| checkout | branch, HEAD, upstream과 staged·modified·untracked 파일 |
+| build 입력 | resolved config, lockfile, native source, profile, archive 범위와 tool version |
+| cloud build | EAS build ID·fingerprint, 완료 시각과 service 결과 |
+| artifact | 경로, 크기, SHA-256, package·bundle ID, app version과 signing |
+| 설치 binary | device model·OS와 실제로 설치한 artifact·package version |
+| Metro | 실행 명령, Metro가 읽은 checkout·dirty diff, reload·Fast Refresh·cold start 여부 |
+| 검증 | 사전 조건, 조작, 기대 결과, 실제 결과, 상태와 제한사항 |
+
+EAS fingerprint는 build 입력 비교값이지 Git commit SHA가 아니고, artifact SHA-256은 파일 동일성 값이지 기능 성공 값이 아니다. Fast Refresh는 일부 React state를 유지할 수 있으므로 초기화·hydration 검증은 앱 강제 종료·재실행이나 cold start 여부를 별도로 기록한다.
+
+FieldLog의 2026-07-22·23 실기기 검증 당시에는 아직 Git commit이 없었다. 따라서 현재 commit SHA를 과거 Metro source에 소급해 붙이지 않고 당시 handoff의 날짜, build ID·artifact hash, 변경 파일과 Metro 재검증 기록을 기준으로 삼는다. Android EAS APK가 만들어진 뒤 변경한 JS/TS는 새 APK가 아니라 기존 development client와 당시 Metro source로 확인했으며, native module이나 app config를 바꾸면 이 방식으로 대신할 수 없고 새 development build가 필요하다.
+
+2026-08-06의 학습서 보완 반영 전 10-4 점검에서는 local `master`의 executable source·config가 HEAD `2d2e4868be9bd077766e263a08ac7882d5da2b9e`와 같고 학습 진행표만 modified였다. 보존된 Android EAS APK·iOS EAS IPA와 local debug APK는 모두 이 HEAD보다 이전 artifact이므로 현재 HEAD의 fresh build로 표현하지 않는다. 당시 기기 설치 binary와 현재 Metro session도 이번 점검에서 다시 확인하지 않았으므로 현재 runtime 성공으로 갱신하지 않는다.
+
+### 결과 상태 표현과 기록 형식
+
+| 상태 | 사용 기준 |
+| --- | --- |
+| `통과` | 필요한 사전 조건에서 시나리오를 실제 수행했고 완료 기준과 일치하는 증거를 확보함 |
+| `실패` | 사전 조건이 충족된 상태에서 실제 결과가 기대 결과와 다름 |
+| `확인` | source·config·artifact 구조를 검사했지만 pass/fail 성격이 아닌 정적 판단임 |
+| `미검증` | 실행하지 않았거나 증거가 부족해 결론을 낼 수 없음 |
+| `스킵` | 중요도·비용·대체 증거를 검토한 뒤 사용자가 의도적으로 범위에서 제외함 |
+| `blocker` | 필수 작업을 계속해야 하지만 기기·권한·계정·외부 서비스 같은 조건이 없어 진행 자체가 차단됨 |
+| `통과(범위 한정)` | 수행한 좁은 시나리오는 통과했지만 인접 시나리오까지 확대할 수 없음 |
+
+Android 첫 offline 시도는 위치 획득부터 실패해 “위치는 유지하고 날씨만 실패하는가”의 사전 조건을 만족하지 않았으므로 날씨 시나리오의 통과·실패 근거로 채택하지 않았다. 센서 없는 Android의 native `unavailable`은 처음에는 `미검증`이었고, 이후 사용자가 기기 조달·emulator 검증을 제외하기로 결정해 `스킵`이 됐다. 통과로 바뀐 것이 아니며 완료 blocker로도 유지하지 않는다.
+
+날짜가 있는 과거 `미검증` 행은 당시 사실이므로 지우거나 나중 결과로 덮어쓰지 않는다. 새 검증은 새 날짜의 행으로 추가하고 현재 판단에는 더 최근 결과를 사용한다. 한 platform의 성공을 다른 platform에 복사하지 않는다.
+
+최소 기록 형식은 다음과 같다.
+
+| 항목 | 기록 내용 |
+| --- | --- |
+| 일시·질문 | 언제 무엇을 확인하려 했는지 |
+| source | branch, HEAD, dirty 파일과 필요한 경우 file hash |
+| 환경 | OS·tool 또는 device model·OS version |
+| binary·Metro | build ID·artifact hash·설치 version과 Metro checkout |
+| 실행 | 실제 command 또는 사용자 조작과 사전 조건 |
+| 기대·실제 | 완료 기준과 관찰·log·assertion 원문 |
+| 판정 | `통과`·`실패`·`확인`·`미검증`·`스킵`·`blocker` 중 맞는 상태 |
+| 제한 | mock, 간접 관찰, 미수집 정보, platform·시점 한계 |
+
 ### 현재 재현 가능한 자동화 명령
 
 ```powershell
