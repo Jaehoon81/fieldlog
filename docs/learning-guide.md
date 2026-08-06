@@ -2059,30 +2059,42 @@ npx expo install --check
 
 ## 11. 복습 실습
 
-구현 범위를 늘리지 않고 다음 순서로 읽고 확인한다.
+구현 범위를 늘리지 않고 다음 여섯 서브 스탭 순서로 읽고 확인한다.
+
+### 11-1 Type 경계와 Root 초기화 tree
 
 1. [`src/types/observation.ts`](../src/types/observation.ts)에서 UI에만 있는 `idle`, `pending`과 저장 가능한 상태를 구분한다.
 2. [`app/_layout.tsx`](../app/_layout.tsx)의 JSX를 종이에 tree로 그려 DB migration과 Zustand hydration 중 무엇이 먼저 route를 막는지 설명한다.
+
+### 11-2 Native event에서 Hook과 test까지
+
 3. [`src/hooks/use-proximity.test.tsx`](../src/hooks/use-proximity.test.tsx)에서 `near → far` 뒤에도 `lastNearAt`이 유지되는 assertion을 찾고 [`applyProximityEvent`](../src/hooks/use-proximity.ts)의 어느 조건과 대응하는지 찾는다.
 4. Kotlin의 `distanceCm < maxRangeCm`와 Swift의 `proximityState`가 공통 `near/far` event로 모이는 지점을 나란히 표시한다.
+
+### 11-3 위치·날씨에서 `CaptureContext`까지
+
 5. [`app/(tabs)/index.tsx`](<../app/(tabs)/index.tsx>)에서 위치 성공 후 날씨 실패가 기록을 막지 않는 조건과, `날씨 다시 시도`가 위치를 지우지 않는 이유를 찾는다.
+
+### 11-4 SQLite·Query cache·Zustand data 수명
+
 6. [`src/db/migrate.ts`](../src/db/migrate.ts)의 18개 column과 [`src/db/observations.ts`](../src/db/observations.ts)의 row field·named parameter를 한 항목씩 대응시킨다.
 7. 생성 성공과 삭제 성공에서 query cache 처리가 왜 다른지 `invalidateQueries`와 `removeQueries`를 사용해 설명한다.
 8. [`src/store/app-store.ts`](../src/store/app-store.ts)에서 `partializeAppState`가 `captureContext`를 제외하지 않았다면 재실행 후 어떤 잘못된 UX가 생길지 설명한다.
 
-### 작은 변경 실습
+### 11-5 선행 경계 test와 원복 가능한 mutation 실습
 
-동작 범위를 늘리지 않는 가장 작은 실습은 validation 경계를 test-first로 바꿔 보는 것이다.
+동작 범위를 늘리지 않는 가장 작은 실습은 source 변경보다 먼저 존재하는 validation 경계 test가 잘못된 변경을 잡는지 확인하는 것이다. 새로운 요구사항을 red-green으로 구현하는 TDD라기보다 기존 회귀 test를 이용한 controlled mutation에 가깝다.
 
-1. [`src/schemas/observation.test.ts`](../src/schemas/observation.test.ts)의 “제목 60자를 허용한다” test를 복사해 “61자는 거부한다” case를 만든다.
-2. `npm test -- --runInBand src/schemas/observation.test.ts`로 먼저 통과 여부를 확인한다.
-3. 학습을 위해 schema의 `.max(60)`을 잠깐 `.max(61)`로 바꾸고 같은 test가 실패하는지 확인한다.
-4. 변경한 schema를 반드시 `.max(60)`으로 직접 되돌리고 test를 다시 통과시킨다.
-5. 이 실습 결과는 기능 변경이 아니므로 plan 검증 기록이나 handoff에 새 기능처럼 기록하지 않는다.
+1. [`src/schemas/observation.test.ts`](../src/schemas/observation.test.ts)에 이미 있는 “61자 제목을 거부한다” case와 “제목 60자를 허용한다” case를 찾는다. 중복 test를 추가하지 않는다.
+2. `npm test -- --runInBand src/schemas/observation.test.ts`로 현재 경계 test가 먼저 통과하는지 확인한다.
+3. 학습을 위해 schema의 `.max(60)`을 잠깐 `.max(61)`로 바꾸고 기존 61자 거부 test가 실패하는지 확인한다.
+4. 변경한 schema를 반드시 `.max(60)`으로 직접 되돌리고 같은 test를 다시 통과시킨다.
+5. `git diff -- src/schemas/observation.ts src/schemas/observation.test.ts`로 임시 source·test 변경이 남지 않았는지 확인한다.
+6. 이 실습 결과는 기능 변경이 아니므로 plan 검증 기록이나 handoff에 새 기능처럼 기록하지 않는다.
 
 Git 명령으로 원복하는 것을 전제로 하지 않는다. 시작 전 원래 한 줄을 확인하고 실습 직후 직접 되돌린다.
 
-### 학습 종료 점검
+### 11-6 최종 source 질의와 학습 종료 점검
 
 다음 질문에 source 위치를 가리키며 답할 수 있으면 핵심 흐름을 한 번 따라간 것이다.
 

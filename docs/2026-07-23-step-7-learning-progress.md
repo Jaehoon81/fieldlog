@@ -6,7 +6,7 @@
 - authoritative 계획서: [implementation-plan.md](./implementation-plan.md)
 - 7번 완료 기록: [2026-07-23-step-7-handoff.md](./2026-07-23-step-7-handoff.md)
 - 저장소 선행 작업 완료 기록: [2026-07-24-step-9-10-handoff.md](./2026-07-24-step-9-10-handoff.md)
-- 현재 상태: **대화형 학습 진행 중, 1단원 1-1~1-4·2단원 2-1~2-3·3단원 3-1~3-4·4단원 4-1~4-4·5단원 5-1~5-6·6단원 6-1~6-6·7단원 7-1~7-5·8단원 8-1~8-6·9단원 9-1~9-7·10단원 10-1~10-4 사용자 검증 완료, 11단원 시작 대기**
+- 현재 상태: **대화형 학습 1~11단원 모든 확정 서브 스탭 사용자 검증 완료, 학습 문서 추가 commit/push closeout 대기**
 
 이 문서는 대화 내용을 복제하지 않고 대화형 학습의 현재 위치, 사용자 source 확인 결과, 질문의 결론과 학습서 수정 필요 사항을 새 세션에서도 복원할 수 있게 기록한다.
 
@@ -15,9 +15,9 @@
 1. `[완료]` 8번 `AGENTS.md Improver` 조사·수정안 검토와 승인된 반영을 마쳤다.
 2. `[완료]` 9번 GitHub repository 조건 확정·생성·연결을 마쳤다.
 3. `[완료]` 10번 현재 기준 source·문서의 의미·기능·작업별 commit과 1차 push를 마쳤다.
-4. `[진행 중]` 이 진행표를 기준으로 대화형 학습과 실제 source 확인을 진행한다. 현재 1단원 1-1~1-4, 2단원 2-1~2-3, 3단원 3-1~3-4, 4단원 4-1~4-4, 5단원 5-1~5-6, 6단원 6-1~6-6, 7단원 7-1~7-5, 8단원 8-1~8-6, 9단원 9-1~9-7과 10단원 10-1~10-4를 완료했고 11단원 시작을 기다린다.
-5. 학습 중 오류·누락이 발견되면 학습서를 수정하고 필요한 문서 검증을 다시 수행한다.
-6. 학습으로 생긴 수정은 기존 1차 push와 구분해 추가 commit/push한다.
+4. `[완료]` 이 진행표를 기준으로 1~11단원의 모든 확정 서브 스탭에서 대화형 학습과 실제 source 확인을 마쳤다.
+5. `[완료]` 학습 중 발견한 오류·누락은 학습서·source에 반영하거나 명시적인 현행 유지 결론으로 기록했고, 필요한 범위의 검증을 수행했다.
+6. `[대기]` 학습으로 생긴 수정은 기존 1차 push와 구분해 사용자의 별도 요청 뒤 추가 commit/push한다.
 
 정식 대화형 학습은 2026-07-24 시작했다. 형식 검토를 위해 앞부분을 대화형으로 재구성했던 기존 결과는 학습 완료 증거로 사용하지 않고, 실제 source 확인과 질의응답 뒤 사용자가 완료를 명시한 서브 스탭만 완료로 기록한다.
 
@@ -69,10 +69,10 @@
 | 7 | 각 library의 실제 역할 | 사용자 검증 완료 | 7-1~7-5 사용자 검증 완료 |
 | 8 | Expo 제공 기능과 직접 작성한 native 기능 | 사용자 검증 완료 | 8-1~8-6 사용자 검증 완료 |
 | 9 | 주요 TypeScript·React·Kotlin·Swift 문법 | 사용자 검증 완료 | 9-1~9-7 사용자 검증 완료 |
-| 10 | 자동화와 실기기 검증 구분 | 대기 |  |
-| 11 | 복습 실습 | 대기 |  |
+| 10 | 자동화와 실기기 검증 구분 | 사용자 검증 완료 | 10-1~10-4 사용자 검증 완료 |
+| 11 | 복습 실습 | 사용자 검증 완료 | 11-1~11-6 사용자 검증 완료 |
 
-각 대단원의 서브 스탭 목록은 실제 학습 직전에 제시하고 사용자가 분량을 확인한 뒤 이 표 또는 해당 단원 아래에 추가한다. 2단원은 학습서와 실제 source를 다시 대조해 아래 3개, 3단원은 Expo SDK 54·설치된 Expo Router 계약과 실제 route source를 다시 대조해 아래 4개, 4단원은 Expo SQLite·Zustand·TanStack Query 설치 계약과 실제 초기화 source를 다시 대조해 아래 4개, 5단원은 Expo Modules 계약·설치 source와 실제 bridge·native·hook·화면 source를 다시 대조해 아래 6개, 6단원은 위치·날씨·snapshot·form·SQLite·Query cache 흐름을 다시 대조해 아래 6개, 7단원은 package 선언·lockfile·설치 source와 실제 caller·consumer를 다시 대조해 아래 5개, 8단원은 app config·설치된 Expo package·local module metadata·build 도구의 입력과 산출물을 다시 대조해 아래 6개, 9단원은 TypeScript·React·Kotlin·Swift 문법이 등장하는 실제 source 분량을 다시 대조해 아래 7개 서브 스탭으로 확정했다. 완료를 명시한 서브 스탭만 완료로 기록한다.
+각 대단원의 서브 스탭 목록은 실제 학습 직전에 제시하고 사용자가 분량을 확인한 뒤 이 표 또는 해당 단원 아래에 추가한다. 2단원은 학습서와 실제 source를 다시 대조해 아래 3개, 3단원은 Expo SDK 54·설치된 Expo Router 계약과 실제 route source를 다시 대조해 아래 4개, 4단원은 Expo SQLite·Zustand·TanStack Query 설치 계약과 실제 초기화 source를 다시 대조해 아래 4개, 5단원은 Expo Modules 계약·설치 source와 실제 bridge·native·hook·화면 source를 다시 대조해 아래 6개, 6단원은 위치·날씨·snapshot·form·SQLite·Query cache 흐름을 다시 대조해 아래 6개, 7단원은 package 선언·lockfile·설치 source와 실제 caller·consumer를 다시 대조해 아래 5개, 8단원은 app config·설치된 Expo package·local module metadata·build 도구의 입력과 산출물을 다시 대조해 아래 6개, 9단원은 TypeScript·React·Kotlin·Swift 문법이 등장하는 실제 source 분량을 다시 대조해 아래 7개, 10단원은 자동화·native build·artifact·실기기 증거와 기록 기준을 다시 대조해 아래 4개, 11단원은 type·초기화·native·capture·persistence 흐름과 validation 실습을 다시 대조해 아래 6개 서브 스탭으로 확정했다. 완료를 명시한 서브 스탭만 완료로 기록한다.
 
 ### 1단원 서브 스탭 진행 상태
 
@@ -173,9 +173,20 @@
 | 10-3 | 실기기 runtime 증거와 관찰 한계 | 사용자 검증 완료 | 지원 실기기의 센서·권한·network·persistence 관찰과 미검증·스킵·간접 관찰의 한계 |
 | 10-4 | 증거의 기준 source·시점과 결과 기록법 | 사용자 검증 완료 | checkout·build 입력·설치 binary·Metro bundle의 정합성과 통과·실패·미검증·스킵·blocker 구분 |
 
+### 11단원 서브 스탭 진행 상태
+
+| 순서 | 서브 스탭 | 상태 | 확인 범위 |
+| --- | --- | --- | --- |
+| 11-1 | Type 경계와 Root 초기화 tree | 사용자 검증 완료 | UI 전용 sensor 상태와 저장 가능한 snapshot, SQLite migration·Zustand hydration·QueryClient가 route를 여는 순서와 합류 조건 |
+| 11-2 | Native event에서 Hook과 test까지 | 사용자 검증 완료 | Android·iOS near/far 정규화, 공통 event 계약, `applyProximityEvent`·`lastNearAt` assertion과 cleanup 경계 |
+| 11-3 | 위치·날씨에서 `CaptureContext`까지 | 사용자 검증 완료 | 위치 성공·날씨 실패·refetch와 cached data 경계, 현재 runtime 값을 일회용 snapshot으로 고정하는 조건 |
+| 11-4 | SQLite·Query cache·Zustand data 수명 | 사용자 검증 완료 | 18개 SQLite column·row·binding 대응, 생성·삭제 cache 처리 차이와 persist 대상 제외 경계 |
+| 11-5 | 선행 경계 test와 원복 가능한 mutation 실습 | 사용자 검증 완료 | 기존 60자 허용·61자 거부 test, 일시적 `.max(61)` 변경의 실패 감지와 직접 원복·target diff 확인 |
+| 11-6 | 최종 source 질의와 학습 종료 점검 | 사용자 검증 완료 | 핵심 질문의 source 근거, 미해결 오류·임시 source 변경·문서 상태와 전체 학습 완료 기준 확인 |
+
 ### 최초 3~11단원 서브 스탭 예정안과 변경 이력
 
-아래 목록은 2026-07-24 기준 전체 학습량과 흐름을 파악하기 위한 최초 비확정 예정안이다. 완료된 3~9단원과 학습을 시작한 10단원은 위 확정 목록이 현재 기준이며, 아래 최초 행은 제목·개수·경계가 어떻게 바뀌었는지 보존하는 이력이다. 미시작 11단원은 예정안만으로 `대기` 상태를 바꾸거나 학습 완료 증거로 사용하지 않는다.
+아래 목록은 2026-07-24 기준 전체 학습량과 흐름을 파악하기 위한 최초 비확정 예정안이다. 완료된 3~10단원과 학습을 시작한 11단원은 위 확정 목록이 현재 기준이며, 아래 최초 행은 제목·개수·경계가 어떻게 바뀌었는지 보존하는 이력이다. 아래 11단원 최초 예정안도 현재 구성이나 학습 완료 증거로 사용하지 않는다.
 
 각 단원을 시작하기 직전에 `docs/learning-guide.md`와 실제 source를 다시 읽고 의존 관계와 분량을 확인한 뒤 사용자와 최종 목록을 확정한다. 이 과정에서 제목·개수·경계가 조정될 수 있으며, 확정된 목록만 해당 단원의 진행 상태로 기록한다.
 
@@ -204,9 +215,9 @@
 | 5. 근접 센서와 native lifecycle | 5개 | `5-1` 공통 TypeScript bridge 계약<br>`5-2` Android `SensorManager` lifecycle<br>`5-3` iOS `UIDevice` lifecycle<br>`5-4` `useProximity` 상태와 cleanup<br>`5-5` Android·iOS 차이와 공통 상태 정규화 | JS 계약부터 Kotlin·Swift resource lifecycle, hook 상태와 platform 차이 |
 | 6. 위치, 날씨, `CaptureContext`, 저장 흐름 | 6개 | `6-1` Foreground 위치 권한과 위치 서비스<br>`6-2` 날씨 API, schema와 재시도<br>`6-3` `CaptureContext` snapshot<br>`6-4` React Hook Form과 Zod<br>`6-5` SQLite 저장과 TanStack Query cache<br>`6-6` 저장 단위와 표시 설정 분리 | 사용자 요청부터 위치·날씨 조회, snapshot·form·DB 저장과 섭씨/화씨 표시까지의 end-to-end 흐름 |
 
-#### 7~10단원 시작 전·11단원 미시작 비확정 예정안
+#### 7~11단원 시작 전 비확정 예정안
 
-2026-08-04 정합성 점검에서는 당시 미시작 상태였던 7~11단원의 대단원 제목·큰 순서와 실제 학습서 내용이 충돌하지 않는지만 확인했다. 7~10단원 행은 시작 전 예정안 이력이며 현재 기준은 위의 확정 5개·6개·7개·4개 구성이다. 11단원의 개수·서브 스탭 제목·순서는 확정한 것이 아니며, 시작 직전에 실제 source·앞 단원의 결론을 다시 대조해 조정한다.
+2026-08-04 정합성 점검에서는 당시 미시작 상태였던 7~11단원의 대단원 제목·큰 순서와 실제 학습서 내용이 충돌하지 않는지만 확인했다. 7~11단원 행은 시작 전 예정안 이력이며 현재 기준은 위의 확정 5개·6개·7개·4개·6개 구성이다.
 
 | 단원 | 예상 개수 | 예정 서브 스탭 | 간략 범위 |
 | --- | ---: | --- | --- |
@@ -215,6 +226,8 @@
 | 9. 주요 TypeScript·React·Kotlin·Swift 문법 | 6개 | `9-1` TypeScript union과 type derivation<br>`9-2` Nullable 값의 platform 정규화<br>`9-3` React callback, ref와 effect lifecycle<br>`9-4` SQL binding과 비동기 문법<br>`9-5` Kotlin 문법과 Expo Module DSL<br>`9-6` Swift 문법과 lifecycle | 실제 FieldLog source에 등장하는 type, hook, SQL, 비동기와 native 언어 문법 |
 | 10. 자동화와 실기기 검증 구분 | 4개 | `10-1` 질문에 맞는 증거와 자동화 범위<br>`10-2` Native build·autolink·artifact 증거<br>`10-3` 실기기 runtime과 남은 제한<br>`10-4` 재현 명령과 결과 기록법 | Jest mock, native build, artifact, 실기기 증거와 과장 없는 결과 표현 |
 | 11. 복습 실습 | 4개 | `11-1` Type·초기화·native 흐름 추적<br>`11-2` 위치·DB·cache·store 흐름 추적<br>`11-3` 작은 test-first 변경 실습<br>`11-4` 최종 source 질의와 학습 종료 점검 | 주요 source를 다시 연결하고 원복 가능한 작은 실습과 최종 완료 기준 확인 |
+
+11단원은 기존 4개 예정안의 첫 단계가 type·Root 초기화·native event를, 두 번째 단계가 위치·날씨·SQLite·Query cache·Zustand를 각각 한꺼번에 묶어 한 서브 스탭으로는 범위가 넓었다. 이를 type·초기화, native event·Hook, 위치·날씨 snapshot, persistence·cache·store로 나누고 실습과 최종 점검을 뒤에 두어 6개로 확정했다. 또한 예정된 61자 거부 test가 실제 source에 이미 존재하므로 중복 test를 만들지 않고, 기존 경계 test가 일시적 `.max(61)` mutation을 잡는지 확인한 뒤 직접 원복하는 실습으로 바로잡았다.
 
 ## 학습 자료 정합성 점검 기록
 
@@ -226,6 +239,7 @@
 | 2026-08-05 | 8단원 시작 전 source·config·package 대조 | 학습서 8장, `package.json`·lockfile, `app.json`, `eas.json`, local module metadata·native source와 설치된 Expo package·config plugin·Autolinking·Prebuild 계약을 다시 대조했다. 기존 4개 예정안에서 Autolinking과 Prebuild·CNG, 설치 binary capability와 build·Metro 책임을 각각 분리해 source 소유권→정적 설정→native discovery→generated project→설치 binary→반복 개발 순서의 6개 구성으로 확정했다. |
 | 2026-08-05 | 9단원 시작 전 source·compiler/type 대조 | 학습서 9장, TypeScript 5.9.3·React 19.1.0·`@types/react` 19.1.17·Expo 54.0.36의 설치 상태와 strict `tsconfig`, 주요 TypeScript·React·Kotlin·Swift source를 다시 대조했다. 기존 React 단계에서 component·JSX 렌더 문법과 Hook lifecycle을 분리해 7개로 확정했으며, `ProximityUiStatus`를 discriminated union이라고 부른 학습서 제목은 실제 문자열 literal union과 맞지 않아 사용자 승인 후 정확한 용어로 수정했다. |
 | 2026-08-06 | 10단원 시작 전 자동화·build·artifact·실기기 기록 대조 | 학습서 10장, `package.json`의 Jest 설정, 공통 native mock, 현재 9개 suite의 실제 mock·assertion, 계획서와 Android·iOS handoff의 build·artifact·실기기 기록을 다시 대조했다. 기존 4개 순서를 유지하되 10-1에 자동화와 mock provider 경계, 10-3에 직접·간접 관찰과 미검증·스킵 한계, 10-4에 checkout·build 입력·binary·Metro 시점 정합성과 결과 상태 표현을 명시해 4개 구성으로 확정했다. |
+| 2026-08-06 | 11단원 시작 전 source·test·앞 단원 결론 대조 | 학습서 11장, type·Root 초기화·native·위치·날씨·SQLite·Query cache·Zustand source와 관련 test를 다시 대조했다. 기존 4개 예정안의 두 흐름 추적 단계를 네 책임 경계로 나누고 실습·종료 점검을 더한 6개로 확정했다. 10단원 전체 상태표의 오래된 `대기` 표시를 완료로 맞췄으며, 이미 존재하는 61자 거부 test를 다시 추가하라는 지시는 선행 회귀 test를 이용한 controlled mutation·직접 원복 실습으로 정정했다. |
 
 ## 질문·결론 기록
 
@@ -282,6 +296,12 @@
 | 10-2 Native build·Autolinking·artifact 증거 사슬 | `modules/proximity-sensor/expo-module.config.json`, Android `build.gradle`·Kotlin source·manifest, `ProximitySensor.podspec`·Swift source, generated `android/settings.gradle`·`android/app/build.gradle`·merged manifest·Kotlin class, 설치된 `expo-modules-autolinking` 3.0.26의 Android·Apple `resolve`, `docs/2026-07-22-step-4-handoff.md`, 보존된 EAS APK·IPA | Tracked metadata부터 Autolinking resolve, generated build graph, Kotlin·Swift compile, manifest merge·library link, APK·IPA package와 hash로 이어지는 증거 사슬을 확인했다. Android·Apple resolve를 읽기 전용으로 다시 실행하고 보존 artifact의 크기·SHA-256을 기존 기록과 대조했으며, 현재 generated output과 artifact가 현재 HEAD보다 이전 시점임도 구분했다. 확인 질문 1~5를 제시했고 사용자는 source 확인 뒤 10-2 완료를 명시함 | `resolve`는 module class·Pod 연결 계획만 증명하고 Gradle·CocoaPods·compiler를 실행하지 않는다. `compileDebugKotlin`과 iOS arm64 `SwiftCompile`은 해당 build 조건의 native compile, merged manifest는 선언 병합, DEX·IPA marker는 compiled code 포함, signing·SHA-256은 설치 조건·artifact 동일성을 각각 추가로 증명하지만 runtime registry lookup·permission 승인·sensor event는 증명하지 않는다. 기존 Android EAS build `f9f2f11a-d340-4c40-b64d-e087e105ee02`와 iOS build `5585528e-f84a-4da1-9796-bcdf774afe16`의 local artifact hash는 문서와 일치했다. 이번에는 새 build를 실행하지 않았으므로 이를 현재 HEAD의 fresh build로 표현하지 않으며 새 오류·누락이나 수정 대기 항목은 없음 | 사용자 검증 완료 |
 | 10-3 실기기 runtime 증거와 관찰 한계 | `docs/implementation-plan.md`, `docs/2026-07-22-step-4-handoff.md`, `docs/2026-07-23-step-5-handoff.md`, `docs/learning-guide.md`, `src/hooks/use-proximity.ts`, `app/(tabs)/index.tsx`, `src/db/observations.ts`, 5-4·6-2·6-6과 이후 변경의 진행표 기록 | `LM-V500N`과 iPhone 11의 설치·sensor·lifecycle·permission·network·SQLite·hydration 결과를 원문과 다시 대조하고 직접 관찰, 결합된 간접 관찰, 미수집·미검증, 사용자 결정 스킵을 구분했다. Android의 DB 직접 조회·logcat과 iPhone의 UI 재실행 관찰 차이, iPhone 화면 꺼짐 중 `near` 문구를 읽지 못한 한계, 이후 source 변경의 실기기 미재검증도 확인했다. 확인 질문 1~5를 제시했고 사용자는 source 확인 뒤 10-3 완료를 명시함 | Android는 `LM-V500N`에서 `near/far`, listener lifecycle, 실제 권한·offline 재시도, DB `user_version=1`·row 수와 재실행, 설정 hydration 및 logcat 안정성을 확인했다. iPhone 11은 화면 꺼짐·복귀와 마지막 `near` 시각을 결합해 event 수신을 판단했고, background·tab·중지 중 화면 유지, 실제 권한·network·UI 저장·재실행·hydration을 확인했지만 iOS version·diagnostic log·sandbox DB는 수집하지 않았다. 따라서 iPhone persistence는 사용자 관점의 runtime 영속성이지 DB 파일·row·schema 직접 검사 결과가 아니다. 센서 없는 Android native `unavailable`은 성공·실패·blocker가 아닌 사용자 승인 `스킵`이며, 한 기기 결과를 다른 기기·OS에 일반화하지 않는다. 이후 subscription 소유권·cached 날씨·삭제 cache·not-found header·외부 링크 rejection 변경은 각 자동화·정적 근거만 있고 정확한 변경 분기의 실기기 재검증은 없음을 유지하며 새 오류·누락이나 수정 대기 항목은 없음 | 사용자 검증 완료 |
 | 10-4 증거의 기준 source·시점과 결과 기록법 | `git status`·branch·HEAD·upstream과 dirty diff, `docs/implementation-plan.md`, `docs/2026-07-22-step-4-handoff.md`, `docs/2026-07-23-step-5-handoff.md`, 보존된 EAS APK·IPA와 local debug APK, `docs/learning-guide.md` 10장 | Checkout→build 입력→artifact→설치 binary→Metro checkout→시나리오로 이어지는 provenance와 `통과`·`실패`·`확인`·`미검증`·`스킵`·`blocker`·`통과(범위 한정)`의 사용 기준을 확인했다. 학습서 보완 반영 전 2026-08-06 local `master`가 HEAD `2d2e4868be9bd077766e263a08ac7882d5da2b9e`, local `origin/master`보다 4 commit 앞서고 진행표만 modified라 executable source·config는 HEAD와 같은 상태임을 대조했다. 과거 artifact hash는 문서와 같지만 현재 HEAD의 fresh build나 현재 기기·Metro 증거는 아님을 확인하고, 사용자는 발견한 학습서 보완안 반영과 10-4 완료를 명시함 | Development client runtime은 설치 native binary와 Metro JS source라는 별도 입력을 가지며 JS/TS만 바뀐 후속 검증과 native rebuild 증거를 섞지 않는다. EAS fingerprint는 Git SHA가 아니고 artifact hash는 파일 identity일 뿐 기능 성공이 아니다. 원래 실기기 검증 당시 commit이 없었으므로 현재 SHA를 소급하지 않고 날짜·build ID·artifact hash·변경 파일·Metro 기록을 기준으로 삼는다. 과거 `미검증`은 당시 이력으로 보존하고 새 결과를 날짜별로 추가하며, 스킵은 성공이나 blocker가 아니다. 사용자 승인에 따라 학습서 10장에 source·시점 표, 상태 정의와 최소 기록 형식을 추가했으며 앱 동작·기존 검증 상태는 변경하지 않음 | 사용자 검증 완료 |
+| 11-1 Type 경계와 Root 초기화 tree | `src/types/observation.ts`, `src/db/migrate.ts`, `src/store/app-store.ts`, `src/query-client.ts`, `app/_layout.tsx`, 설치된 Expo SQLite `hooks.tsx`와 Zustand `middleware.js`, `docs/learning-guide.md` 11장 | UI 상태·native event·저장 snapshot의 허용값과 TypeScript·SQLite 방어선을 대조했다. Import 시 QueryClient 생성·Zustand hydration 시작, Root render 뒤 SQLite migration과 `HydratedRoutes` 합류 순서를 확인했으며 사용자는 source 확인 뒤 11-1 완료를 명시함 | `idle`·`pending`은 확정 sensor 값이 아닌 UI 상태라 `ProximitySnapshot`과 SQLite에서 제외되고, `unavailable`은 event는 아니지만 확정된 미지원 snapshot으로 nullable 관측 시각과 함께 저장할 수 있다. `SQLiteProvider`는 tree의 바깥 gate지만 Zustand hydration은 import 시 이미 시작돼 시간상 병렬일 수 있고 route는 둘 다 끝난 뒤 열린다. QueryClient 생성 자체는 query를 실행하지 않으며 hydration 실패 loading 한계는 기존 사용자 결정대로 현행 유지한다. 새 source·학습서 오류나 수정 대기 항목은 없음 | 사용자 검증 완료 |
+| 11-2 Native event에서 Hook과 test까지 | `modules/proximity-sensor/src/ProximitySensorModule.ts`, `modules/proximity-sensor/src/ProximitySensor.types.ts`, Android·iOS `ProximitySensorModule`, `src/hooks/use-proximity.ts`, `src/hooks/use-proximity.test.tsx`, `app/(tabs)/index.tsx`, 설치된 Expo Modules Core event observing 계약 | Android 거리 비교와 iOS `proximityState`가 같은 `onProximityChange`·`ProximityEvent`로 합류하고, Hook callback·`applyProximityEvent`·화면까지 전달되는 흐름을 대조했다. 첫·마지막 JS listener와 native observing, 두 번의 availability 확인, `near → far` test와 계층별 cleanup을 확인했으며 사용자는 source 확인 뒤 11-2 완료를 명시함 | Android는 `distanceCm < maxRangeCm`일 때 `near`, iOS는 boolean을 near/far로 바꾸고 거리값을 `null`로 정규화한다. 두 번째 availability 확인은 실제 listener 등록 실패를 잡으며, `far`는 현재 event를 바꾸되 `lastNearAt`은 직전 near 시각을 유지한다. 화면 blur·수동 중지는 Hook cleanup으로, 마지막 subscription 제거는 native `OnStopObserving`으로, background는 listener 수요를 보존한 native resource 중지로 이어진다. Jest는 callback·mock `remove()`의 JS 계약만 증명하고 실제 sensor·bridge·resource 해제는 증명하지 않는다. 기존 direct unmount 저영향 한계는 현행 유지하며 새 오류·수정 대기 항목은 없음 | 사용자 검증 완료 |
+| 11-3 위치·날씨에서 `CaptureContext`까지 | `app/(tabs)/index.tsx`, `src/api/weather.ts`, `src/schemas/weather.ts`, `src/types/weather.ts`, `src/types/observation.ts`, `src/store/app-store.ts`, `app/observations/new.tsx`, `app-tests/current-status-screen.test.tsx`, `docs/learning-guide.md` 11장 | Expo Location 결과를 React local `location`에 두고 좌표 기반 날씨를 TanStack Query가 실행·cache하는 흐름, Axios `unknown` payload가 Zod를 거쳐 `WeatherSnapshot`이 되는 경계를 대조했다. 날씨 실패가 기록을 막지 않는 조건, 같은 좌표의 `refetch()`가 위치를 지우지 않는 이유, cached data 오류 방지와 작성 route의 context 소비를 확인했으며 사용자는 설명과 source 확인 뒤 11-3 완료를 명시함 | `canCreateObservation`은 확정 sensor 상태와 위치·날씨 작업의 진행 여부만 확인하므로 날씨 error 뒤에는 성공한 위치와 `weather: null`로 기록할 수 있다. 날씨 재시도는 Query만 다시 실행해 React local 위치를 변경하지 않으며, refetch 실패 때 남을 수 있는 이전 data는 `weatherQuery.isSuccess ? weatherQuery.data : null`로 `CaptureContext`에서 제외한다. Context는 버튼 시점의 값과 별도 `capturedAt`을 묶은 의미상 snapshot이지 deep freeze가 아니며, Zustand memory에서 새 작성 route로 전달되고 직접 진입·runtime 재시작에는 남지 않는다. 기존 cached-data 화면 test는 이 JS 경계를 mock으로 확인하지만 실제 HTTP·실기기 증거는 아니며 이번 단계에서는 읽기만 하고 실행하지 않았다. 새 source·학습서 오류나 수정 대기 항목은 없음 | 사용자 검증 완료 |
+| 11-4 SQLite·Query cache·Zustand data 수명 | `src/db/migrate.ts`, `src/db/observations.ts`, `src/types/observation.ts`, `src/query-client.ts`, `src/store/app-store.ts`, `app/_layout.tsx`, 기록 목록·작성·상세·설정 화면, observation repository·mutation·store test, 설치된 Expo SQLite 16.0.10·TanStack Query 5.101.2·Zustand 5.0.14 계약, `docs/learning-guide.md` 11장 | Migration의 18개 column을 `ObservationRow`·공통 SELECT·17개 INSERT binding과 하나씩 대응하고 ISO 시각·nullable location/weather 묶음의 저장·복원 방향을 확인했다. 생성과 삭제 성공의 prefix invalidation·exact detail removal 순서, QueryClient runtime cache, Zustand memory와 별도 SQLite kv-store의 persist projection을 대조했으며 사용자는 설명과 source 확인 뒤 11-4 완료를 명시함 | `id`는 SQLite가 생성하므로 18개 column 중 named parameter는 17개이고, 불완전한 location·weather 필수 column 묶음은 domain에서 전체 `null`로 복원한다. SQLite `fieldlog.db`의 row가 영속 원본이고 Query cache는 persister 없는 runtime 복사본이라 invalidate·remove 자체는 row를 수정하지 않는다. 생성은 observations prefix를 stale로 만들고, 삭제는 이미 없어진 active detail의 불필요한 refetch를 막도록 exact detail을 먼저 제거한 뒤 나머지 prefix를 invalidate한다. Zustand의 `partializeAppState`는 runtime에서 `temperatureUnit`만 골라 별도 `ExpoSQLiteStorage`의 `fieldlog-settings` key에 저장하며 `captureContext`·`hasHydrated`는 현재 runtime에만 둔다. Context를 persist하면 재실행 뒤 과거 snapshot을 현재 값으로 오인할 수 있다. 기존 test는 fake DB·mock QueryClient·mock kv-store 경계이므로 이번 단계에서는 읽기만 하고 실행하지 않았으며 새 오류·수정 대기 항목은 없음 | 사용자 검증 완료 |
+| 11-5 선행 경계 test와 원복 가능한 mutation 실습 | `src/schemas/observation.ts`, `src/schemas/observation.test.ts`, `app/observations/new.tsx`, `src/db/observations.ts`, 설치된 Zod 4.4.3 계약, `docs/learning-guide.md` 11장 | 기존 60자 허용·61자 거부 case와 schema의 form resolver·repository parse consumer를 먼저 대조했다. Target suite의 기준 6/6 통과를 확인한 뒤 `.max(60)`만 `.max(61)`로 잠시 바꿔 기존 61자 거부 case가 `Expected: false`, `Received: true`로 예상 실패하고 나머지 5개는 통과하는 것을 확인했다. Git 원복 명령 없이 직접 `.max(60)`으로 되돌려 target suite 6/6 재통과, 두 대상 파일의 시작 전 SHA-256 일치와 target diff 0건을 확인했으며 사용자는 결과 확인 뒤 11-5 완료를 명시함 | 60자 허용과 61자 거부 test가 양쪽에서 정확한 경계를 고정하고, test를 바꾸지 않은 controlled mutation이 잘못 완화된 schema를 실제로 감지했다. 이는 새 요구사항의 red-green 구현이 아니라 기존 회귀 test의 민감도를 확인한 mutation-testing 성격의 실습이다. 예상 red는 실습 성공 증거이지 최종 검증 실패가 아니며, pure Zod unit test 범위라 실제 form UI·SQLite 통합 동작을 증명하지 않는다. 최종 source·test는 byte hash와 diff 기준으로 시작 전 상태와 같아 기능 변경·새 commit 대상이 없고, 전체 Jest·lint·typecheck·build는 실행하지 않았다. 새 오류·수정 대기 항목은 없음 | 사용자 검증 완료 |
+| 11-6 최종 source 질의와 학습 종료 점검 | `modules/proximity-sensor/` bridge·metadata·Android·iOS source, `app/(tabs)/index.tsx`, `src/hooks/use-proximity.ts`, `src/types/observation.ts`, `src/db/migrate.ts`, `src/db/observations.ts`, `src/query-client.ts`, `src/store/app-store.ts`, `jest.setup.ts`, 대표 test, `docs/implementation-plan.md`, 관련 handoff와 Git·문서 최종 상태, `docs/learning-guide.md` 11장 | 사용자가 최종 확인 질문 1~6에 답했다. 답을 실제 source 경계에 맞춰 보정해 local Expo Module을 포함한 development build 필요성, JS subscription과 native resource의 두 cleanup 층, location·weather의 독립 nullable 저장 묶음, SQLite 영속 원본·Query runtime cache·Zustand client state, 자동화가 증명하지 못하는 native·실기기 범위와 Android `unavailable` 사용자 승인 스킵을 확인했다. 임시 mutation이 남지 않았고 executable source·config diff가 0건이며 확정된 source·학습서 수정 대기 항목이 없음을 다시 대조한 뒤 사용자는 `학습 11-6 완료`를 명시함 | Expo Go에는 FieldLog가 직접 작성한 local module이 포함되지 않으므로 이를 compile·autolink한 development build가 필요하다. 화면 blur·unmount의 JS cleanup은 `useFocusEffect`·Hook subscription 제거가 맡고, 마지막 observer와 background의 native resource 정리는 `OnStopObserving`·native lifecycle이 맡는다. Location과 weather는 각각 nullable column 묶음이며, SQLite row가 영속 원본, TanStack Query는 SQLite·weather 결과의 runtime cache, Zustand는 client state이고 그중 `temperatureUnit`만 별도 kv-store에 persist한다. Mock 기반 자동화는 실제 native compile·autolink·artifact·hardware event·OS permission·network·real SQLite·process 재시작을 증명하지 않는다. 센서 없는 Android의 native `unavailable`은 기기 부재·emulator 비선호·낮은 중요도에 따른 사용자 승인 `스킵`이며 성공·실패·blocker가 아니다. 기존 hydration 실패와 direct unmount 저영향 한계는 현행 유지한다. 최종 문서 감사에서 상대 local link 99개 중 broken 0, 학습서 code fence 192개로 짝수, trailing whitespace·`git diff --check` 이상 없음이며 11-6에서는 test·build를 실행하지 않았다. 1~11단원 학습 내용의 사용자 검증은 완료했고 Git closeout만 별도 요청 대기다 | 사용자 검증 완료 |
 
 ## 학습서 수정 대기 목록
 
@@ -314,6 +334,7 @@
 | 9-6 Kotlin 문법·Expo Module DSL 설명과 `mapOf` 주석 정정 | `docs/learning-guide.md`, `modules/proximity-sensor/android/src/main/java/expo/modules/proximitysensor/ProximitySensorModule.kt`, 이 진행표 | 확정된 9-6 범위에 비해 학습서의 Kotlin 선언·null safety·lambda·Expo Module DSL builder와 Promise bridge 설명이 부족했다. Native source 주석은 `mapOf` 결과를 변경 불가능한 Map이라고 표현했지만 실제 Kotlin 계약은 읽기 전용 `Map`이며 값의 깊은 불변성까지 보장하지 않는다. | 실제 FieldLog Kotlin source와 설치된 Expo Modules Core 계약을 기준으로 학습서 내용을 보강하고, Kotlin 실행식은 유지한 채 주석 용어만 읽기 전용 `Map`으로 정정했다. Source diff의 실행문 비변경, Markdown code fence·local link·table·trailing whitespace와 `git diff --check`를 확인했다. 문서·주석 전용 변경이므로 app test·native build는 실행하지 않았다. | 반영 완료, 사용자 검증 완료 |
 | 9-7 Swift 문법·Expo Module DSL 설명과 `Module` 주석 정정 | `docs/learning-guide.md`, `modules/proximity-sensor/ios/ProximitySensorModule.swift`, 이 진행표 | 확정된 9-7 범위에 비해 학습서에는 `let`·`var`, class·typealias, dictionary, result builder와 callback 실행 시점, Promise queue 설명이 부족했다. Native source 주석은 `Module`을 기반 class처럼만 설명했지만 설치 계약은 `AnyModule & BaseModule` class·protocol composition typealias다. | 실제 FieldLog Swift source와 설치된 Expo Modules Core 계약을 기준으로 기존 학습서 section을 보존·확장하고, Swift 실행식은 유지한 채 class 주석만 정확한 typealias 설명으로 정정했다. Source diff의 실행문 비변경, Markdown code fence·local link·table·trailing whitespace와 `git diff --check`를 확인했다. 문서·주석 전용 변경이므로 app test·native build·실기기 검증은 실행하지 않았다. | 반영 완료, 사용자 검증 완료 |
 | 10-4 증거 provenance와 결과 상태 기록법 보강 | `docs/learning-guide.md`, 이 진행표 | 기존 10장은 자동화·native build·artifact·실기기 증거의 종류와 재현 명령은 설명했지만, checkout·build 입력·설치 binary·Metro source의 시점 관계와 결과 상태 어휘를 한 기준으로 정리하지 않았다. 과거 artifact를 현재 HEAD 증거로 읽거나 `스킵`을 성공으로 오해하지 않도록 명시할 필요가 있었음 | 기존 10장 내용을 삭제·축소하지 않고 증거 층별 식별자, development client의 binary·Metro 이중 입력, 현재 FieldLog의 날짜가 있는 사례, `통과`·`실패`·`확인`·`미검증`·`스킵`·`blocker`·`통과(범위 한정)` 정의와 최소 기록 표를 추가했다. Markdown heading·table·code fence·local link·상태 문구·trailing whitespace와 `git diff --check`를 확인하고 문서 전용 변경이므로 app test·build·실기기 검증은 실행하지 않는다. | 반영 완료, 사용자 검증 완료 |
+| 11단원 시작 전 상태·실습 정합성 정정 | `docs/learning-guide.md`, 이 진행표 | 전체 진행표의 10단원만 오래된 `대기` 상태였고, 11장에는 이미 존재하는 61자 거부 test를 새로 복사하라는 중복 지시가 있었다. 기존 4개 예정안도 type·초기화·native와 위치·DB·cache·store를 각 한 단계에 과도하게 묶었다. | 10단원 상태를 완료 기록과 맞추고 11단원을 실제 책임 경계에 따라 6개로 확정했다. 기존 60자 허용·61자 거부 test를 선행 회귀 test로 사용하는 controlled mutation·직접 원복 실습으로 정정했으며 local link·heading·code fence·상태 문구·trailing whitespace와 `git diff --check`를 확인했다. 문서 전용 변경이므로 app test·build는 실행하지 않았다. | 반영 완료, 사용자 승인 |
 
 학습 중 수정이 생기면 source·package·build·app config 변경과 문서 전용 변경을 구분한다. 문서 보완은 좁은 link·snippet·Markdown 검증을 수행하고, 동작 변경이 필요할 때는 별도 Impact Review와 해당 범위의 자동화·build·실기기 검증을 먼저 정한다.
 
@@ -326,4 +347,4 @@
 - 학습으로 생긴 수정이 있다면 추가 commit/push를 완료했다.
 - 수정이 없다면 추가 commit/push가 불필요하다는 결론을 기록했다.
 
-이 기준을 모두 충족한 뒤에만 대화형 학습을 최종 완료로 기록한다.
+2026-08-06 현재 앞의 첫 네 기준을 충족했고 1~11단원의 학습 내용과 사용자 검증을 완료했다. 다만 local `master`가 `origin/master`보다 5 commit 앞서고 학습 문서 수정이 남아 있으므로 추가 commit/push 기준은 아직 대기다. 사용자의 별도 요청 전에는 Git 작업을 수행하지 않으며, 요청 뒤 local·remote parity를 독립 확인한 다음 저장소 closeout까지 포함한 대화형 학습 최종 완료를 기록한다.
