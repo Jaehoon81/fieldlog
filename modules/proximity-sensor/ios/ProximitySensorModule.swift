@@ -6,7 +6,7 @@ import UIKit
 // TypeScript event map의 key와 정확히 같아야 합니다.
 private let proximityEventName = "onProximityChange"
 
-// `final`은 subclass를 막고 `: Module`은 Expo native module 기반 class를 상속한다는 뜻입니다.
+// `final`은 subclass를 막습니다. `Module`은 Expo의 `BaseModule` 상속과 `AnyModule` protocol 준수를 묶은 typealias입니다.
 public final class ProximitySensorModule: Module {
   // JS listener, app foreground, 실제 monitoring 상태를 분리해서 native 자원 수명주기를 판단합니다.
   private var hasEventListener = false

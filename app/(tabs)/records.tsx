@@ -133,7 +133,8 @@ export default function RecordsScreen() {
         data={observationsQuery.data}
         // 행 사이 여백을 별도 컴포넌트로 넣어 각 행 스타일과 분리합니다.
         ItemSeparatorComponent={() => <View style={styles.separator} />}
-        // React key는 number가 아닌 string을 요구하므로 DB id를 변환합니다.
+        // React key 자체는 number도 허용하지만 FlatList keyExtractor는 string 반환 계약입니다.
+        // 따라서 숫자 DB id를 안정적인 문자열 key로 변환합니다.
         keyExtractor={(observation) => String(observation.id)}
         // 배열 길이가 0일 때만 첫 기록 안내를 렌더합니다.
         ListEmptyComponent={

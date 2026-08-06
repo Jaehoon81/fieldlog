@@ -1387,9 +1387,13 @@ preview/production build, App Store·Play Store 제출, OTA update는 계획상 
 
 ## 9. 주요 TypeScript·React·Kotlin·Swift 문법
 
-### TypeScript discriminated union
+### TypeScript 문자열 literal union과 indexed access type
 
-`ProximityUiStatus`와 `ProximitySnapshot["status"]`는 허용 상태를 문자열 union으로 제한한다. `idle`과 `pending`은 UI 전용이며 DB snapshot에는 들어가지 않는다.
+`ProximityUiStatus`와 `ProximitySnapshot`의 `status` property는 허용 상태를 문자열
+literal union으로 제한한다. `ProximitySnapshot["status"]`는 이미 선언한
+property type을 꺼내 쓰는 indexed access type이다. 공통 판별 property를 가진
+여러 object type의 union은 아니므로 discriminated union이라고 부르지 않는다.
+`idle`과 `pending`은 UI 전용이며 DB snapshot에는 들어가지 않는다.
 
 ```ts
 type ProximityUiStatus =
@@ -1403,6 +1407,10 @@ type ProximitySnapshot = {
   status: "near" | "far" | "unavailable";
   // ...
 };
+
+type ObservationRow = {
+  proximity_state: ProximitySnapshot["status"];
+};
 ```
 
 두 union을 일부러 같게 만들지 않은 점이 중요하다. DB에는 “확인 중”이라는 순간 UI 상태를 저장할 이유가 없다. `Record<ProximityUiStatus, string>`은 모든 상태에 표시 문구가 있는지 TypeScript가 확인하게 한다.
@@ -1413,22 +1421,129 @@ Android의 거리값과 iOS의 값 부재를 서로 다른 shape로 두지 않�
 
 `undefined`는 field를 아직 만들지 않았거나 잘못 접근한 경우에도 생길 수 있다. 저장 계약에서는 “값이 없음”을 `null`로 명시해 SQLite `NULL`, native `NSNull()`, TypeScript `null`을 한 의미로 맞춘다.
 
-### callback과 ref
+### React component, JSX와 props
 
-`useCallback`은 focus cleanup과 sensor 명령의 identity를 안정화한다. `subscriptionRef`와 `operationRef`는 render를 일으키지 않으면서 listener와 async 작업 순서를 추적한다.
+FieldLog의 일반 화면과 표시 component는 props를 받아 JSX를 반환하는 함수다. 예를 들어 [`app/(tabs)/records.tsx`](<../app/(tabs)/records.tsx>)의 `ObservationRow`는 `Observation`과 `onPress` callback을 받고, navigation은 부모 `RecordsScreen`에 남긴다.
+
+```tsx
+type ObservationRowProps = {
+  observation: Observation;
+  onPress: () => void;
+};
+
+function ObservationRow({ observation, onPress }: ObservationRowProps) {
+  return (
+    <Pressable onPress={onPress}>
+      <Text>{observation.title}</Text>
+    </Pressable>
+  );
+}
+```
+
+`onPress={onPress}`는 함수를 전달하고, `onPress={() => router.push(...)}`는 누를 때 실행할 wrapper를 전달한다. `onPress={router.push(...)}`처럼 호출 결과를 넣으면 render 중 즉시 실행되므로 의미가 다르다. React Hook Form의 `Controller.render`도 library가 인자를 전달해 호출하고 JSX를 돌려받는 callback prop이다.
+
+[`app/_layout.tsx`](../app/_layout.tsx)의 `InitializationErrorBoundary`는 이 앱의 예외적인 class component다. `Component<Props, State>`의 두 type으로 `this.props`와 `this.state`를 정하고, descendant 초기화·render 오류에서는 fallback JSX를 반환한다. 여는 tag와 닫는 tag 사이의 JSX는 `children: ReactNode` prop으로 전달된다.
+
+JSX의 `{...}`에는 JavaScript expression을 넣는다. `prop={value}`는 계산된 값을 전달하고, 값 없는 boolean prop `useSuspense`는 `useSuspense={true}`의 축약이다. `<>...</>` Fragment는 여러 sibling element를 묶지만 별도 React Native `View`나 layout을 만들지 않는다.
+
+전체 화면의 invalid·pending·error·not-found 상태는 [`app/observations/[id].tsx`](../app/observations/[id].tsx)처럼 early return으로 분리한다. 화면 일부는 [`src/components/snapshot-summary.tsx`](../src/components/snapshot-summary.tsx)처럼 삼항식으로 element를 고르고, 표시할 것이 없으면 `null`을 반환한다.
+
+```tsx
+{snapshot.location ? (
+  <>
+    <Text>{snapshot.location.latitude}</Text>
+    <Text>{snapshot.location.longitude}</Text>
+  </>
+) : (
+  <Text>저장된 위치가 없습니다.</Text>
+)}
+```
+
+`CATEGORIES.map(...)`은 각 항목을 JSX element로 변환한다. `key`는 React가 이전·다음 render의 배열 항목 identity를 연결하는 특별한 값이며 일반 component props로 전달되지 않는다. 안정된 `category.value`나 database ID를 사용하고 배열 index는 피한다. React key 자체는 숫자도 허용하지만 React Native `FlatList.keyExtractor`는 `string` 반환 계약이므로 FieldLog 목록은 `String(observation.id)`로 변환한다.
+
+### React Hook, callback, ref와 effect lifecycle
+
+React renderer는 한 component의 Hook을 호출 순서대로 연결해 이전 render의 state와 다음 render의 Hook 호출을 대응시킨다. 따라서 Hook을 조건문이나 반복문 안에서 호출해 순서를 바꾸면 안 된다. [`src/hooks/use-proximity.ts`](../src/hooks/use-proximity.ts) 같은 custom Hook 안의 Hook도 이를 호출한 component의 Hook 목록에 같은 순서로 포함된다.
 
 - `useState`: 바뀌면 화면을 다시 그려야 하는 상태
-- `useMemo`: location에서 query 좌표처럼 입력이 같으면 다시 만들 필요 없는 파생값
+- `useMemo`: location에서 query 좌표처럼 입력이 같을 때 파생값의 계산과 참조 생성을 건너뜀
 - `useCallback`: effect dependency나 child callback에서 같은 함수 identity가 필요한 명령
 - `useRef`: listener handle, async sequence처럼 render에는 직접 보이지 않는 mutable 값
-- `useEffect`: component mount/unmount 수명
-- `useFocusEffect`: Expo Router screen focus/blur 수명
+- `useEffect`: component mount·dependency 변경·unmount 수명
+- `useFocusEffect`: Expo Router screen focus·blur 수명
 
-`useCallback`을 모든 함수에 붙이는 것이 목표는 아니다. 이 앱에서는 cleanup dependency 안정성과 async 명령 공유가 필요한 위치에만 쓴다.
+`useState`의 함수형 setter는 callback이 만들어진 render의 값을 다시 읽는 대신 React가 관리하는 최신 queued state를 `current`로 받는다. 근접 센서 Hook은 비동기 응답과 event가 이전 state를 덮어쓰지 않도록 다음 형태를 사용한다.
+
+```ts
+setState((current) => ({
+  ...current,
+  status: "pending",
+  event: null,
+}));
+```
+
+callback은 자신이 만들어진 render의 값을 closure로 기억한다. `useCallback`은 dependency가 모두 같으면 이전 함수 참조를 재사용하고 하나라도 바뀌면 최신 값을 기억하는 새 함수를 만든다. [`app/(tabs)/index.tsx`](<../app/(tabs)/index.tsx>)의 `createObservation`은 캡처할 `weatherQuery.data`뿐 아니라 cached data와 오류 상태를 구분하는 `weatherQuery.isSuccess`도 dependency에 포함한다. `useCallback`을 모든 함수에 붙이는 것이 목표는 아니며, FieldLog에서는 cleanup dependency 안정성과 비동기 명령 공유가 필요한 위치에만 사용한다.
+
+근접 센서 Hook의 ref는 render를 일으키지 않고 render 사이에 다음 mutable 값을 보존한다.
+
+- `subscriptionRef`: 현재 활성 native event subscription
+- `operationRef`: 늦게 끝난 이전 비동기 작업을 구별하는 최신 작업 번호
+- `mountedRef`: unmount 뒤 비동기 결과가 state를 갱신하지 않게 하는 생존 여부
+
+`useMemo`도 dependency가 같을 때 결과 참조를 재사용할 뿐, TanStack Query의 cache identity를 직접 소유하지 않는다. 현재 화면의 `coordinates`는 `location` 참조가 같을 때 다시 만들지 않지만, weather Query는 `weatherKeys.current`가 만든 좌표 값 배열을 stable hash한 결과로 같은 cache 항목인지 판단한다.
+
+`useEffect`의 setup은 component가 commit된 뒤 실행되고, cleanup은 dependency가 바뀌어 setup을 다시 실행하기 전과 unmount 때 실행된다. 근접 센서 Hook의 빈 dependency effect는 unmount에서 `mountedRef`를 끄고 진행 중 작업을 무효화한 뒤 subscription을 제거한다.
+
+Expo Router의 `useFocusEffect`는 내부적으로 navigation의 focus·blur event를 구독하므로 component가 계속 mount되어 있어도 route focus 수명에 맞춰 setup과 cleanup을 실행한다. callback을 `useCallback`으로 감싸 dependency가 바뀔 때만 다시 등록한다. 현재 상태 탭은 focus 때 센서 지원 여부를 확인하고 blur·unmount 때 `stopMonitoring`으로 진입하며, [`app/observations/new.tsx`](../app/observations/new.tsx)는 화면 이탈 cleanup에서 일회용 `CaptureContext`를 지운다.
+
+화면 blur, component unmount와 앱 background 진입은 같은 사건이 아니다. blur cleanup은 navigation focus 수명, unmount cleanup은 React component 수명, native background hook은 OS app lifecycle을 각각 처리한다. Focus된 현재 상태 화면을 직접 unmount할 때 cleanup 뒤 불필요한 state setter가 한 번 요청될 수 있는 기존 저영향 한계는 native resource나 표시 UI 영향이 없어 학습용 sample 범위에서 현행 유지한다.
 
 ### SQL binding
 
 `createObservation`은 사용자 문자열을 SQL에 이어 붙이지 않는다. `$title`, `$note` 같은 placeholder와 parameter object를 `runAsync`에 전달한다.
+
+[`src/db/observations.ts`](../src/db/observations.ts)의 SQLite 함수는 반환할 결과에 따라 다음 API를 사용한다.
+
+| API | FieldLog 사용처 | Promise 성공값 |
+| --- | --- | --- |
+| `execAsync` | 고정된 migration DDL과 `PRAGMA` | 별도 값 없음 |
+| `runAsync` | `INSERT`와 `DELETE` | `lastInsertRowId`, `changes`를 가진 결과 |
+| `getAllAsync<T>` | 기록 목록 | `T[]` |
+| `getFirstAsync<T>` | schema version과 기록 상세 | `T` 또는 `null` |
+
+```ts
+const parameters: Record<string, SQLiteBindValue> = {
+  $title: formValues.title,
+  $note: formValues.note,
+  $latitude: captureContext.location?.latitude ?? null,
+};
+
+const result = await db.runAsync(
+  `INSERT INTO observations (title, note, latitude)
+   VALUES ($title, $note, $latitude)`,
+  parameters,
+);
+```
+
+Named placeholder와 같은 이름의 parameter를 분리하면 문자열의 따옴표나 특수문자도 SQL 문법이 아니라 값으로 전달된다. 설치된 Expo SQLite의 `SQLiteBindValue`는 `string`, `number`, `null`, `boolean`, `Uint8Array`를 허용하므로 FieldLog는 선택값의 `undefined`를 `?? null`로 SQLite `NULL`에 맞춘다. Binding은 값에만 적용되며 table·column 같은 identifier를 대신 만들지는 않는다.
+
+`execAsync`는 전달된 SQL을 대신 escape하지 않는다. [`src/db/migrate.ts`](../src/db/migrate.ts)는 사용자 입력이 없는 고정 SQL만 `execAsync`에 전달하고, runtime 값이 들어가는 조회·생성·삭제에는 parameter binding을 사용한다.
+
+`getAllAsync<ObservationRow>`과 `getFirstAsync<ObservationRow>`의 generic은 TypeScript가 기대 row shape를 검사하게 하지만 실제 SQLite row를 runtime에 검증하거나 변환하지 않는다. 단건 조회의 `null`은 행 없음이고 SQL 실행 실패는 Promise rejection이므로 서로 다른 결과다.
+
+Migration은 table·index·version을 하나의 exclusive transaction으로 묶는다.
+
+```ts
+await db.withExclusiveTransactionAsync(async (transaction) => {
+  await transaction.execAsync(`
+    CREATE TABLE ...;
+    CREATE INDEX ...;
+    PRAGMA user_version = 1;
+  `);
+});
+```
+
+설치된 Expo SQLite 구현은 `BEGIN` 뒤 callback을 `await`하고, resolve되면 `COMMIT`, reject되면 `ROLLBACK`한 뒤 같은 오류를 다시 throw하며 마지막에 transaction connection을 닫는다. Transaction 안의 SQL은 바깥 `db`가 아니라 callback이 받은 `transaction`으로 실행해야 한다. FieldLog가 `PRAGMA user_version`을 마지막에 실행하므로 앞선 DDL 실패 시 version만 최신으로 남지 않는다.
 
 ### Kotlin/Swift lifecycle DSL
 
@@ -1447,6 +1562,58 @@ type ObservationFormValues = z.output<typeof observationFormSchema>;
 
 ### `async`, `await`, `void`
 
+`async` 함수는 호출자에게 항상 Promise를 반환한다. 본문은 첫 `await`까지 실행된 뒤 해당 Promise가 끝날 때까지 이 함수의 다음 부분만 보류되며 JavaScript thread나 앱 전체를 막지 않는다. 일반 `return` 값은 fulfilled 결과가 되고, `throw` 또는 `await`한 Promise의 rejection은 바깥 Promise에도 rejection으로 전파된다.
+
+```ts
+createObservation(...): Promise<number>
+deleteObservation(...): Promise<void>
+```
+
+`Promise<number>`는 완료와 함께 생성 ID를 제공하고, `Promise<void>`는 별도 성공값 없이 완료만 표현한다. 삭제 mutation의 `UseMutationResult<void, Error, number>`에서 `void`도 같은 의미다.
+
+[`app/(tabs)/index.tsx`](<../app/(tabs)/index.tsx>)의 위치 요청은 `try`·`catch`·`finally`의 차이를 보여준다.
+
+```ts
+setIsLocating(true);
+
+try {
+  const servicesEnabled = await Location.hasServicesEnabledAsync();
+
+  if (!servicesEnabled) {
+    return;
+  }
+
+  // permission과 현재 위치를 순서대로 await
+} catch {
+  setLocationError("unavailable");
+} finally {
+  setIsLocating(false);
+}
+```
+
+`catch`는 동기 throw와 `await`한 Promise의 rejection을 처리하고, `finally`는 성공·실패뿐 아니라 `try` 안의 `return` 뒤에도 실행된다. 따라서 위치 service가 꺼졌거나 권한 분기에서 끝나도 loading은 종료된다. 좌표가 state에 반영된 다음 날씨 Query가 별도로 실행되므로 이 함수가 날씨 HTTP Promise까지 직접 기다리는 것은 아니다.
+
+새 기록 저장의 실제 Promise 연결은 다음 순서다.
+
+```text
+handleSubmit → submit → mutateAsync → createObservation → db.runAsync
+  → async onSuccess → invalidateQueries → mutateAsync resolve
+  → CaptureContext 제거 → records route 이동
+```
+
+[`app/observations/new.tsx`](../app/observations/new.tsx)의 `await createMutation.mutateAsync(...)`는 SQLite `INSERT`만 기다리지 않는다. 설치된 TanStack Query는 `mutationFn` 성공 뒤 `onSuccess`가 반환한 cache invalidation Promise도 `await`하므로, 임시 context 제거와 route 이동은 두 작업 뒤에 실행된다. Validation·SQL·mutation lifecycle에서 rejection이 생기면 Query가 error state를 보존하고 `submit`의 `catch`가 최종 rejection을 소비한다.
+
+[`app/observations/[id].tsx`](../app/observations/[id].tsx)의 삭제는 같은 성공·실패 관계를 Promise chain으로 표현한다.
+
+```ts
+void deleteMutation
+  .mutateAsync(id)
+  .then(() => router.replace("/(tabs)/records"))
+  .catch(() => undefined);
+```
+
+`.then()`은 앞 Promise의 fulfilled 결과에서 실행되고 `.catch()`는 앞 단계 어디서든 생긴 rejection을 처리한다. `async`·`await`와 Promise chain은 표현 방식이 다를 뿐 같은 Promise 상태를 연결한다.
+
 event handler는 Promise를 UI framework에 반환해 처리시키지 않고 다음처럼 의도를 표시한다.
 
 ```ts
@@ -1457,7 +1624,19 @@ onPress={() => {
 
 `void`는 작업을 취소하는 문법이 아니다. 반환된 Promise 값을 이 위치에서 사용하지 않는다는 표시다. 오류를 무시해도 된다는 뜻도 아니므로, 실제 오류는 query/mutation state가 화면에 표시한다.
 
+FieldLog의 `checkAvailability`·`beginMonitoring`은 함수 내부 `catch`, mutation은 `catch` 또는 Query state, 기본 `refetch`는 Query result로 실패를 처리한다. React Hook Form의 `handleSubmit(submit)()`은 `Promise<void>`를 반환하지만 `submit` 안에서 mutation rejection을 처리한다.
+
+반면 React Native의 `Linking.openURL`은 URL을 열 수 없으면 reject할 수 있으므로 [`app/(tabs)/settings.tsx`](<../app/(tabs)/settings.tsx>)는 최종 `catch`까지 연결한다.
+
+```ts
+void Linking.openURL("https://open-meteo.com/").catch(() => undefined);
+```
+
+이 링크는 앱 기능 완료에 필수인 작업이 아니므로 실패 UI를 새로 만들지 않고 best-effort로 끝낸다. 여기서 `catch`가 rejection을 처리하고, 바깥 `void`는 처리된 최종 Promise의 반환값을 사용하지 않겠다는 뜻이다.
+
 ### Kotlin에서 읽어야 할 문법
+
+[`ProximitySensorModule.kt`](../modules/proximity-sensor/android/src/main/java/expo/modules/proximitysensor/ProximitySensorModule.kt)는 Android framework callback, Kotlin null safety와 Expo Module DSL이 만나는 FieldLog의 Kotlin source다.
 
 ```kotlin
 private var sensorManager: SensorManager? = null
@@ -1476,7 +1655,118 @@ return@AsyncFunction hasSensor
 
 Android sensor 등록·해제는 main looper에서 실행한다. `Handler(Looper.getMainLooper())`와 `runOnQueue(Queues.MAIN)`은 native resource를 어느 thread에서 다루는지 명시한다.
 
+#### 선언, 재대입과 함수 계약
+
+```kotlin
+private const val PROXIMITY_EVENT_NAME = "onProximityChange"
+
+class ProximitySensorModule : Module(), SensorEventListener {
+  private val mainHandler = Handler(Looper.getMainLooper())
+  private var sensorManager: SensorManager? = null
+}
+```
+
+- 파일 수준 `private const val`은 이 파일에서만 사용하는 compile-time 상수다.
+- `val`은 변수에 다른 참조를 재대입하지 못하게 하지만 참조한 객체 내부까지 immutable하게 만들지는 않는다.
+- `var`는 lifecycle에 따라 다른 값을 다시 대입할 수 있다.
+- `Module()`은 Expo class의 생성자를 호출해 상속하고, `SensorEventListener`는 생성자가 없는 Android interface를 구현한다.
+
+`override`는 super class나 interface가 선언한 계약을 구현한다. `definition`, `onSensorChanged`, `onAccuracyChanged`가 실제 예다.
+
+```kotlin
+override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) = Unit
+```
+
+`= Unit`은 내용 없는 expression-body 함수다. Kotlin의 `Unit`은 완료를 나타내는 실제 단일 값과 type이며 TypeScript의 `void`와 완전히 같은 문법은 아니다.
+
+#### Nullable lazy cache와 scope function
+
+```kotlin
+sensorManager?.let { return it }
+
+val context = appContext.reactContext ?: return null
+
+return (context.getSystemService(Context.SENSOR_SERVICE) as? SensorManager)
+  ?.also { sensorManager = it }
+```
+
+- `as?`는 cast 실패 시 예외 대신 `null`을 만든다.
+- `let`은 non-null receiver를 `it`으로 넘기고 lambda의 결과를 반환한다. 현재 inline `let` 안의 `return it`은 `resolveSensorManager` 자체를 끝내는 non-local return이다.
+- `also`는 `it`으로 cache 저장 같은 부수효과를 실행한 뒤 원래 receiver를 반환한다.
+- `?: return null`은 왼쪽이 null이면 현재 함수를 즉시 끝낸다.
+
+따라서 system service를 `SensorManager`로 cast하지 못하면 null을 반환하고, 성공하면 같은 객체를 cache에 저장한 뒤 호출자에게 반환한다.
+
+#### 분기, Map과 고차 함수
+
+Kotlin의 `if`는 실행 분기이면서 값을 만드는 expression이 될 수 있다.
+
+```kotlin
+val status = if (distanceCm < maxRangeCm) "near" else "far"
+```
+
+반면 `startMonitoringIfNeeded`의 `if (...) { return }`은 조건이 맞지 않을 때 함수를 끝내는 guard clause다. `||`는 하나라도 참, `&&`는 모두 참, `!`는 boolean 반전을 뜻한다.
+
+```kotlin
+private fun runOnMain(block: () -> Unit) {
+  if (Looper.myLooper() == Looper.getMainLooper()) {
+    block()
+  } else {
+    mainHandler.post { block() }
+  }
+}
+```
+
+`block: () -> Unit`은 인자와 의미 있는 반환값이 없는 함수를 parameter로 받는 고차 함수 계약이다. `runOnMain { ... }`은 마지막 lambda를 괄호 밖에 쓰는 trailing-lambda 문법이며, `Handler.post { ... }`는 lambda를 Android `Runnable`로 변환한다.
+
+```kotlin
+mapOf(
+  "status" to status,
+  "distanceCm" to distanceCm
+)
+```
+
+`to`는 key와 value의 `Pair`를 만들고 `mapOf`는 Pair들로 mutation API를 노출하지 않는 읽기 전용 `Map`을 만든다. 이는 모든 backing object와 포함된 값의 깊은 불변성까지 일반적으로 보장한다는 뜻은 아니다.
+
+#### Expo Module DSL block
+
+```kotlin
+override fun definition() = ModuleDefinition {
+  Name("ProximitySensor")
+  Events(PROXIMITY_EVENT_NAME)
+
+  AsyncFunction<Boolean>("isAvailableAsync") {
+    val hasSensor = resolveProximitySensor() != null
+    return@AsyncFunction hasSensor &&
+      (!hasEventListener || !registrationFailed)
+  }.runOnQueue(Queues.MAIN)
+
+  OnStartObserving(PROXIMITY_EVENT_NAME) {
+    runOnMain { startMonitoringIfNeeded() }
+  }
+}
+```
+
+`ModuleDefinition { ... }`은 별도 설정 형식이 아니라 설치된 `expo-modules-core`가 제공하는 Kotlin extension function과 receiver lambda다. Receiver type은 `ModuleDefinitionBuilder`이므로 block 안에서 builder를 직접 쓰지 않고 `Name`, `Events`, `AsyncFunction`, lifecycle hook을 호출한다. 설치 source는 개념상 `ModuleDefinitionBuilder(this).also(block).buildModule()` 순서로 이 선언들을 `ModuleDefinitionData`에 모은다.
+
+| DSL | FieldLog에서 등록하는 계약 |
+| --- | --- |
+| `Name` | TypeScript `requireNativeModule("ProximitySensor")`가 찾는 JS registry 이름 |
+| `Events` | native가 보낼 `onProximityChange` event 이름 |
+| `AsyncFunction<Boolean>` | JS의 `isAvailableAsync(): Promise<boolean>` 구현 |
+| `OnStartObserving`·`OnStopObserving` | 첫 listener 추가와 마지막 listener 제거 뒤 실행할 callback |
+| `OnActivityEntersForeground`·`OnActivityEntersBackground` | Activity foreground·background callback |
+| `OnDestroy` | module 파괴 때 실행할 cleanup callback |
+
+DSL 평가 시점에는 lifecycle lambda 내부의 sensor 명령이 즉시 실행되지 않는다. Builder가 callback을 등록하고 Expo runtime이 해당 event나 lifecycle 시점에 나중에 호출한다.
+
+설치된 Expo Modules 구현은 `AsyncFunction<Boolean>`을 Boolean async component로 만들고 Kotlin lambda의 반환값을 JS Promise에 resolve한다. Lambda가 예외를 던지면 wrapper가 Promise를 reject한다. Kotlin body 자체가 `suspend`나 Kotlin Promise인 것은 아니며 `.runOnQueue(Queues.MAIN)`이 function component의 실행 queue를 main으로 설정한다.
+
+[`build.gradle`](../modules/proximity-sensor/android/build.gradle)은 중괄호가 비슷해 보여도 Kotlin source가 아니라 Groovy Gradle DSL이다. `expo-module-gradle-plugin`은 Android library의 Expo Modules build 설정을 제공하고, runtime의 `ModuleDefinition` Kotlin DSL과는 역할이 다르다.
+
 ### Swift에서 읽어야 할 문법
+
+[`ProximitySensorModule.swift`](../modules/proximity-sensor/ios/ProximitySensorModule.swift)는 UIKit의 근접 상태, Swift optional·closure와 Expo Module result builder DSL이 만나는 FieldLog의 Swift source다.
 
 ```swift
 guard hasEventListener, isAppForeground, !isMonitoring else {
@@ -1498,6 +1788,149 @@ proximityObserver = NotificationCenter.default.addObserver(
 - `NSNull()`: native collection 안에서 JS `null`로 bridge할 명시적 값
 
 Swift는 `Thread.isMainThread`를 확인하고, 아니면 main queue에서 실행해 `UIDevice` monitoring과 observer 수명을 한 thread에 둔다.
+
+#### 선언, reference mutation과 module 계약
+
+```swift
+private let proximityEventName = "onProximityChange"
+
+public final class ProximitySensorModule: Module {
+  private var hasEventListener = false
+  private var isAppForeground = true
+  private var isMonitoring = false
+  private var proximityObserver: NSObjectProtocol?
+}
+```
+
+- 파일 범위 `private let`은 이 파일에서만 보이고 다른 값을 재대입할 수 없는 binding이다.
+- `var`는 listener·app·monitoring lifecycle에 따라 값을 다시 대입할 수 있다.
+- `final`은 다른 class가 `ProximitySensorModule`을 subclass하지 못하게 한다.
+- Optional stored property `NSObjectProtocol?`은 observer token이 없을 수 있으며 초기값은 `nil`이다.
+
+설치된 Expo Modules Core 3.0.30은 `Module`을 다음 class·protocol composition의 typealias로 정의한다.
+
+```swift
+public typealias Module = AnyModule & BaseModule
+```
+
+따라서 `: Module`을 풀어 읽으면 `BaseModule`을 상속해 `sendEvent`와 `appContext`를 사용하고, `AnyModule` protocol의 `definition()` 계약을 구현한다는 뜻이다.
+
+```swift
+let device = UIDevice.current
+device.isProximityMonitoringEnabled = true
+```
+
+`let device`는 다른 `UIDevice` reference로 재대입할 수 없지만, `UIDevice` class instance의 mutable property까지 immutable하게 만들지는 않는다. 파일 상수, module instance property, 함수의 local binding은 각각 서로 다른 scope와 수명을 가진다.
+
+#### Optional, `guard`와 cleanup
+
+```swift
+guard hasEventListener, isAppForeground, !isMonitoring else {
+  return
+}
+
+guard device.isProximityMonitoringEnabled else {
+  removeProximityObserver()
+  return
+}
+```
+
+`guard`의 쉼표로 연결한 조건은 모두 참이어야 아래 정상 경로로 진행한다. 첫 guard는 JS listener 수요, app foreground와 실제 monitoring 상태를 확인하고, 두 번째 guard는 하드웨어가 monitoring enable을 유지하지 못하면 앞에서 만든 observer까지 되돌린다. `!`는 boolean을 반전하고 `||`는 두 조건 중 하나라도 참인지 확인한다.
+
+```swift
+if let proximityObserver {
+  NotificationCenter.default.removeObserver(proximityObserver)
+  self.proximityObserver = nil
+}
+```
+
+Swift 5.9의 shorthand optional binding은 property에 값이 있을 때 같은 이름의 non-optional local constant로 꺼낸다. 안쪽 `proximityObserver`는 제거할 token이고, `self.proximityObserver`는 제거 뒤 `nil`로 비울 module property다.
+
+#### Escaping closure, capture list와 `_`
+
+```swift
+proximityObserver = NotificationCenter.default.addObserver(
+  forName: UIDevice.proximityStateDidChangeNotification,
+  object: device,
+  queue: .main
+) { [weak self] _ in
+  self?.sendCurrentState()
+}
+```
+
+마지막 인자를 괄호 밖에 쓴 trailing closure는 `NotificationCenter`에 저장되어 상태 변화 때 나중에 호출된다. `[weak self]` capture list는 closure가 module을 강하게 유지하는 순환 참조를 막고, `_`는 전달된 `Notification` parameter를 사용하지 않는다는 뜻이다. `self?.`는 weak reference가 아직 살아 있을 때만 method를 호출한다.
+
+```swift
+private func runOnMain(_ block: () -> Void) {
+  if Thread.isMainThread {
+    block()
+  } else {
+    DispatchQueue.main.sync(execute: block)
+  }
+}
+```
+
+여기서 `_`는 다른 문맥으로, 호출할 때 `block:` external argument label을 생략하게 한다. `block: () -> Void`는 인자와 반환값이 없는 closure를 parameter로 받는 고차 함수 계약이다. 이미 main thread이면 바로 호출하고, 아니면 main queue에서 동기 실행한다. 먼저 thread를 검사하므로 main thread에서 다시 `DispatchQueue.main.sync`를 호출하는 경로를 피한다.
+
+Source의 `.main`도 parameter type 문맥에 따라 다르다. `AsyncFunction.runOnQueue(.main)`은 `DispatchQueue.main`, `NotificationCenter.addObserver(..., queue: .main)`은 `OperationQueue.main`이다.
+
+#### Dictionary와 `nil`·`NSNull()` bridge
+
+```swift
+sendEvent(proximityEventName, [
+  "status": UIDevice.current.proximityState ? "near" : "far",
+  "distanceCm": NSNull(),
+  "maxRangeCm": NSNull(),
+  "observedAt": Date().timeIntervalSince1970 * 1_000
+])
+```
+
+`BaseModule.sendEvent`의 body parameter는 `[String: Any?]`이므로 문자열, `NSNull`과 `Double`을 한 dictionary에 담는다. 삼항식은 iOS boolean 상태를 공통 `near`·`far` 문자열로 바꾸고, 초 단위 `timeIntervalSince1970`에 1,000을 곱해 JS epoch millisecond에 맞춘다.
+
+Swift `nil`은 optional native 값이 없음을 나타낸다. `NSNull()`은 collection 안에 존재하는 실제 객체이므로 `distanceCm`과 `maxRangeCm` key를 유지한 채 Expo bridge를 거쳐 명시적인 JS `null`이 된다. 이 dictionary의 `[String: Any?]`는 넓은 Swift type 계약일 뿐 TypeScript `ProximityEvent` shape를 runtime에 검증하지 않으므로 native key·값과 TypeScript 선언을 함께 유지해야 한다.
+
+#### Expo Module result builder DSL
+
+```swift
+public func definition() -> ModuleDefinition {
+  Name("ProximitySensor")
+  Events(proximityEventName)
+
+  AsyncFunction("isAvailableAsync") { () -> Bool in
+    // ...
+  }.runOnQueue(.main)
+
+  OnStartObserving(proximityEventName) {
+    self.runOnMain { self.startMonitoringIfNeeded() }
+  }
+}
+```
+
+`AnyModule.definition()`에는 설치된 `expo-modules-core`의 `@ModuleDefinitionBuilder` result builder가 선언되어 있어 구현 method에 annotation을 다시 쓰지 않아도 된다. Builder의 `buildBlock(_ definitions: AnyDefinition...)`이 여러 factory 결과를 모아 `ModuleDefinition`을 만든다. 따라서 중괄호가 비슷해도 Kotlin의 receiver lambda DSL과 구현 문법은 다르다.
+
+| DSL | FieldLog에서 등록하는 계약과 callback 시점 |
+| --- | --- |
+| `Name` | TypeScript `requireNativeModule("ProximitySensor")`가 찾는 registry 이름 |
+| `Events` | native가 보낼 `onProximityChange` event 이름 |
+| `AsyncFunction` | JS가 `isAvailableAsync()`를 호출할 때 body 실행 |
+| `OnStartObserving`·`OnStopObserving` | 해당 event의 첫 listener 추가·마지막 listener 제거 때 callback 실행 |
+| `OnAppEntersForeground`·`OnAppEntersBackground` | iOS app foreground·background 전환 때 callback 실행 |
+| `OnDestroy` | module이 파괴될 때 마지막 cleanup callback 실행 |
+
+Definition을 만들 때 lifecycle closure 내부의 `UIDevice` 명령이 모두 즉시 실행되는 것은 아니다. Factory와 result builder가 callback을 definition에 등록하고 Expo runtime이 JS 호출, listener 수 변화나 app·module lifecycle 시점에 나중에 실행한다.
+
+설치된 `AsyncFunction` factory는 Swift closure의 반환 type을 받아 JS Promise function을 만든다. Expo runtime은 지정 queue에서 body를 실행하고 현재 `Bool`을 `Promise<boolean>`에 resolve하며, thrown error는 reject한다. 기본 Expo async queue 대신 `.runOnQueue(.main)`을 지정한 이유는 `UIDevice` 접근을 main queue에 두기 위해서다.
+
+이 문법들이 만드는 FieldLog lifecycle 관계만 압축하면 다음과 같다.
+
+```text
+첫 JS listener → OnStartObserving → observer 등록·monitoring 활성화
+app background → monitoring 정리, JS listener 수요는 보존
+app foreground → listener가 남아 있으면 monitoring 재시작
+마지막 listener 또는 module destroy → observer·monitoring 정리
+```
+
+이는 5-3의 iOS end-to-end lifecycle을 반복하는 것이 아니라 Swift closure와 Expo DSL이 어느 시점의 명령을 등록하는지 구분하기 위한 문법 예시다.
 
 ## 10. 자동화와 실기기 검증 구분
 

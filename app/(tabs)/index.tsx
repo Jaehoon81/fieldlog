@@ -80,7 +80,8 @@ export default function CurrentStatusScreen() {
     useState<LocationErrorKind | null>(null);
   const [isLocating, setIsLocating] = useState(false);
   // [FLOW-03 / 관련 코드] 위치 전체 객체 중 날씨 query key와 요청에 필요한 좌표만 파생합니다.
-  // useMemo는 location 참조가 같으면 같은 결과 객체를 재사용해 불필요한 query key 변화를 피합니다.
+  // useMemo는 location 참조가 같으면 파생 좌표 객체를 다시 만들지 않고 같은 참조를 재사용합니다.
+  // Query identity는 객체 참조가 아니라 weatherKeys가 만든 좌표 값의 stable hash로 결정됩니다.
   const coordinates = useMemo(
     () =>
       location === null

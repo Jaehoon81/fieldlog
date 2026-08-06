@@ -109,7 +109,7 @@ class ProximitySensorModule : Module(), SensorEventListener {
     // Expo가 Kotlin Map을 JS 객체로 직렬화해 typed listener callback에 전달합니다.
     sendEvent(
       PROXIMITY_EVENT_NAME,
-      // [Kotlin 문법] `"key" to value` 쌍들로 변경 불가능한 Map을 만듭니다.
+      // [Kotlin 문법] `"key" to value` Pair들로 읽기 전용 Map을 만듭니다.
       mapOf(
         "status" to status,
         "distanceCm" to distanceCm,
