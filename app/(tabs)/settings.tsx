@@ -99,7 +99,10 @@ export default function SettingsScreen() {
             onPress={() => {
               // [라이브러리] Linking.openURL은 운영체제에 등록된 브라우저로 HTTPS 주소를 엽니다.
               // Pressable은 Promise 결과를 사용하지 않으므로 void로 표시합니다.
-              void Linking.openURL("https://open-meteo.com/");
+              // 시스템이 URL을 열지 못한 rejection은 필수 후속 작업이 없는 링크이므로 명시적으로 종료합니다.
+              void Linking.openURL("https://open-meteo.com/").catch(
+                () => undefined,
+              );
             }}
             style={({ pressed }) => [
               styles.linkButton,
